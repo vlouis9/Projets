@@ -560,7 +560,7 @@ def main():
         - **Joueur**: Player name
         - **Poste**: Position (G, DL/DC, MD/MO, A)
         - **Club**: Player's club
-        - **Indispo ?**: Availability ('oui' for unavailable)
+        - **Indispo ?**: Availability ('TRUE' for unavailable)
         - **Cote**: MPG Price
         - **%Titu**: Titularisation percentage
         - **GW1, GW2, etc.**: Gameweek ratings (use * for goals, () for non-starters)
