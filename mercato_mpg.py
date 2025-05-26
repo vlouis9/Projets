@@ -62,9 +62,9 @@ class MPGAuctionStrategist:
         pos = str(position).upper().strip()
         if pos == 'G':
             return 'GK'
-        elif pos in ['D', 'DL', 'DC']:
+        elif pos in ['DL', 'DC']:
             return 'DEF'
-        elif pos in ['M', 'MD', 'MO']:
+        elif pos in ['MD', 'MO']:
             return 'MID'
         elif pos == 'A':
             return 'FWD'
@@ -240,7 +240,7 @@ class MPGAuctionStrategist:
     
     def select_squad(self, df: pd.DataFrame, formation: str, squad_size: int) -> Tuple[pd.DataFrame, Dict]:
         """Select optimal squad based on formation and constraints"""
-        available_df = df[df['Indispo ?'] != 'oui'].copy()
+        available_df = df[df['Indispo ?'] != 'TRUE'].copy()
         selected_players = []
         remaining_budget = self.budget
         
@@ -556,7 +556,7 @@ def main():
         st.markdown("""
         **Column Descriptions:**
         - **Joueur**: Player name
-        - **Poste**: Position (G, D/DL/DC, M/MD/MO, A)
+        - **Poste**: Position (G, DL/DC, MD/MO, A)
         - **Club**: Player's club
         - **Indispo ?**: Availability ('oui' for unavailable)
         - **Cote**: MPG Price
