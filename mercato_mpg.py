@@ -59,14 +59,12 @@ class MPGAuctionStrategist:
         
     def simplify_position(self, position: str) -> str:
         """Simplify position to GK, DEF, MID, FWD"""
-        if pd.isna(position) or str(position).strip() == '':
-            return 'UNKNOWN'
         pos = str(position).upper().strip()
         if pos == 'G':
             return 'GK'
-        elif pos in ['DL', 'DC']:
+        elif pos in ['D', 'DL', 'DC']:
             return 'DEF'
-        elif pos in ['MD', 'MO']:
+        elif pos in ['M', 'MD', 'MO']:
             return 'MID'
         elif pos == 'A':
             return 'FWD'
