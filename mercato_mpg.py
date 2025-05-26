@@ -126,19 +126,7 @@ class MPGAuctionStrategist:
                 if rating is not None and rating != 0:
                     all_ratings.append(rating)
                     all_goals.append(goals)
-                #else:
-                    # DNP counts as 0 for season averages too
-                    #all_ratings.append(0)
-                    #all_goals.append(0)
-            
-            # Recent stats (last N gameweeks)
-            if len(all_ratings) >= n_recent:
-                recent_ratings = all_ratings[n_recent:]
-                recent_goals_count = sum(all_goals[n_recent:])
-            else:
-                recent_ratings = all_ratings
-                recent_goals_count = sum(all_goals)
-
+                
             # Recent stats (first N gameweek columns, as they are most recent)
             recent_cols = gameweek_cols[:n_recent]  # Take first n_recent columns
             for col in recent_cols:
