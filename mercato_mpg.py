@@ -123,7 +123,7 @@ class MPGAuctionStrategist:
                 rating, goals = self.extract_rating_and_goals(row[col])
                 
                 # For season stats
-                if rating is not None or rating is not 0:
+                if rating is not 0:
                     all_ratings.append(rating)
                     all_goals.append(goals)
                 #else:
