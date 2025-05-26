@@ -138,6 +138,15 @@ class MPGAuctionStrategist:
             else:
                 recent_ratings = all_ratings
                 recent_goals_count = sum(all_goals)
+
+            # Recent stats (first N gameweek columns, as they are most recent)
+            recent_cols = gameweek_cols[:n_recent]  # Take first n_recent columns
+            for col in recent_cols:
+              rating, goals = self.extract_rating_and_goals(row[col])
+              if rating is not None and rating != 0:
+                recent_ratings.append(rating)
+                recent_goals_count += goals 
+
             
             # Calculate KPIs
             result_df.at[idx, 'recent_avg_rating'] = np.mean(recent_ratings) if recent_ratings else 0
