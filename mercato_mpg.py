@@ -5,19 +5,6 @@ import re
 from typing import Dict, List, Tuple, Optional
 import io
 
-# Check for optional packages and provide helpful messages
-EXCEL_SUPPORT = True
-try:
-    import openpyxl
-except ImportError:
-    EXCEL_SUPPORT = False
-
-XLS_SUPPORT = True
-try:
-    import xlrd
-except ImportError:
-    XLS_SUPPORT = False
-
 # Page configuration
 st.set_page_config(
     page_title="MPG Auction Strategist",
@@ -72,6 +59,8 @@ class MPGAuctionStrategist:
         
     def simplify_position(self, position: str) -> str:
         """Simplify position to GK, DEF, MID, FWD"""
+        if pd.isna(position) or str(position).strip() == '':
+            return 'UNKNOWN'
         pos = str(position).upper().strip()
         if pos == 'G':
             return 'GK'
@@ -263,7 +252,7 @@ class MPGAuctionStrategist:
         for pos, needed in formation_needs.items():
             pos_players = available_df[
                 (available_df['simplified_position'] == pos) & 
-                (~available_df['player_id'].isin([p['player_id'] for p in selected_players]))
+                (~available_df['player_id'].isin([p['player_id'] for p in selected_players if selected_players]))
             ].copy()
             
             # Sort by PVS (descending)
@@ -294,7 +283,7 @@ class MPGAuctionStrategist:
                 
             pos_players = available_df[
                 (available_df['simplified_position'] == pos) & 
-                (~available_df['player_id'].isin([p['player_id'] for p in selected_players]))
+                (~available_df['player_id'].isin([p['player_id'] for p in selected_players if selected_players]))
             ].copy()
             
             # Sort by value per cost (descending)
@@ -318,7 +307,7 @@ class MPGAuctionStrategist:
         remaining_slots = squad_size - len(selected_players)
         if remaining_slots > 0:
             remaining_players = available_df[
-                ~available_df['player_id'].isin([p['player_id'] for p in selected_players])
+                ~available_df['player_id'].isin([p['player_id'] for p in selected_players if selected_players])
             ].copy()
             
             remaining_players = remaining_players.sort_values('value_per_cost', ascending=False)
@@ -359,92 +348,45 @@ class MPGAuctionStrategist:
 def main():
     st.markdown('<h1 class="main-header">⚽ MPG Auction Strategist</h1>', unsafe_allow_html=True)
     
-    # Add setup instructions in expander
-    with st.expander("📋 Setup Instructions", expanded=False):
-        st.markdown("""
-        **To run this app locally:**
-        
-        1. **Install basic dependencies:**
-        ```bash
-        pip install streamlit pandas numpy
-        ```
-        
-        2. **Optional: For Excel support:**
-        ```bash
-        pip install openpyxl xlrd
-        ```
-        
-        3. **Save this code** as `mpg_auction_app.py`
-        
-        4. **Run the app:**
-        ```bash
-        streamlit run mpg_auction_app.py
-        ```
-        
-        5. **Access at:** http://localhost:8501
-        
-        **File Format Requirements:**
-        - CSV files work out of the box (recommended!)
-        - Excel files need additional packages (see step 2)
-        - Required columns: Joueur, Poste, Club, Indispo ?, Cote, %Titu
-        - Gameweek columns with ratings (use * for goals, () for non-starters)
-        """)
-    
     # Initialize the strategist
     strategist = MPGAuctionStrategist()
     
     # Sidebar for inputs
     st.sidebar.markdown('<h2 class="section-header">📁 Data Upload</h2>', unsafe_allow_html=True)
     
-    # Show dependency status
-    if not EXCEL_SUPPORT or not XLS_SUPPORT:
-        with st.sidebar.expander("⚠️ Package Information", expanded=True):
-            if not EXCEL_SUPPORT:
-                st.warning("📦 Excel (.xlsx) support not available. Install: `pip install openpyxl`")
-            if not XLS_SUPPORT:
-                st.info("📦 Old Excel (.xls) support not available. Install: `pip install xlrd`")
-            st.info("💡 CSV files work without additional packages!")
-    
-    # Determine supported file types
-    supported_types = ['csv']
-    if EXCEL_SUPPORT:
-        supported_types.extend(['xlsx'])
-    if XLS_SUPPORT:
-        supported_types.extend(['xls'])
-    
-    file_help = "Upload your CSV file" if len(supported_types) == 1 else f"Upload your {', '.join(supported_types[:-1])} or {supported_types[-1]} file"
-    
     uploaded_file = st.sidebar.file_uploader(
         "Upload your MPG ratings file",
-        type=supported_types,
-        help=file_help
+        type=['csv', 'xlsx', 'xls'],
+        help="Upload your Excel or CSV file containing player ratings data"
     )
     
     if uploaded_file is not None:
-        # Load data
         try:
             if uploaded_file.name.endswith('.csv'):
                 df = pd.read_csv(uploaded_file)
-            elif uploaded_file.name.endswith('.xlsx'):
-                if not EXCEL_SUPPORT:
-                    st.error("❌ Cannot read .xlsx files. Please install: `pip install openpyxl`")
-                    st.stop()
-                df = pd.read_excel(uploaded_file, engine='openpyxl')
-            elif uploaded_file.name.endswith('.xls'):
-                if not XLS_SUPPORT:
-                    st.error("❌ Cannot read .xls files. Please install: `pip install xlrd`")
-                    st.stop()
-                df = pd.read_excel(uploaded_file, engine='xlrd')
             else:
-                st.error("❌ Unsupported file format. Please use CSV, XLSX, or XLS files.")
-                st.stop()
+                df = pd.read_excel(uploaded_file)
+            
+            # Validate required columns
+            required_cols = ['Joueur', 'Poste', 'Club', 'Indispo ?', 'Cote', '%Titu']
+            missing_cols = [col for col in required_cols if col not in df.columns]
+            if len(missing_cols) > 0:
+                st.error(f"Missing required columns: {missing_cols}")
+                return
             
             st.sidebar.success(f"✅ File loaded: {len(df)} players")
             
-            # Process data
-            df['simplified_position'] = df.apply(strategist.simplify_position, axis=1)
-            df['player_id'] = df.apply(strategist.create_player_id, axis=1)
-            df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(0)
+            # Process data with detailed error tracking
+            try:
+                df['simplified_position'] = df.apply(strategist.simplify_position, axis=1)
+                df['player_id'] = df.apply(strategist.create_player_id, axis=1)
+                df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(0)
+                
+                # Debug: Show unique simplified positions
+                st.sidebar.write("Unique simplified positions:", df['simplified_position'].unique())
+            except Exception as e:
+                st.error(f"Error during data processing: {str(e)}")
+                return
             
             # Global Settings
             st.sidebar.markdown('<h2 class="section-header">⚙️ Global Settings</h2>', unsafe_allow_html=True)
@@ -602,45 +544,11 @@ def main():
                 st.info("👆 Please configure your settings in the sidebar and click 'Calculate Optimal Squad' to see results!")
         
         except Exception as e:
-            st.error(f"❌ Error processing file: {str(e)}")
-            st.info("""
-            **Common issues:**
-            - Make sure your file has the required columns: Joueur, Poste, Club, Indispo ?, Cote, %Titu
-            - Check that numeric columns (Cote, %Titu) contain valid numbers
-            - Ensure gameweek columns contain rating data
-            
-            **If you're getting import errors, install missing packages:**
-            ```bash
-            pip install streamlit pandas numpy openpyxl xlrd
-            ```
-            """)
-            
-            # Show detailed error for debugging
-            with st.expander("🔍 Detailed Error Information"):
-                st.code(str(e))
-                st.write("**File columns found:**", list(df.columns) if 'df' in locals() else "Could not read file")
+            st.error(f"Error processing file: {str(e)}")
+            st.info("Please make sure your file has the required columns: Joueur, Poste, Club, Indispo ?, Cote, %Titu")
     
     else:
         st.info("👈 Please upload your MPG ratings file to get started!")
-        
-        # Show setup instructions prominently
-        st.markdown("### 🚀 Quick Start")
-        st.markdown("""
-        **Don't have the app running locally yet?**
-        
-        1. **Quick start (CSV only):**
-        ```bash
-        pip install streamlit pandas numpy
-        ```
-        
-        2. **Full support (with Excel):**
-        ```bash
-        pip install streamlit pandas numpy openpyxl xlrd
-        ```
-        
-        3. Save code as `mpg_auction_app.py` and run: `streamlit run mpg_auction_app.py`
-        4. Convert your Excel file to CSV if needed, then upload here!
-        """)
         
         # Show example of expected format
         st.markdown('<h2 class="section-header">📋 Expected File Format</h2>', unsafe_allow_html=True)
@@ -669,27 +577,7 @@ def main():
         - **Cote**: MPG Price
         - **%Titu**: Titularisation percentage
         - **GW1, GW2, etc.**: Gameweek ratings (use * for goals, () for non-starters)
-        
-        ---
-        
-        **💡 Pro Tips:**
-        - Adjust KPI weights in the sidebar to match your league's scoring
-        - Try different formations to see how it affects player selection
-        - Use the search function in the full player list to find specific players
-        - Download the results CSV for offline analysis
-        
-        **🛠️ Technical Requirements:**
-        ```bash
-        pip install streamlit pandas numpy openpyxl xlrd
-        streamlit run mpg_auction_app.py
-        ```
         """)
 
 if __name__ == "__main__":
-    # Add some helpful startup information
-    print("🚀 Starting MPG Auction Strategist...")
-    print("📋 Make sure you have installed: streamlit pandas numpy openpyxl xlrd")
-    print("🌐 App will be available at: http://localhost:8501")
-    print("=" * 50)
-    
     main()
