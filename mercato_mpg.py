@@ -71,7 +71,7 @@ class MPGAuctionStrategist:
         else:
             return 'UNKNOWN'
 
-    print(f"Unrecognized position: {pos}")
+    'print(f"Unrecognized position: {pos}")
     
     def create_player_id(self, row) -> str:
         """Create unique player ID from Name + Position + Club"""
