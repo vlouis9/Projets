@@ -5,6 +5,26 @@ import re
 from typing import Dict, List, Tuple, Optional
 import io
 
+if uploaded_file is not None:
+    try:
+        if uploaded_file.name.endswith('.csv'):
+            df = pd.read_csv(uploaded_file)
+        else:
+            df = pd.read_excel(uploaded_file)
+        
+        st.sidebar.success(f"✅ File loaded: {len(df)} players")
+        
+        # Process data
+        df['simplified_position'] = df.apply(strategist.simplify_position, axis=1)
+        df['player_id'] = df.apply(strategist.create_player_id, axis=1)
+        df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(0)
+        
+        # Debug: Show unique simplified positions
+        st.sidebar.write("Unique simplified positions:", df['simplified_position'].unique())
+        
+        # ... (rest of the code remains the same)
+
+
 # Page configuration
 st.set_page_config(
     page_title="MPG Auction Strategist",
