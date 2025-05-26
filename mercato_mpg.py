@@ -71,7 +71,8 @@ class MPGAuctionStrategist:
         else:
             return 'UNKNOWN'
 
-    #print(f"Unrecognized position: {pos}")
+    st.write("Position breakdown:", df['Poste'].unique())
+    st.write("Simplified position breakdown:", df['simplified_position'].value_counts())
     
     def create_player_id(self, row) -> str:
         """Create unique player ID from Name + Position + Club"""
