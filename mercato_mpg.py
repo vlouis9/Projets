@@ -467,20 +467,20 @@ def main():
                     
                     # Squad table
                     squad_display = st.session_state['squad_df'][
-                        ['Joueur', 'Club', 'simplified_position', 'Cote', 'pvs', 'mrb', 
+                        ['Joueur', 'Club', 'simplified_position', 'mrb', 'Cote', 'pvs', 'season_goals', 'recent_goals', 
                          'recent_avg_rating', 'season_avg_rating', 'norm_regularity', 'is_starter']
                     ].copy()
                     
-                    squad_display.columns = ['Player', 'Club', 'Position', 'Cote', 'PVS', 'MRB', 
+                    squad_display.columns = ['Player', 'Club', 'Position', 'MRB', 'Cote', 'PVS', 'Goals', 'Recent Goals' , 
                                            'Recent Avg', 'Season Avg', 'Regularity %', 'Starter']
                     
                     # Round numeric columns
-                    numeric_cols = ['Cote', 'PVS', 'MRB', 'Recent Avg', 'Season Avg', 'Regularity %']
+                    numeric_cols = ['Cote', 'PVS', 'MRB', 'Recent Avg', 'Season Avg', 'Regularity %', 'Goals', 'Recent Goals']
                     for col in numeric_cols:
                         squad_display[col] = squad_display[col].round(2)
                     
                     # Sort by starter status and PVS
-                    squad_display = squad_display.sort_values(['Starter', 'PVS'], ascending=[False, False])
+                    squad_display = squad_display.sort_values(['Starter', 'Position'], ascending=[False, False])
                     
                     st.dataframe(
                         squad_display,
