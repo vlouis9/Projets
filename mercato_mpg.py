@@ -104,7 +104,7 @@ class MPGAuctionStrategist:
         result_df = df.copy()
         
         # Get gameweek columns (assuming they're numeric columns after the main columns)
-        main_cols = ['Joueur', 'Poste', 'Club', 'Indispo ?', 'Cote', '%Titu']
+        main_cols = ['Joueur', 'Poste', 'Club', 'Indispo ?', 'Cote', '%Titu', 'Note', 'Variation', 'Buts', 'D-34','D-33','DMI', 'Prochain adv', 'Victoire probable' ]
         gameweek_cols = [col for col in df.columns if col not in main_cols]
         
         # Initialize KPI columns
