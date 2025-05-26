@@ -1,4 +1,4 @@
-import streamlit as st
+    import streamlit as st
 import pandas as pd
 import numpy as np
 import re
@@ -70,9 +70,6 @@ class MPGAuctionStrategist:
             return 'FWD'
         else:
             return 'UNKNOWN'
-
-    st.write("Position breakdown:", df['Poste'].unique())
-    st.write("Simplified position breakdown:", df['simplified_position'].value_counts())
     
     def create_player_id(self, row) -> str:
         """Create unique player ID from Name + Position + Club"""
