@@ -378,12 +378,16 @@ def main():
             
             # Process data with detailed error tracking
             try:
-                df['simplified_position'] = df.apply(strategist.simplify_position, axis=1)
+                df['simplified_position'] = df['Poste'].apply(strategist.simplify_position)
                 df['player_id'] = df.apply(strategist.create_player_id, axis=1)
                 df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(0)
                 
-                # Debug: Show unique simplified positions
+                # Debug: Show unique simplified positions and any UNKNOWN rows
                 st.sidebar.write("Unique simplified positions:", df['simplified_position'].unique())
+                unknown_rows = df[df['simplified_position'] == 'UNKNOWN'][['Joueur', 'Poste', 'Club']]
+                if not unknown_rows.empty:
+                    st.sidebar.warning("Rows with UNKNOWN position:")
+                    st.sidebar.dataframe(unknown_rows)
             except Exception as e:
                 st.error(f"Error during data processing: {str(e)}")
                 return
