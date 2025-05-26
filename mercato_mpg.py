@@ -123,13 +123,13 @@ class MPGAuctionStrategist:
                 rating, goals = self.extract_rating_and_goals(row[col])
                 
                 # For season stats
-                if rating is not None:
+                if rating is not None and rating! =0:
                     all_ratings.append(rating)
                     all_goals.append(goals)
-                else:
+                #else:
                     # DNP counts as 0 for season averages too
-                    all_ratings.append(0)
-                    all_goals.append(0)
+                    #all_ratings.append(0)
+                    #all_goals.append(0)
             
             # Recent stats (last N gameweeks)
             if len(all_ratings) >= n_recent:
