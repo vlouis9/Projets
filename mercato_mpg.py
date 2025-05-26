@@ -61,13 +61,13 @@ class MPGAuctionStrategist:
         """Simplify position to GK, DEF, MID, FWD"""
         pos = str(position).upper().strip()
         if pos == 'G':
-            return 'G'
+            return 'GK'
         elif pos in ['DL', 'DC']:
-            return 'D'
+            return 'DEF'
         elif pos in ['MD', 'MO']:
-            return 'M'
+            return 'MID'
         elif pos == 'A':
-            return 'A'
+            return 'FWD'
         else:
             return 'UNKNOWN'
 
