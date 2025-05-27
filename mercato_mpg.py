@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import re
 from typing import Dict, List, Tuple, Optional
-import io
 
 # Page configuration
 st.set_page_config(
@@ -19,566 +18,674 @@ st.markdown("""
     .main-header {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #1f77b4;
+        color: #1f77b4; /* Primary color */
         text-align: center;
         margin-bottom: 2rem;
+        font-family: 'Arial', sans-serif; /* Example font */
     }
     .section-header {
         font-size: 1.5rem;
         font-weight: bold;
-        color: #2e7d32;
+        color: #2e7d32; /* Secondary color */
         margin-top: 1.5rem;
         margin-bottom: 1rem;
+        border-bottom: 2px solid #2e7d32;
+        padding-bottom: 0.3rem;
     }
     .metric-container {
         background-color: #f0f2f6;
         padding: 1rem;
         border-radius: 0.5rem;
         margin: 0.5rem 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    .starter-row {
-        background-color: #e8f5e8 !important;
+    .stButton>button {
+        background-color: #1f77b4;
+        color: white;
+        font-weight: bold;
+        border-radius: 0.5rem;
+        padding: 0.5rem 1rem;
+    }
+    .stButton>button:hover {
+        background-color: #155a8a;
+        color: white;
+    }
+    .stSlider [data-baseweb="slider"] {
+        padding-bottom: 10px; /* More space for slider labels */
     }
 </style>
 """, unsafe_allow_html=True)
 
 class MPGAuctionStrategist:
     def __init__(self):
-        self.formations = {
-            "3-4-3": {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3},
-            "3-5-2": {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2},
-            "4-3-3": {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3},
-            "4-4-2": {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2},
-            "4-5-1": {"GK": 1, "DEF": 4, "MID": 5, "FWD": 1},
-            "5-3-2": {"GK": 1, "DEF": 5, "MID": 3, "FWD": 2},
-            "5-4-1": {"GK": 1, "DEF": 5, "MID": 4, "FWD": 1}
+        self.formations = { #
+            "3-4-3": {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3}, #
+            "3-5-2": {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2}, #
+            "4-3-3": {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3}, #
+            "4-4-2": {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2}, #
+            "4-5-1": {"GK": 1, "DEF": 4, "MID": 5, "FWD": 1}, #
+            "5-3-2": {"GK": 1, "DEF": 5, "MID": 3, "FWD": 2}, #
+            "5-4-1": {"GK": 1, "DEF": 5, "MID": 4, "FWD": 1}  #
         }
-        
-        self.squad_minimums = {"GK": 2, "DEF": 6, "MID": 6, "FWD": 4}
+        self.squad_minimums = {"GK": 2, "DEF": 6, "MID": 6, "FWD": 4} #
         self.budget = 500
-        
+
     def simplify_position(self, position: str) -> str:
-        """Simplify position to GK, DEF, MID, FWD"""
         if pd.isna(position) or str(position).strip() == '':
-            return 'UNKNOWN'
+            return 'UNKNOWN' #
         pos = str(position).upper().strip()
         if pos == 'G':
-            return 'GK'
-        elif pos in ['DL', 'DC']:
-            return 'DEF'
-        elif pos in ['MD', 'MO']:
-            return 'MID'
+            return 'GK' #
+        elif pos in ['D', 'DL', 'DC']: # Added 'D' for general defenders
+            return 'DEF' #
+        elif pos in ['M', 'MD', 'MO']: # Added 'M' for general midfielders
+            return 'MID' #
         elif pos == 'A':
-            return 'FWD'
+            return 'FWD' #
         else:
-            return 'UNKNOWN'
-    
+            return 'UNKNOWN' #
+
     def create_player_id(self, row) -> str:
-        """Create unique player ID from Name + Position + Club"""
-        name = str(row.get('Joueur', '')).strip()
-        position = self.simplify_position(row.get('Poste', ''))
-        club = str(row.get('Club', '')).strip()
-        return f"{name}_{position}_{club}"
-    
-    def extract_rating_and_goals(self, rating_str) -> Tuple[Optional[float], int]:
-        """Extract MPG rating and goals from rating string"""
-        if pd.isna(rating_str) or rating_str == '':
-            return None, 0
+        name = str(row.get('Joueur', '')).strip() #
+        # Use the original 'Poste' for ID to ensure uniqueness if simplify_position changes,
+        # but for actual logic, simplified_position is used.
+        # For consistency in ID, let's use the simplified position
+        simplified_pos = self.simplify_position(row.get('Poste', '')) #
+        club = str(row.get('Club', '')).strip() #
+        return f"{name}_{simplified_pos}_{club}"
+
+    def extract_rating_and_goals(self, rating_str) -> Tuple[Optional[float], int, bool]:
+        """Extract MPG rating, goals, and if played (not DNP)"""
+        if pd.isna(rating_str) or str(rating_str).strip() == '' or str(rating_str).strip() == '0':
+            return None, 0, False # DNP if blank or '0'
         
-        rating_str = str(rating_str).strip()
+        rating_val_str = str(rating_str).strip()
         
-        # Count goals (asterisks)
-        goals = rating_str.count('*')
+        goals = rating_val_str.count('*') #
         
-        # Extract rating (remove parentheses and asterisks)
-        clean_str = re.sub(r'[()\\*]', '', rating_str)
+        # Remove parentheses and asterisks to get the rating number
+        clean_rating_str = re.sub(r'[()\*]', '', rating_val_str) #
         
         try:
-            rating = float(clean_str)
-            return rating, goals
-        except:
-            return None, 0
-    
+            rating = float(clean_rating_str)
+            if rating == 0: # If after cleaning, rating is 0, treat as DNP as per user clarification.
+                 return None, goals, False # This '0' might be a specific DNP marker or extremely poor play
+            return rating, goals, True # Played
+        except ValueError:
+            return None, 0, False # If conversion fails, treat as DNP
+
+    def get_gameweek_columns(self, df_columns: List[str]) -> List[str]:
+        """Identify and sort gameweek columns (e.g., D1, D2, ..., D34 with D34 as most recent)"""
+        gw_cols = []
+        for col in df_columns:
+            match = re.fullmatch(r'D(\d+)', col) # Matches D<number>
+            if match:
+                gw_cols.append({'name': col, 'number': int(match.group(1))})
+        
+        # Sort by gameweek number (descending for most recent first, e.g. D34, D33, ...)
+        # This matches the assumption that user file might be D34, D33 ... D1
+        # If file is D1, D2 ... D34, then sort ascending and pick from end for recent.
+        # User said: "D1, D2, D3... In reverse order in the file." This implies D1 is most recent column if columns are sorted D1...D34.
+        # However, D34 is typically the latest gameweek.
+        # Let's assume standard notation: D34 is later than D1. We want the N latest gameweeks.
+        # So we sort D1...D34 (ascending number) and then take the last N.
+        sorted_gw_cols = sorted(gw_cols, key=lambda x: x['number'])
+        return [col['name'] for col in sorted_gw_cols]
+
+
     def calculate_kpis(self, df: pd.DataFrame, n_recent: int) -> pd.DataFrame:
-        """Calculate all KPIs for players"""
         result_df = df.copy()
         
-        # Get gameweek columns (assuming they're numeric columns after the main columns)
-        main_cols = ['Joueur', 'Poste', 'Club', 'Indispo ?', 'Cote', '%Titu', 'Note', 'Variation', 'Buts', 'D-34','D-33','DMI', 'Prochain adv', 'Victoire probable' ]
-        gameweek_cols = [col for col in df.columns if col not in main_cols]
+        all_df_gameweek_cols = self.get_gameweek_columns(df.columns) # Correctly sorted, D1 to D34
         
-        # Initialize KPI columns
-        kpi_cols = ['recent_avg_rating', 'recent_goals', 'season_avg_rating', 'season_goals']
-        for col in kpi_cols:
-            result_df[col] = 0.0
-        
-        for idx, row in result_df.iterrows():
-            all_ratings = []
-            all_goals = []
-            recent_ratings = []
-            recent_goals_count = 0
-            
-            # Process all gameweeks
-            for col in gameweek_cols:
-                rating, goals = self.extract_rating_and_goals(row[col])
-                
-                # For season stats
-                if rating is not None and rating != 0:
-                    all_ratings.append(rating)
-                    all_goals.append(goals)
-                
-            # Recent stats (first N gameweek columns, as they are most recent)
-            recent_cols = gameweek_cols[:n_recent]  # Take first n_recent columns
-            for col in recent_cols:
-              rating, goals = self.extract_rating_and_goals(row[col])
-              if rating is not None and rating != 0:
-                recent_ratings.append(rating)
-                recent_goals_count += goals 
+        kpi_cols_to_init = [
+            'recent_avg_rating', 'recent_goals', 'season_avg_rating', 'season_goals',
+            'recent_games_played_count' # New KPI for filtering
+        ]
+        for col in kpi_cols_to_init: #
+            result_df[col] = 0.0 #
+            if 'count' in col: result_df[col] = 0
 
+
+        for idx, row in result_df.iterrows():
+            season_ratings_played = []
+            season_goals_total = 0
             
-            # Calculate KPIs
-            result_df.at[idx, 'recent_avg_rating'] = np.mean(recent_ratings) if recent_ratings else 0
-            result_df.at[idx, 'recent_goals'] = recent_goals_count
-            result_df.at[idx, 'season_avg_rating'] = np.mean(all_ratings) if all_ratings else 0
-            result_df.at[idx, 'season_goals'] = sum(all_goals)
+            # Process all gameweeks for season stats
+            for gw_col_name in all_df_gameweek_cols:
+                rating, goals, played_this_gw = self.extract_rating_and_goals(row[gw_col_name])
+                if played_this_gw and rating is not None: # Only consider if played and rating is valid
+                    season_ratings_played.append(rating)
+                    season_goals_total += goals
+            
+            result_df.at[idx, 'season_avg_rating'] = np.mean(season_ratings_played) if season_ratings_played else 0
+            result_df.at[idx, 'season_goals'] = season_goals_total
+
+            # Process N most recent gameweeks for recent form (user wants avg of played games)
+            # The N most recent gameweeks are the last N columns in `all_df_gameweek_cols`
+            recent_calendar_gws = all_df_gameweek_cols[-n_recent:] if len(all_df_gameweek_cols) >= n_recent else all_df_gameweek_cols
+            
+            recent_ratings_played = []
+            recent_goals_scored_in_played_games = 0
+            recent_games_played_count_in_window = 0
+
+            for gw_col_name in recent_calendar_gws:
+                rating, goals, played_this_gw = self.extract_rating_and_goals(row[gw_col_name])
+                if played_this_gw and rating is not None: # Only consider if played and rating is valid
+                    recent_ratings_played.append(rating)
+                    recent_goals_scored_in_played_games += goals
+                    recent_games_played_count_in_window += 1
+            
+            result_df.at[idx, 'recent_avg_rating'] = np.mean(recent_ratings_played) if recent_ratings_played else 0
+            result_df.at[idx, 'recent_goals'] = recent_goals_scored_in_played_games
+            result_df.at[idx, 'recent_games_played_count'] = recent_games_played_count_in_window
         
         return result_df
-    
+
     def normalize_kpis(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Normalize KPIs to 0-100 scale"""
         result_df = df.copy()
         
-        # Normalize ratings (multiply by 10, cap at 100)
-        result_df['norm_recent_avg'] = np.clip(result_df['recent_avg_rating'] * 10, 0, 100)
-        result_df['norm_season_avg'] = np.clip(result_df['season_avg_rating'] * 10, 0, 100)
+        result_df['norm_recent_avg'] = np.clip(result_df['recent_avg_rating'] * 10, 0, 100) #
+        result_df['norm_season_avg'] = np.clip(result_df['season_avg_rating'] * 10, 0, 100) #
         
-        # Normalize regularity (%Titu is already 0-100)
-        result_df['norm_regularity'] = pd.to_numeric(result_df['%Titu'], errors='coerce').fillna(0)
+        # Ensure '%Titu' is numeric, coercing errors and filling NaNs with 0
+        result_df['norm_regularity'] = pd.to_numeric(result_df['%Titu'], errors='coerce').fillna(0).clip(0, 100) #
         
-        # Normalize goals by position
+        result_df['norm_recent_goals'] = 0.0 # Initialize for all
+        result_df['norm_season_goals'] = 0.0 # Initialize for all
+
         for pos in ['MID', 'FWD']:
-            pos_mask = result_df['simplified_position'] == pos
-            
+            pos_mask = result_df['simplified_position'] == pos #
             if pos_mask.sum() > 0:
-                # Recent goals: 5+ = 100
-                result_df.loc[pos_mask, 'norm_recent_goals'] = np.clip(
-                    result_df.loc[pos_mask, 'recent_goals'] * 20, 0, 100
-                )
+                result_df.loc[pos_mask, 'norm_recent_goals'] = np.clip(result_df.loc[pos_mask, 'recent_goals'] * 20, 0, 100) #
                 
-                # Season goals: max scorer = 100
                 max_season_goals = result_df.loc[pos_mask, 'season_goals'].max()
                 if max_season_goals > 0:
-                    result_df.loc[pos_mask, 'norm_season_goals'] = (
-                        result_df.loc[pos_mask, 'season_goals'] / max_season_goals * 100
+                    result_df.loc[pos_mask, 'norm_season_goals'] = np.clip(
+                        (result_df.loc[pos_mask, 'season_goals'] / max_season_goals * 100), 0, 100 #
                     )
                 else:
-                    result_df.loc[pos_mask, 'norm_season_goals'] = 0
-            else:
-                result_df.loc[pos_mask, 'norm_recent_goals'] = 0
-                result_df.loc[pos_mask, 'norm_season_goals'] = 0
-        
-        # For GK and DEF, goals are not applicable
-        gk_def_mask = result_df['simplified_position'].isin(['GK', 'DEF'])
-        result_df.loc[gk_def_mask, 'norm_recent_goals'] = 0
-        result_df.loc[gk_def_mask, 'norm_season_goals'] = 0
+                    result_df.loc[pos_mask, 'norm_season_goals'] = 0 #
         
         return result_df
-    
-    def calculate_pvs(self, df: pd.DataFrame, weights: Dict) -> pd.DataFrame:
-        """Calculate Player Value Score"""
+
+    def calculate_pvs(self, df: pd.DataFrame, weights: Dict[str, Dict[str, float]]) -> pd.DataFrame:
         result_df = df.copy()
         result_df['pvs'] = 0.0
         
-        for pos in ['GK', 'DEF', 'MID', 'FWD']:
-            pos_mask = result_df['simplified_position'] == pos
-            if pos_mask.sum() == 0:
+        for pos_simplified in ['GK', 'DEF', 'MID', 'FWD']:
+            pos_mask = result_df['simplified_position'] == pos_simplified #
+            if not pos_mask.any():
                 continue
-                
-            pos_weights = weights[pos]
             
-            # Calculate weighted sum
-            pvs_values = (
-                result_df.loc[pos_mask, 'norm_recent_avg'] * pos_weights['recent_avg'] +
-                result_df.loc[pos_mask, 'norm_season_avg'] * pos_weights['season_avg'] +
-                result_df.loc[pos_mask, 'norm_regularity'] * pos_weights['regularity'] +
-                result_df.loc[pos_mask, 'norm_recent_goals'] * pos_weights['recent_goals'] +
-                result_df.loc[pos_mask, 'norm_season_goals'] * pos_weights['season_goals']
-            ) / 100  # Normalize to reasonable scale
+            pos_weights = weights[pos_simplified]
             
-            result_df.loc[pos_mask, 'pvs'] = pvs_values
-        
+            # Initialize PVS components to 0 to avoid errors if a norm_kpi is missing
+            # (though normalize_kpis should create them all)
+            pvs_calc = pd.Series(0.0, index=result_df.loc[pos_mask].index)
+            
+            pvs_calc += result_df.loc[pos_mask, 'norm_recent_avg'].fillna(0) * pos_weights.get('recent_avg', 0)
+            pvs_calc += result_df.loc[pos_mask, 'norm_season_avg'].fillna(0) * pos_weights.get('season_avg', 0)
+            pvs_calc += result_df.loc[pos_mask, 'norm_regularity'].fillna(0) * pos_weights.get('regularity', 0)
+            
+            if pos_simplified in ['MID', 'FWD']:
+                pvs_calc += result_df.loc[pos_mask, 'norm_recent_goals'].fillna(0) * pos_weights.get('recent_goals', 0)
+                pvs_calc += result_df.loc[pos_mask, 'norm_season_goals'].fillna(0) * pos_weights.get('season_goals', 0)
+            
+            result_df.loc[pos_mask, 'pvs'] = pvs_calc # PVS is now 0-100 scale
+                                                    # (assuming weights sum to 1 and KPIs are 0-100)
+                                                    # Or sum of (0-100 KPI * 0-1 weight)
         return result_df
-    
+
     def calculate_mrb(self, df: pd.DataFrame, mrb_params: Dict) -> pd.DataFrame:
-        """Calculate Max Recommended Bid"""
-        result_df = df.copy()
+        result_df = df.copy() #
         
-        baseline_pvs = mrb_params['baseline_pvs']
-        max_markup = mrb_params['max_markup'] / 100
-        points_for_max = mrb_params['points_for_max']
-        absolute_max = mrb_params['absolute_max']
+        # These params will now expect PVS on a 0-100 scale
+        baseline_pvs = mrb_params['baseline_pvs_0_100'] 
+        max_markup_pct_val = mrb_params['max_markup_pct'] / 100.0 # e.g., 50% -> 0.5
+        points_for_max_markup_pvs = mrb_params['points_for_max_markup_0_100']
+        absolute_max_bid_val = mrb_params['absolute_max_bid']
         
-        def calc_mrb(row):
+        def calc_mrb_dynamic(row):
             cote = row['Cote']
-            pvs = row['pvs']
+            pvs = row['pvs'] # This PVS is now 0-100
+            
+            # Ensure cote is numeric and not NaN, default to a high number if problematic for MRB logic
+            if pd.isna(cote) or cote <= 0: cote = 1 # Min bid usually 1
             
             if pvs <= baseline_pvs:
-                return cote
+                return float(cote) #
             
-            # Calculate markup percentage
             excess_pvs = pvs - baseline_pvs
-            markup_pct = min(max_markup, (excess_pvs / points_for_max) * max_markup)
             
-            mrb = cote * (1 + markup_pct)
-            return min(mrb, absolute_max)
+            # Ensure points_for_max_markup_pvs is not zero to avoid division error
+            if points_for_max_markup_pvs == 0:
+                 actual_markup_percentage = max_markup_pct_val # Max markup if any excess PVS
+            else:
+                actual_markup_percentage = min(max_markup_pct_val, (excess_pvs / points_for_max_markup_pvs) * max_markup_pct_val) #
+            
+            mrb = cote * (1 + actual_markup_percentage)
+            mrb = min(mrb, absolute_max_bid_val)
+            return round(float(mrb)) # Return as float/int, often bids are integers
+
+        result_df['mrb'] = result_df.apply(calc_mrb_dynamic, axis=1)
         
-        result_df['mrb'] = result_df.apply(calc_mrb, axis=1)
-        result_df['value_per_cost'] = result_df['pvs'] / result_df['mrb']
+        # Handle MRB being zero or NaN for ValuePerCost calculation
+        safe_mrb = result_df['mrb'].replace(0, np.nan) # Avoid division by zero if MRB is 0
+        result_df['value_per_cost'] = result_df['pvs'] / safe_mrb 
+        result_df['value_per_cost'].fillna(0, inplace=True) # if MRB was 0 or NaN, VpC is 0
         
         return result_df
-    
-    def select_squad(self, df: pd.DataFrame, formation: str, squad_size: int) -> Tuple[pd.DataFrame, Dict]:
-        """Select optimal squad based on formation and constraints"""
-        available_df = df[df['Indispo ?'] != 'TRUE'].copy()
-        selected_players = []
-        remaining_budget = self.budget
+
+    def select_squad(self, df: pd.DataFrame, formation_key: str, target_squad_size: int, 
+                     min_recent_games: int) -> Tuple[Optional[pd.DataFrame], Optional[Dict]]:
         
-        # Phase 1: Select starters for formation
-        formation_needs = self.formations[formation].copy()
+        # Apply minimum recent games played filter
+        if min_recent_games > 0:
+            eligible_df = df[df['recent_games_played_count'] >= min_recent_games].copy()
+        else:
+            eligible_df = df.copy()
+
+        # Filter out unavailable players
+        eligible_df = eligible_df[~eligible_df['Indispo ?'].astype(str).str.upper().isin(['TRUE', 'OUI', '1'])].copy() #
+
+        if eligible_df.empty:
+            st.warning("No eligible players available after filtering. Adjust filters or check data.")
+            return None, None
+
+        selected_player_ids = []
+        current_budget_spent = 0
+        squad_player_counts_map = {pos: 0 for pos in self.squad_minimums.keys()} # e.g. {"GK":0, ...}
         
-        for pos, needed in formation_needs.items():
-            pos_players = available_df[
-                (available_df['simplified_position'] == pos) & 
-                (~available_df['player_id'].isin([p['player_id'] for p in selected_players if selected_players]))
-            ].copy()
+        # Ensure player_id is unique and available for selection
+        eligible_df = eligible_df.drop_duplicates(subset=['player_id'])
+
+        # --- Phase 1: Select Starters for Preferred Formation ---
+        starters_for_formation = self.formations[formation_key].copy() # {pos: count} e.g. {"GK":1, "DEF":4,...}
+        
+        st.write("--- Phase 1: Selecting Starters ---") # Debug
+        starters_selected_this_phase = []
+
+        for pos, num_starters_needed in starters_for_formation.items():
+            candidates = eligible_df[
+                (eligible_df['simplified_position'] == pos) &
+                (~eligible_df['player_id'].isin(selected_player_ids))
+            ].sort_values(by='pvs', ascending=False) # Prioritize PVS for starters
             
-            # Sort by PVS (descending)
-            pos_players = pos_players.sort_values('pvs', ascending=False)
-            
-            count = 0
-            for _, player in pos_players.iterrows():
-                if count >= needed or player['mrb'] > remaining_budget:
-                    continue
-                    
-                selected_players.append({
-                    'player_id': player['player_id'],
-                    'position': pos,
-                    'mrb': player['mrb'],
-                    'is_starter': True
-                })
-                remaining_budget -= player['mrb']
-                count += 1
-        
-        # Phase 2: Meet squad minimums
-        current_counts = {pos: sum(1 for p in selected_players if p['position'] == pos) 
-                         for pos in self.squad_minimums.keys()}
-        
-        for pos, minimum in self.squad_minimums.items():
-            needed = max(0, minimum - current_counts[pos])
-            if needed == 0:
+            added_for_pos = 0
+            for _, player_row in candidates.iterrows():
+                if added_for_pos >= num_starters_needed:
+                    break
+                if current_budget_spent + player_row['mrb'] <= self.budget: #
+                    player_data = player_row.to_dict()
+                    player_data['is_starter'] = True
+                    starters_selected_this_phase.append(player_data)
+                    selected_player_ids.append(player_row['player_id'])
+                    current_budget_spent += player_row['mrb']
+                    squad_player_counts_map[pos] += 1
+                    added_for_pos += 1
+            # st.write(f"Selected {added_for_pos}/{num_starters_needed} starters for {pos}. Budget spent: {current_budget_spent}")
+
+
+        # --- Phase 2: Fulfill Overall Squad Positional Minimums ---
+        st.write("--- Phase 2: Fulfilling Squad Minimums ---") # Debug
+        bench_selected_for_minimums = []
+
+        for pos, overall_min_count in self.squad_minimums.items(): #
+            needed_for_overall_min = max(0, overall_min_count - squad_player_counts_map[pos]) #
+            if needed_for_overall_min == 0: #
                 continue
-                
-            pos_players = available_df[
-                (available_df['simplified_position'] == pos) & 
-                (~available_df['player_id'].isin([p['player_id'] for p in selected_players if selected_players]))
-            ].copy()
+
+            candidates = eligible_df[
+                (eligible_df['simplified_position'] == pos) &
+                (~eligible_df['player_id'].isin(selected_player_ids))
+            ].sort_values(by='value_per_cost', ascending=False) # Value/Cost for bench
             
-            # Sort by value per cost (descending)
-            pos_players = pos_players.sort_values('value_per_cost', ascending=False)
+            added_for_pos_min = 0
+            for _, player_row in candidates.iterrows():
+                if added_for_pos_min >= needed_for_overall_min:
+                    break
+                if current_budget_spent + player_row['mrb'] <= self.budget: #
+                    player_data = player_row.to_dict()
+                    player_data['is_starter'] = False # These are for squad depth to meet minimums
+                    bench_selected_for_minimums.append(player_data)
+                    selected_player_ids.append(player_row['player_id'])
+                    current_budget_spent += player_row['mrb']
+                    squad_player_counts_map[pos] += 1
+                    added_for_pos_min += 1
+            # st.write(f"Selected {added_for_pos_min}/{needed_for_overall_min} for {pos} to meet minimums. Budget spent: {current_budget_spent}")
+
+
+        # --- Phase 3: Complete the Squad to Total Squad Size ---
+        st.write("--- Phase 3: Completing to Total Squad Size ---") # Debug
+        final_bench_fill = []
+        
+        current_total_players = len(selected_player_ids)
+        remaining_slots_to_fill_total = max(0, target_squad_size - current_total_players)
+
+        if remaining_slots_to_fill_total > 0:
+            candidates = eligible_df[
+                (~eligible_df['player_id'].isin(selected_player_ids))
+            ].sort_values(by='value_per_cost', ascending=False) # Value/Cost for remaining slots
             
-            count = 0
-            for _, player in pos_players.iterrows():
-                if count >= needed or player['mrb'] > remaining_budget:
-                    continue
-                    
-                selected_players.append({
-                    'player_id': player['player_id'],
-                    'position': pos,
-                    'mrb': player['mrb'],
-                    'is_starter': False
-                })
-                remaining_budget -= player['mrb']
-                count += 1
+            added_to_total = 0
+            for _, player_row in candidates.iterrows():
+                if added_to_total >= remaining_slots_to_fill_total:
+                    break
+                if current_budget_spent + player_row['mrb'] <= self.budget: #
+                    player_data = player_row.to_dict()
+                    player_data['is_starter'] = False
+                    final_bench_fill.append(player_data)
+                    selected_player_ids.append(player_row['player_id'])
+                    current_budget_spent += player_row['mrb']
+                    # Increment the count for the actual simplified position of the player
+                    squad_player_counts_map[player_row['simplified_position']] += 1
+                    added_to_total += 1
+            # st.write(f"Selected {added_to_total}/{remaining_slots_to_fill_total} to reach total squad size. Budget spent: {current_budget_spent}")
+
+        # Consolidate selected player data from the original dataframe
+        # Add is_starter information correctly
+        final_squad_df = eligible_df[eligible_df['player_id'].isin(selected_player_ids)].copy()
         
-        # Phase 3: Fill remaining squad slots
-        remaining_slots = squad_size - len(selected_players)
-        if remaining_slots > 0:
-            remaining_players = available_df[
-                ~available_df['player_id'].isin([p['player_id'] for p in selected_players if selected_players])
-            ].copy()
-            
-            remaining_players = remaining_players.sort_values('value_per_cost', ascending=False)
-            
-            count = 0
-            for _, player in remaining_players.iterrows():
-                if count >= remaining_slots or player['mrb'] > remaining_budget:
-                    continue
-                    
-                selected_players.append({
-                    'player_id': player['player_id'],
-                    'position': player['simplified_position'],
-                    'mrb': player['mrb'],
-                    'is_starter': False
-                })
-                remaining_budget -= player['mrb']
-                count += 1
+        # Create a mapping from player_id to their 'is_starter' status
+        starter_status_map = {}
+        for p_data in starters_selected_this_phase:
+            starter_status_map[p_data['player_id']] = True
+        for p_data in bench_selected_for_minimums:
+            if p_data['player_id'] not in starter_status_map: # Don't override if already a starter
+                 starter_status_map[p_data['player_id']] = False
+        for p_data in final_bench_fill:
+            if p_data['player_id'] not in starter_status_map:
+                 starter_status_map[p_data['player_id']] = False
         
-        # Create result dataframe
-        selected_ids = [p['player_id'] for p in selected_players]
-        starter_ids = [p['player_id'] for p in selected_players if p['is_starter']]
+        final_squad_df['is_starter'] = final_squad_df['player_id'].map(starter_status_map).fillna(False)
+
+
+        # Final summary calculation
+        actual_total_cost = final_squad_df['mrb'].sum() # Sum MRB from the selected players in dataframe
         
-        squad_df = df[df['player_id'].isin(selected_ids)].copy()
-        squad_df['is_starter'] = squad_df['player_id'].isin(starter_ids)
-        
-        # Calculate summary
-        total_cost = sum(p['mrb'] for p in selected_players)
-        summary = {
-            'total_players': len(selected_players),
-            'total_cost': total_cost,
-            'remaining_budget': self.budget - total_cost,
-            'position_counts': {pos: sum(1 for p in selected_players if p['position'] == pos) 
-                              for pos in ['GK', 'DEF', 'MID', 'FWD']}
+        squad_summary = { #
+            'total_players': len(final_squad_df), #
+            'total_cost': actual_total_cost, #
+            'remaining_budget': self.budget - actual_total_cost, #
+            'position_counts': final_squad_df['simplified_position'].value_counts().to_dict() #
         }
         
-        return squad_df, summary
+        # Check if all minimums are met (important final validation)
+        for pos, min_val in self.squad_minimums.items():
+            if squad_summary['position_counts'].get(pos, 0) < min_val:
+                st.warning(f"Warning: Could not meet minimum for {pos} ({squad_summary['position_counts'].get(pos, 0)}/{min_val}) with current budget/players.")
+                # Potentially return None or an incomplete squad indicator if strict
+        if len(final_squad_df) < target_squad_size and len(final_squad_df) < self.squad_minimums_sum_val: # squad_minimums_sum_val needs to be defined
+             st.warning(f"Warning: Could not reach target squad size. Selected {len(final_squad_df)} players.")
+
+
+        return final_squad_df, squad_summary
+    
+    @property # Helper property
+    def squad_minimums_sum_val(self):
+        return sum(self.squad_minimums.values())
 
 def main():
-    st.markdown('<h1 class="main-header">⚽ MPG Auction Strategist</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">⚽ MPG Auction Strategist</h1>', unsafe_allow_html=True) #
     
-    # Initialize the strategist
     strategist = MPGAuctionStrategist()
     
-    # Sidebar for inputs
-    st.sidebar.markdown('<h2 class="section-header">📁 Data Upload</h2>', unsafe_allow_html=True)
-    
-    uploaded_file = st.sidebar.file_uploader(
-        "Upload your MPG ratings file",
-        type=['csv', 'xlsx', 'xls'],
-        help="Upload your Excel or CSV file containing player ratings data"
-    )
-    
+    # --- Sidebar ---
+    st.sidebar.markdown('<h2 class="section-header">📁 Data & Global Settings</h2>', unsafe_allow_html=True) #
+    with st.sidebar.expander("File Upload & Data Settings", expanded=True):
+        uploaded_file = st.sidebar.file_uploader(
+            "Upload your MPG ratings file (CSV or Excel)",
+            type=['csv', 'xlsx', 'xls'], #
+            help="Ensure columns like 'Joueur', 'Poste', 'Club', 'Indispo ?', 'Cote', '%Titu', and gameweek columns (e.g., D1, D2... D34) are present."
+        )
+        n_recent = st.sidebar.number_input(
+            "Number of Recent Games (N) for Form KPIs", #
+            min_value=1, max_value=38, value=5, #
+            help="Number of most recent calendar gameweeks to analyze for 'Recent Form'. Player's performance in *played* games within this window is averaged." # [cite: 52]
+        )
+        min_recent_games_played_filter = st.sidebar.number_input(
+            "Filter: Min Games Played in Last N Calendar Weeks (0 to disable)",
+            min_value=0, max_value=n_recent, value=0,
+            help="Exclude players who actually played in fewer than this many games within the 'N Recent Games' window defined above. '0' means no filter."
+        )
+
     if uploaded_file is not None:
         try:
             if uploaded_file.name.endswith('.csv'):
-                df = pd.read_csv(uploaded_file)
+                [cite_start]df_input = pd.read_csv(uploaded_file) #
             else:
-                df = pd.read_excel(uploaded_file)
+                df_input = pd.read_excel(uploaded_file) #
             
-            # Validate required columns
-            required_cols = ['Joueur', 'Poste', 'Club', 'Indispo ?', 'Cote', '%Titu']
-            missing_cols = [col for col in required_cols if col not in df.columns]
-            if len(missing_cols) > 0:
-                st.error(f"Missing required columns: {missing_cols}")
+            required_cols = ['Joueur', 'Poste', 'Club', 'Cote', '%Titu'] # 'Indispo ?' is optional but recommended
+            missing_cols = [col for col in required_cols if col not in df_input.columns]
+            if missing_cols: #
+                st.error(f"Error: Missing required columns in uploaded file: {', '.join(missing_cols)}") #
                 return
+
+            # Initial data cleaning and preparation
+            df_processed = df_input.copy()
+            df_processed['simplified_position'] = df_processed['Poste'].apply(strategist.simplify_position) #
+            df_processed['player_id'] = df_processed.apply(strategist.create_player_id, axis=1) #
+            df_processed['Cote'] = pd.to_numeric(df_processed['Cote'], errors='coerce').fillna(1).clip(lower=1) # Ensure Cote is at least 1
+            if 'Indispo ?' not in df_processed.columns:
+                df_processed['Indispo ?'] = False # Assume available if column is missing
+            else:
+                df_processed['Indispo ?'] = df_processed['Indispo ?'].astype(str).str.upper().isin(['TRUE', 'OUI', '1', 'YES'])
+
+
+            st.sidebar.success(f"✅ File '{uploaded_file.name}' loaded: {len(df_processed)} players found.")
             
-            st.sidebar.success(f"✅ File loaded: {len(df)} players")
+            # --- UI Sections in Sidebar ---
+            with st.sidebar.expander("👥 Squad Building Parameters", expanded=True): #
+                st.markdown("Define your target squad structure.") # Help text example
+                formation_key = st.selectbox(
+                    "Preferred Starting Formation", #
+                    options=list(strategist.formations.keys()), #
+                    index=3,  # Default to 4-4-2
+                    help="Select the primary starting formation you want to build towards."
+                )
+                target_squad_size = st.number_input(
+                    "Total Squad Size", #
+                    min_value=strategist.squad_minimums_sum_val, max_value=30, value=20, #
+                    help=f"Target number of players in your full squad (Min: {strategist.squad_minimums_sum_val} based on 2GK,6D,6M,4F; Max: 30)."
+                )
+
+            with st.sidebar.expander("📊 KPI Weights", expanded=True): #
+                st.markdown("Adjust how much each factor contributes to a player's Value Score (PVS) for their position. Weights are relative.") # Help text
+                weights = {}
+                for pos_simplified in ['GK', 'DEF', 'MID', 'FWD']:
+                    st.markdown(f'<h4>{pos_simplified}</h4>', unsafe_allow_html=True) #
+                    weights[pos_simplified] = { #
+                        'recent_avg': st.slider(f"Recent Avg Rating", 0.0, 1.0, 0.30 if pos_simplified != 'GK' else 0.4, 0.01, key=f"{pos_simplified}_w_rec_avg", help="Weight for average MPG rating in recent N games (when played)."),
+                        'season_avg': st.slider(f"Season Avg Rating", 0.0, 1.0, 0.30 if pos_simplified != 'GK' else 0.4, 0.01, key=f"{pos_simplified}_w_sea_avg", help="Weight for average MPG rating over the whole season (when played)."),
+                        'regularity': st.slider(f"Regularity (%Titu)", 0.0, 1.0, 0.20 if pos_simplified != 'GK' else 0.2, 0.01, key=f"{pos_simplified}_w_reg", help="Weight for % of games started/played."),
+                        'recent_goals': st.slider(f"Recent Goals", 0.0, 1.0, 0.10 if pos_simplified in ['MID', 'FWD'] else 0.0, 0.01, key=f"{pos_simplified}_w_rec_g", help="Weight for goals scored in recent N games (0 for GK/DEF)."),
+                        'season_goals': st.slider(f"Season Goals", 0.0, 1.0, 0.10 if pos_simplified in ['MID', 'FWD'] else 0.0, 0.01, key=f"{pos_simplified}_w_sea_g", help="Weight for total season goals (0 for GK/DEF).")
+                    }
             
-            # Process data with detailed error tracking
-            try:
-                df['simplified_position'] = df['Poste'].apply(strategist.simplify_position)
-                df['player_id'] = df.apply(strategist.create_player_id, axis=1)
-                df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(0)
-                
-                # Debug: Show unique simplified positions and any UNKNOWN rows
-                st.sidebar.write("Unique simplified positions:", df['simplified_position'].unique())
-                unknown_rows = df[df['simplified_position'] == 'UNKNOWN'][['Joueur', 'Poste', 'Club']]
-                if not unknown_rows.empty:
-                    st.sidebar.warning("Rows with UNKNOWN position:")
-                    st.sidebar.dataframe(unknown_rows)
-            except Exception as e:
-                st.error(f"Error during data processing: {str(e)}")
-                return
-            
-            # Global Settings
-            st.sidebar.markdown('<h2 class="section-header">⚙️ Global Settings</h2>', unsafe_allow_html=True)
-            
-            n_recent = st.sidebar.number_input(
-                "Number of Recent Games (N)",
-                min_value=1, max_value=20, value=5,
-                help="Number of recent gameweeks to consider for recent form KPIs"
-            )
-            
-            # MRB Parameters
-            st.sidebar.markdown('<h3>💰 MRB Calculation Parameters</h3>', unsafe_allow_html=True)
-            
-            mrb_params = {
-                'baseline_pvs': st.sidebar.number_input("Baseline PVS", min_value=0.0, max_value=10.0, value=3.0, step=0.1),
-                'max_markup': st.sidebar.number_input("Max Markup %", min_value=0, max_value=200, value=50),
-                'points_for_max': st.sidebar.number_input("Points for Max Markup", min_value=0.1, max_value=10.0, value=2.0, step=0.1),
-                'absolute_max': st.sidebar.number_input("Absolute Max Bid", min_value=1, max_value=200, value=100)
-            }
-            
-            # KPI Weights
-            st.sidebar.markdown('<h2 class="section-header">📊 KPI Weights</h2>', unsafe_allow_html=True)
-            
-            weights = {}
-            for pos in ['GK', 'DEF', 'MID', 'FWD']:
-                st.sidebar.markdown(f'<h4>{pos}</h4>', unsafe_allow_html=True)
-                
-                weights[pos] = {
-                    'recent_avg': st.sidebar.slider(f"{pos} - Recent Avg Rating", 0.0, 1.0, 0.3, 0.05, key=f"{pos}_recent_avg"),
-                    'season_avg': st.sidebar.slider(f"{pos} - Season Avg Rating", 0.0, 1.0, 0.3, 0.05, key=f"{pos}_season_avg"),
-                    'regularity': st.sidebar.slider(f"{pos} - Regularity (%Titu)", 0.0, 1.0, 0.2, 0.05, key=f"{pos}_regularity"),
-                    'recent_goals': st.sidebar.slider(f"{pos} - Recent Goals", 0.0, 1.0, 0.1 if pos in ['MID', 'FWD'] else 0.0, 0.05, key=f"{pos}_recent_goals"),
-                    'season_goals': st.sidebar.slider(f"{pos} - Season Goals", 0.0, 1.0, 0.1 if pos in ['MID', 'FWD'] else 0.0, 0.05, key=f"{pos}_season_goals")
+            with st.sidebar.expander("💰 MRB Calculation Parameters", expanded=True): #
+                st.markdown("Configure how 'Max Recommended Bid' (MRB) is calculated from Player Value Score (PVS) and listed Cote (Price). MRB is used as the 'cost' in squad selection.") # Help text
+                mrb_params = {
+                    'baseline_pvs_0_100': st.number_input("Baseline PVS (0-100 scale)", min_value=0, max_value=100, value=55, step=1, help="PVS a player needs to be considered 'fairly priced' at their Cote. MRB defaults to Cote if PVS is below this."),
+                    'max_markup_pct': st.number_input("Max Markup % over Cote", min_value=0, max_value=200, value=30, step=5, help="Maximum percentage you're willing to bid over a player's Cote if their PVS is high."),
+                    'points_for_max_markup_0_100': st.number_input("PVS Points (above baseline) for Max Markup", min_value=1, max_value=50, value=25, step=1, help="How many PVS points above baseline are needed to apply the full 'Max Markup %'."),
+                    'absolute_max_bid': st.number_input("Absolute Max Bid for any Player", min_value=1, max_value=300, value=150, step=5, help="The absolute highest MRB the app will suggest for any single player.")
                 }
-            
-            # Squad Building Parameters
-            st.sidebar.markdown('<h2 class="section-header">👥 Squad Building</h2>', unsafe_allow_html=True)
-            
-            formation = st.sidebar.selectbox(
-                "Preferred Starting Formation",
-                options=list(strategist.formations.keys()),
-                index=2  # Default to 4-3-3
-            )
-            
-            squad_size = st.sidebar.number_input(
-                "Total Squad Size",
-                min_value=18, max_value=30, value=22
-            )
-            
-            # Calculate button
-            if st.sidebar.button("🚀 Calculate Optimal Squad", type="primary"):
-                with st.spinner("Calculating optimal squad..."):
-                    # Process data
-                    df_with_kpis = strategist.calculate_kpis(df, n_recent)
-                    df_normalized = strategist.normalize_kpis(df_with_kpis)
-                    df_with_pvs = strategist.calculate_pvs(df_normalized, weights)
-                    df_final = strategist.calculate_mrb(df_with_pvs, mrb_params)
-                    
-                    # Select squad
-                    squad_df, squad_summary = strategist.select_squad(df_final, formation, squad_size)
-                    
-                    # Store in session state
-                    st.session_state['df_final'] = df_final
-                    st.session_state['squad_df'] = squad_df
-                    st.session_state['squad_summary'] = squad_summary
-                    st.session_state['formation'] = formation
-            
-            # Main panel - Results
-            if 'squad_df' in st.session_state:
-                col1, col2 = st.columns([2, 1])
-                
+
+            if st.sidebar.button("🚀 Calculate Optimal Squad & MRBs", type="primary", use_container_width=True): #
+                with st.spinner("Crunching numbers... This might take a moment!"):
+                    try:
+                        df_kpis = strategist.calculate_kpis(df_processed, n_recent) #
+                        df_norm_kpis = strategist.normalize_kpis(df_kpis) #
+                        df_pvs = strategist.calculate_pvs(df_norm_kpis, weights) #
+                        df_mrb = strategist.calculate_mrb(df_pvs, mrb_params) #
+                        
+                        squad_df_result, squad_summary_result = strategist.select_squad(df_mrb, formation_key, target_squad_size, min_recent_games_played_filter) #
+                        
+                        st.session_state['df_for_display'] = df_mrb # Save for full list display
+                        st.session_state['squad_df_result'] = squad_df_result
+                        st.session_state['squad_summary_result'] = squad_summary_result
+                        st.session_state['selected_formation'] = formation_key
+                        st.success("Calculation complete! Results below.")
+                    except Exception as e:
+                        st.error(f"An error occurred during calculation: {e}")
+                        st.exception(e) # Shows full traceback for debugging
+
+            # --- Main Panel for Results ---
+            if 'squad_df_result' in st.session_state and st.session_state['squad_df_result'] is not None: #
+                col1, col2 = st.columns([3, 1]) # Give more space to squad table
+
                 with col1:
-                    st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
+                    st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True) #
                     
-                    # Squad table
-                    squad_display = st.session_state['squad_df'][
-                        ['Joueur', 'Club', 'simplified_position', 'mrb', 'Cote', 'pvs', 'season_goals', 'recent_goals', 
-                         'recent_avg_rating', 'season_avg_rating', 'norm_regularity', 'is_starter']
-                    ].copy()
+                    squad_display_df = st.session_state['squad_df_result'].copy() #
+                    # Define columns to show in suggested squad table
+                    squad_cols_ordered = [
+                        'Joueur', 'Club', 'simplified_position', 'is_starter', 
+                        'mrb', 'Cote', 'pvs', 
+                        'recent_avg_rating', 'season_avg_rating', '%Titu',
+                        'recent_goals', 'season_goals',
+                        'value_per_cost', 'player_id' # player_id for potential debugging or advanced use
+                    ]
+                    # Ensure all columns exist before trying to select them
+                    squad_cols_ordered = [col for col in squad_cols_ordered if col in squad_display_df.columns]
+                    squad_display_df = squad_display_df[squad_cols_ordered]
+
+                    squad_display_df.rename(columns={ #
+                        'Joueur': 'Player', 'simplified_position': 'Pos', 'is_starter': 'Starter',
+                        'mrb': 'MRB (Cost)', 'Cote': 'Listed Price', 'pvs': 'PVS',
+                        'recent_avg_rating': 'Rec.Avg.Rate', 'season_avg_rating': 'Sea.Avg.Rate',
+                        '%Titu': 'Regularity %', 'recent_goals': 'Rec.Goals', 'season_goals': 'Sea.Goals',
+                        'value_per_cost': 'Val/MRB'
+                    }, inplace=True)
+
+                    numeric_cols_squad = ['MRB (Cost)', 'Listed Price', 'PVS', 'Rec.Avg.Rate', 'Sea.Avg.Rate', 'Regularity %', 'Rec.Goals', 'Sea.Goals', 'Val/MRB'] #
+                    for col in numeric_cols_squad:
+                        if col in squad_display_df.columns:
+                            squad_display_df[col] = pd.to_numeric(squad_display_df[col], errors='coerce').round(2)
                     
-                    squad_display.columns = ['Player', 'Club', 'Position', 'MRB', 'Cote', 'PVS', 'Goals', 'Recent Goals' , 
-                                           'Recent Avg', 'Season Avg', 'Regularity %', 'Starter']
+                    # Sort by starter, then position (GK, D, M, A), then PVS
+                    pos_order = ['GK', 'DEF', 'MID', 'FWD']
+                    squad_display_df['Pos'] = pd.Categorical(squad_display_df['Pos'], categories=pos_order, ordered=True)
+                    squad_display_df = squad_display_df.sort_values(
+                        by=['Starter', 'Pos', 'PVS'], 
+                        ascending=[False, True, False] # Starters first, then by position, then best PVS
+                    ) #
                     
-                    # Round numeric columns
-                    numeric_cols = ['Cote', 'PVS', 'MRB', 'Recent Avg', 'Season Avg', 'Regularity %', 'Goals', 'Recent Goals']
-                    for col in numeric_cols:
-                        squad_display[col] = squad_display[col].round(2)
-                    
-                    # Sort by starter status and PVS
-                    squad_display = squad_display.sort_values(['Starter', 'Position'], ascending=[False, False])
-                    
-                    st.dataframe(
-                        squad_display,
-                        use_container_width=True,
-                        hide_index=True
-                    )
-                
+                    st.dataframe(squad_display_df, use_container_width=True, hide_index=True) #
+
                 with col2:
-                    st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
-                    
-                    summary = st.session_state['squad_summary']
-                    
-                    # Budget metrics
-                    st.metric("Total Cost", f"€{summary['total_cost']:.0f}", f"€{summary['remaining_budget']:.0f} remaining")
-                    st.metric("Squad Size", f"{summary['total_players']} players")
-                    
-                    # Formation info
-                    st.info(f"**Formation:** {st.session_state['formation']}")
-                    
-                    # Position breakdown
-                    st.markdown("**Position Breakdown:**")
-                    for pos, count in summary['position_counts'].items():
-                        st.write(f"• {pos}: {count}")
+                    st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True) #
+                    summary = st.session_state['squad_summary_result']
+                    if summary:
+                        st.metric("Total MRB Cost", f"€ {summary['total_cost']:.0f} / {strategist.budget}", delta_color="inverse") #
+                        st.metric("Remaining Budget", f"€ {summary['remaining_budget']:.0f}") #
+                        st.metric("Squad Size", f"{summary['total_players']} players") #
+                        
+                        st.info(f"**Target Formation:** {st.session_state['selected_formation']}") #
+                        
+                        st.markdown("**Actual Position Breakdown:**") #
+                        for pos_cat in pos_order: # Display in logical order
+                            count = summary['position_counts'].get(pos_cat, 0)
+                            st.write(f"• {pos_cat}: {count}") #
+                    else:
+                        st.write("Squad summary not available.")
                 
-                # Full player list
-                st.markdown('<h2 class="section-header">📋 Full Player List & MRBs</h2>', unsafe_allow_html=True)
+                # --- Full Player List & MRBs Table ---
+                st.markdown('<hr><h2 class="section-header">📋 Full Player Database & Calculated Values</h2>', unsafe_allow_html=True) #
                 
-                full_list = st.session_state['df_final'][
-                    st.session_state['df_final']['Indispo ?'] != 'oui'
-                ][['Joueur', 'Club', 'simplified_position', 'Cote', 'pvs', 'mrb', 'value_per_cost']].copy()
-                
-                full_list.columns = ['Player', 'Club', 'Position', 'Cote', 'PVS', 'MRB', 'Value/Cost']
-                
-                # Round numeric columns
-                numeric_cols = ['Cote', 'PVS', 'MRB', 'Value/Cost']
-                for col in numeric_cols:
-                    full_list[col] = full_list[col].round(3)
-                
-                # Sort by value per cost
-                full_list = full_list.sort_values('Value/Cost', ascending=False)
-                
-                # Add search functionality
-                search_term = st.text_input("🔍 Search players:", placeholder="Enter player name, club, or position...")
-                
+                df_display_full = st.session_state['df_for_display'].copy()
+                # Define columns for full display
+                full_list_cols_ordered = [
+                    'Joueur', 'Club', 'simplified_position', 'Indispo ?', 'Cote', 'pvs', 'mrb', 'value_per_cost',
+                    'recent_avg_rating', 'season_avg_rating', '%Titu',
+                    'recent_goals', 'season_goals', 'recent_games_played_count',
+                    'norm_recent_avg', 'norm_season_avg', 'norm_regularity', 
+                    'norm_recent_goals', 'norm_season_goals'
+                ]
+                full_list_cols_ordered = [col for col in full_list_cols_ordered if col in df_display_full.columns]
+                df_display_full = df_display_full[full_list_cols_ordered]
+
+
+                df_display_full.rename(columns={ #
+                    'Joueur': 'Player', 'simplified_position': 'Pos', 'Indispo ?': 'Unavailable',
+                    'Cote': 'Listed Price', 'pvs': 'PVS', 'mrb': 'Calc. MRB', 'value_per_cost': 'Val/MRB',
+                    'recent_avg_rating': 'Rec.Avg.Rate', 'season_avg_rating': 'Sea.Avg.Rate',
+                    '%Titu': 'Reg.%', 'recent_goals': 'Rec.Goals', 'season_goals': 'Sea.Goals',
+                    'recent_games_played_count': 'Rec.Games Plyd',
+                    'norm_recent_avg': 'N.Rec.Avg', 'norm_season_avg': 'N.Sea.Avg',
+                    'norm_regularity': 'N.Reg.%', 'norm_recent_goals': 'N.Rec.G', 'norm_season_goals': 'N.Sea.G'
+                }, inplace=True)
+
+                numeric_cols_full = ['Listed Price', 'PVS', 'Calc. MRB', 'Val/MRB', 
+                                     'Rec.Avg.Rate', 'Sea.Avg.Rate', 'Reg.%', 
+                                     'Rec.Goals', 'Sea.Goals', 'Rec.Games Plyd',
+                                     'N.Rec.Avg', 'N.Sea.Avg', 'N.Reg.%',
+                                     'N.Rec.G', 'N.Sea.G'] #
+                for col in numeric_cols_full:
+                    if col in df_display_full.columns:
+                         df_display_full[col] = pd.to_numeric(df_display_full[col], errors='coerce').round(2)
+
+                search_term = st.text_input("🔍 Search all players (name, club, position):", key="search_all_players") #
                 if search_term:
-                    mask = full_list.apply(lambda x: x.astype(str).str.contains(search_term, case=False, na=False).any(), axis=1)
-                    full_list = full_list[mask]
+                    search_mask = df_display_full.apply(lambda row: row.astype(str).str.contains(search_term, case=False, na=False).any(), axis=1) #
+                    df_display_full = df_display_full[search_mask] #
                 
-                st.dataframe(
-                    full_list,
-                    use_container_width=True,
-                    hide_index=True
-                )
-                
-                # Download button for results
-                csv = full_list.to_csv(index=False)
-                st.download_button(
-                    label="📥 Download Full Player List",
-                    data=csv,
-                    file_name="mpg_player_analysis.csv",
-                    mime="text/csv"
+                st.dataframe(df_display_full.sort_values(by='Val/MRB', ascending=False), use_container_width=True, hide_index=True) #
+
+                # Download button
+                csv_export = df_display_full.to_csv(index=False).encode('utf-8')
+                st.download_button( #
+                    label="📥 Download Full Player Analysis (CSV)", #
+                    data=csv_export, #
+                    file_name="mpg_full_player_analysis.csv", #
+                    mime="text/csv", #
+                    key="download_full_analysis"
                 )
             
-            else:
-                st.info("👆 Please configure your settings in the sidebar and click 'Calculate Optimal Squad' to see results!")
-        
+            elif 'df_for_display' not in st.session_state : # only show if no calculation has run yet
+                 st.info("Configure settings and click 'Calculate Optimal Squad & MRBs' to view results.") #
+
+
         except Exception as e:
-            st.error(f"Error processing file: {str(e)}")
-            st.info("Please make sure your file has the required columns: Joueur, Poste, Club, Indispo ?, Cote, %Titu")
-    
+            st.error(f"⚠️ An error occurred with the file or processing: {str(e)}")
+            st.exception(e) # Provides full traceback for easier debugging by the user
+            st.warning("Please ensure your file format matches the expected structure and all player data is sensible.")
+
     else:
-        st.info("👈 Please upload your MPG ratings file to get started!")
+        st.info("👈 Please upload your MPG ratings file using the sidebar to begin.") #
+        st.markdown('<h2 class="section-header">📋 Expected File Format Guide</h2>', unsafe_allow_html=True) #
         
-        # Show example of expected format
-        st.markdown('<h2 class="section-header">📋 Expected File Format</h2>', unsafe_allow_html=True)
-        
-        example_data = {
-            'Joueur': ['Messi', 'Mbappé', 'Neymar'],
-            'Poste': ['A', 'A', 'MO'],
-            'Club': ['PSG', 'PSG', 'PSG'],
-            'Indispo ?': ['', '', 'oui'],
-            'Cote': [25, 30, 20],
-            '%Titu': [95, 85, 60],
-            'GW1': ['6.5*', '7.2*', ''],
-            'GW2': ['(5.8)', '8.1**', '5.5'],
-            'GW3': ['7.9', '(4.2)', '6.8*']
+        example_data = { #
+            'Joueur': ['Player A', 'Player B', 'Player C (Unavailable)', 'Player D'],
+            'Poste': ['A', 'M', 'D', 'G'], #
+            'Club': ['Club X', 'Club Y', 'Club X', 'Club Z'], #
+            'Indispo ?': ['', '', 'TRUE', ''], # Example for unavailability
+            'Cote': [45, 30, 15, 10], #
+            '%Titu': [90, 75, 80, 95], #
+            'D34': ['7.5*', '6.5', '(5.0)', '7.0'], # Example gameweek data
+            'D33': ['(6.0)**', '7.0*', '6.0', '0'], # '0' can mean DNP
+            'D32': ['', '5.5', '4.5*', '(6.5)'], # Blank can mean DNP
+            # ... other gameweek columns D31 down to D1
         }
-        
-        example_df = pd.DataFrame(example_data)
-        st.dataframe(example_df, use_container_width=True)
+        st.dataframe(pd.DataFrame(example_data), use_container_width=True, hide_index=True) #
         
         st.markdown("""
-        **Column Descriptions:**
-        - **Joueur**: Player name
-        - **Poste**: Position (G, DL/DC, MD/MO, A)
-        - **Club**: Player's club
-        - **Indispo ?**: Availability ('TRUE' for unavailable)
-        - **Cote**: MPG Price
-        - **%Titu**: Titularisation percentage
-        - **GW1, GW2, etc.**: Gameweek ratings (use * for goals, () for non-starters)
-        """)
+        **Key Column Descriptions:**
+        - **Joueur**: Player's full name.
+        - **Poste**: Original position (G, D, DL, DC, M, MD, MO, A). The app simplifies these to GK, DEF, MID, FWD.
+        - **Club**: Player's current club.
+        - **Indispo ?**: Player availability. Mark 'TRUE', 'OUI', or '1' if unavailable. Leave blank or use 'FALSE', 'NON', '0' if available. (Case-insensitive).
+        - **Cote**: The player's listed MPG price/cost. Must be a number.
+        - **%Titu**: Titularisation percentage (e.g., 75 for 75%). Must be a number.
+        - **Dxx (e.g., D34, D33, ..., D1)**: Gameweek columns.
+            - Ratings are numbers (e.g., 6.5).
+            - Use `()` around rating if player was a substitute (e.g., `(5.0)`).
+            - Use `*` for each goal scored (e.g., `7.5*` for 1 goal, `(6.0)**` for 2 goals as sub).
+            - Blank or '0' in a gameweek cell is treated as Did Not Play (DNP) for that week.
+            - Ensure gameweek columns are named `D<number>` (e.g. `D1`, `D2`...`D34`). The app will sort these numerically to determine recency (D34 is most recent). Columns like `D-34` will be ignored.
+        """) #
 
 if __name__ == "__main__":
     main()
