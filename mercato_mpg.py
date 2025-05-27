@@ -535,9 +535,9 @@ def main():
                         'value_per_cost': 'PVS/MRB Ratio'
                     }, inplace=True)
                     
-                    Apply styling for starter rows
+                    # Apply styling for starter rows
                     def highlight_starters(row):
-                       return ['background-color: #e8f5e8'] * len(row) if row.Starter else [''] * len(row)
+                        return ['background-color: #e8f5e8'] * len(row) if row.Starter else [''] * len(row)
                     
                     st.dataframe(
                         squad_display_df.style.apply(highlight_starters, axis=1),
@@ -655,3 +655,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+ 
