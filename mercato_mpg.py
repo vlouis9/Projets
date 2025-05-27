@@ -536,14 +536,14 @@ def main():
                     }, inplace=True)
                     
                     # Apply styling for starter rows
-                    def highlight_starters(row):
-                        return ['background-color: #e8f5e8'] * len(row) if row.Starter else [''] * len(row)
+                    #def highlight_starters(row):
+                     #   return ['background-color: #e8f5e8'] * len(row) if row.Starter else [''] * len(row)
                     
-                    st.dataframe(
-                        squad_display_df.style.apply(highlight_starters, axis=1),
-                        use_container_width=True, 
-                        hide_index=True
-                    )
+                    #st.dataframe(
+                        #squad_display_df.style.apply(highlight_starters, axis=1),
+                        #use_container_width=True, 
+                        #hide_index=True
+                    #)
 
                 with col_summary_sidebar:
                     st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
