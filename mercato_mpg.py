@@ -425,11 +425,11 @@ def main():
 
     # Initialize session state for profiles and inputs
     if "n_recent" not in st.session_state:
-    st.session_state.n_recent = DEFAULT_N_RECENT_GAMES
+   		st.session_state.n_recent = DEFAULT_N_RECENT_GAMES
     if "min_recent_filter" not in st.session_state:
-    st.session_state.min_recent_filter = DEFAULT_MIN_RECENT_GAMES_PLAYED
+   		st.session_state.min_recent_filter = DEFAULT_MIN_RECENT_GAMES_PLAYED
     if 'current_profile_name' not in st.session_state:
-    st.session_state.current_profile_name = "Balanced Value"
+   		st.session_state.current_profile_name = "Balanced Value"
         
     profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
     st.session_state.n_recent = profile.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
