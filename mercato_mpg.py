@@ -432,7 +432,7 @@ def main():
    		st.session_state.current_profile_name = "Balanced Value"
     if st.session_state.current_profile_name in PREDEFINED_PROFILES:
    		profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
-	else:
+    else:
    		profile = PREDEFINED_PROFILES["Custom"]  # Fallback
         
     profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
