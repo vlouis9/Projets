@@ -592,7 +592,7 @@ def main():
                                      'N.Rec', 'N.Sea', 'N.RegFile', 'N.RegCalc', 'N.RecG', 'N.SeaG']
                     for col in float_cols_full:
                         if col in df_full.columns:
-                            df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0).0).round(2)
+                            df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0.0).round(2)
                     search_all = st.text_input("🔍 Search All Players:", key="search_all_v4")
                     if search_all:
                         df_full = df_full[df_full.apply(lambda r: r.astype(str).str.contains(search_all, case=False, na=False)).any(), axis=1)]
