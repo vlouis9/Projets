@@ -579,7 +579,7 @@ def main():
                             df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0).round().astype(int)
                     all_stats_cols = ['Joueur', 'Club', 'simplified_position', 'pvs', 'Cote', 'mrb', 'Indispo ?', 'season_avg_rating', 'season_goals',
                                       'calc_regularity_pct', 'recent_goals', 'recent_avg_rating', 'value_per_cost',
-                                       'games_started_season, 'recent_games_played_count']
+                                       'games_started_season', 'recent_games_played_count']
                     df_full = df_full[[col for col in all_stats_cols if col in df_full.columns]]
                     df_full.rename(columns={
                         'Joueur': 'Player',
