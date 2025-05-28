@@ -203,7 +203,7 @@ class MPGAuctionStrategist:
         rdf['norm_regularity_file'] = pd.to_numeric(rdf['%Titu'], errors='coerce').fillna(0).clip(0, 100)
         rdf['norm_calc_regularity'] = rdf['calc_regularity_pct'].clip(0, 100)
         rdf[['norm_recent_goals', 'norm_season_goals']] = 0.0
-        for pos in ['MID', 'FWD']:
+        for pos in ['DEF', 'MID', 'FWD']:
             mask = rdf['simplified_position'] == pos
             if mask.any():
                 rdf.loc[mask, 'norm_recent_goals'] = np.clip(rdf.loc[mask, 'recent_goals'] * 20, 0, 100)
@@ -222,7 +222,7 @@ class MPGAuctionStrategist:
             pvs_sum += rdf.loc[mask, 'norm_recent_avg'].fillna(0) * w.get('recent_avg', 0)
             pvs_sum += rdf.loc[mask, 'norm_season_avg'].fillna(0) * w.get('season_avg', 0)
             pvs_sum += rdf.loc[mask, 'norm_calc_regularity'].fillna(0) * w.get('calc_regularity', 0)
-            if pos in ['MID', 'FWD']:
+            if pos in ['DEF', 'MID', 'FWD']:
                 pvs_sum += rdf.loc[mask, 'norm_recent_goals'].fillna(0) * w.get('recent_goals', 0)
                 pvs_sum += rdf.loc[mask, 'norm_season_goals'].fillna(0) * w.get('season_goals', 0)
             rdf.loc[mask, 'pvs'] = pvs_sum.clip(0, 100)
@@ -469,7 +469,7 @@ def main():
                     'season_avg': st.slider(f"Season Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('season_avg', 0)), 0.01, key=f"{pos_key}_wSA_v4"),
                     'season_goals': st.slider(f"Season Goals", 0.0, 1.0, float(current_pos_w_vals.get('season_goals', 0)) if pos_key in ['DEF', 'MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wSG_v4", disabled=pos_key not in ['MID', 'FWD']),
                     'calc_regularity': st.slider(f"Calculated Regularity", 0.0, 1.0, float(current_pos_w_vals.get('calc_regularity', 0)), 0.01, key=f"{pos_key}_wCR_v4", help="Based on starts identified in gameweek data."),
-                    'recent_goals': st.slider(f"Recent Goals", 0.0, 1.0, float(current_pos_w_vals.get('recent_goals', 0)) if pos_key in ['MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wRG_v4", disabled=pos_key not in ['MID', 'FWD']),
+                    'recent_goals': st.slider(f"Recent Goals", 0.0, 1.0, float(current_pos_w_vals.get('recent_goals', 0)) if pos_key in ['DEF', 'MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wRG_v4", disabled=pos_key not in ['MID', 'FWD']),
                     'recent_avg': st.slider(f"Recent Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('recent_avg', 0)), 0.01, key=f"{pos_key}_wRA_v4"),
                 }
             if weights_ui != active_kpi_weights:
