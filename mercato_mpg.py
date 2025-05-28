@@ -325,7 +325,7 @@ class MPGAuctionStrategist:
             bench_player_details = sorted([p for p in selected_details if not p['is_starter']], key=lambda x: x['pvs'])
             potential_upgrades_pool = eligible_df[~eligible_df['player_id'].isin([p['player_id'] for p in selected_details])].sort_values(by='pvs', ascending=False)
             swapped_in_pass = True
-            max_passes = 5
+            max_passes = 50
             current_pass = 0
             while swapped_in_pass and current_pass < max_passes and current_budget > 5:
                 swapped_in_pass = False
