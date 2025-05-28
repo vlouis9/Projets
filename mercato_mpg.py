@@ -441,7 +441,7 @@ def main():
             st.session_state.current_profile_name = "Custom"
         st.session_state.formation_key, st.session_state.squad_size = formation_key_ui, target_squad_size_ui
 
-        st.sidebar.markdown("---')
+        st.sidebar.markdown("---")
         st.sidebar.markdown("#### 🎨 Settings Profiles")
         profile_names = list(PREDEFINED_PROFILE.keys())
 
