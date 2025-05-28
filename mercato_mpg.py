@@ -595,7 +595,7 @@ def main():
                             df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0.0).round(2)
                     search_all = st.text_input("🔍 Search All Players:", key="search_all_v4")
                     if search_all:
-                        df_full = df_full[df_full.apply(lambda r: r.astype(str).str.contains(search_all, case=False, na=False)).any(), axis=1)]
+                        df_full = df_full[df_full.apply(lambda r: r.astype(str).str.contains(search_all, case=False, na=False).any(), axis=1)]
                     st.dataframe(df_full.sort_values(by='PVS', ascending=False), use_container_width=True, hide_index=True)
                     st.download_button(
                         label="📥 Download Full Analysis (CSV)",
