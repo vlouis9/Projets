@@ -89,7 +89,7 @@ PREDEFINED_PROFILES = {
             'GK': {'recent_avg': 0.15, 'season_avg': 0.4, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
             'DEF': {'recent_avg': 0.1, 'season_avg': 0.4, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
             'MID': {'recent_avg': 0.1, 'season_avg': 0.3, 'calc_regularity': 0.2, 'recent_goals': 0.05, 'season_goals': 0.15},
-            'FWD': {'recent_avg': 0.1, 'season_avg': 0.3, 'calc_regularity': 0.15, 'recent_goals': 0.1, 'season_goals': 0.2}
+            'FWD': {'recent_avg': 0.0, 'season_avg': 0.5, 'calc_regularity': 0.1, 'recent_goals': 0.0, 'season_goals': 0.4}
         },
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 0.2},
