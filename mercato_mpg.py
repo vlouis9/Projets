@@ -391,24 +391,33 @@ def main():
     strategist = MPGAuctionStrategist()
 
     # Initialize session state
-    if "n_recent" not in st.session_state:
-        st.session_state.n_recent = DEFAULT_N_RECENT_GAMES
-    if "min_recent_filter" not in st.session_state:
-        st.session_state.min_recent_filter = DEFAULT_MIN_RECENT_GAMES_PLAYED
-    if 'current_profile_name' not in st.session_state:
-        st.session_state.current_profile_name = "Balanced Value"
-    if st.session_state.current_profile_name in PREDEFINED_PROFILES:
-        profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
-    else:
-        profile = PREDEFINED_PROFILES["Custom"]
+	if "n_recent" not in st.session_state:
+   		st.session_state.n_recent = DEFAULT_N_RECENT_GAMES
+	if "min_recent_filter" not in st.session_state:
+   		st.session_state.min_recent_filter = DEFAULT_MIN_RECENT_GAMES_PLAYED
+	if 'current_profile_name' not in st.session_state:
+   		st.session_state.current_profile_name = "Balanced Value"
 
-    profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
-    st.session_state.n_recent = profile.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
-    st.session_state.min_recent_filter = profile.get("min_recent_games_played_filter", DEFAULT_MIN_RECENT_GAMES_PLAYED)
-    st.session_state.kpi_weights = profile.get("kpi_weights", {})
-    st.session_state.mrb_params_per_pos = profile.get("mrb_params_per_pos", {})
-    st.session_state.formation_key = DEFAULT_FORMATION
-    st.session_state.squad_size = DEFAULT_SQUAD_SIZE
+	# Set profile based on current_profile_name
+	if st.session_state.current_profile_name in PREDEFINED_PROFILES:
+   		profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
+    # Only update settings if profile is not "Custom"
+    if st.session_state.current_profile_name != "Custom":
+        st.session_state.n_recent = profile.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
+        st.session_state.min_recent_filter = profile.get("min_recent_games_played_filter", DEFAULT_MIN_RECENT_GAMES_PLAYED)
+        st.session_state.kpi_weights = profile.get("kpi_weights", {})
+        st.session_state.mrb_params_per_pos = profile.get("mrb_params_per_pos", {})
+   		# For "Custom", retain existing session state values (already set by user or defaults)
+	else:
+   		profile = PREDEFINED_PROFILES["Balanced Value"]  # Fallback to a default profile
+   		st.session_state.current_profile_name = "Balanced Value"
+   		st.session_state.n_recent = profile.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
+   		st.session_state.min_recent_filter = profile.get("min_recent_games_played_filter", DEFAULT_MIN_RECENT_GAMES_PLAYED)
+   		st.session_state.kpi_weights = profile.get("kpi_weights", {})
+   		st.session_state.mrb_params_per_pos = profile.get("mrb_params_per_pos", {})
+
+	st.session_state.formation_key = DEFAULT_FORMATION
+	st.session_state.squad_size = DEFAULT_SQUAD_SIZE
 
     # Sidebar UI Elements
     st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFr1EWtMR2tHq1FwHnCHqg2uXv1JMLYQlRZw&s", width=100)
