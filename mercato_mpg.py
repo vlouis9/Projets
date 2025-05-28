@@ -86,7 +86,7 @@ PREDEFINED_PROFILES = {
         "n_recent_games": 7,
         "min_recent_games_played_filter": 2,
         "kpi_weights": {
-            'GK': {'recent_avg': 0.15, 'season_avg': 0.4, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'GK': {'recent_avg': 0.0, 'season_avg': 0.75, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
             'DEF': {'recent_avg': 0.0, 'season_avg': 0.75, 'calc_regularity': 0.15, 'recent_goals': 0.0, 'season_goals': 0.10},
             'MID': {'recent_avg': 0.0, 'season_avg': 0.6, 'calc_regularity': 0.1, 'recent_goals': 0.0, 'season_goals': 0.3},
             'FWD': {'recent_avg': 0.0, 'season_avg': 0.5, 'calc_regularity': 0.1, 'recent_goals': 0.0, 'season_goals': 0.4}
