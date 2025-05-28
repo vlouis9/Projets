@@ -451,7 +451,7 @@ def main():
     min_recent_filter_ui = st.sidebar.number_input("Filter: Min Games Played in Recent N Weeks", min_value=0, max_value=n_recent_ui, value=st.session_state.min_recent_filter, help=f"Exclude players with < this in '{n_recent_ui}' recent weeks. 0 = no filter.")
     if n_recent_ui != st.session_state.n_recent or min_recent_filter_ui != st.session_state.min_recent_filter:
         st.session_state.current_profile_name = "Custom"
-    st.session_state.n_recent, st.session_state.min_recent_filter = n_recent_ui, min_recent_games_filter_ui
+    st.session_state.n_recent, st.session_state.min_recent_filter = n_recent_ui, min_recent_filter_ui
 
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 👥 Squad Building Parameters")
