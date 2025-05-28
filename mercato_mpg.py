@@ -321,68 +321,282 @@ class MPGAuctionStrategist:
                     if add_player_to_squad(player_row, False):
                         added_count += 1
 
-        if current_budget > 5 and len(selected_details) == target_squad_size:
-            bench_player_details = sorted([p for p in selected_details if not p['is_starter']], key=lambda x: x['pvs'])
-            potential_upgrades_pool = eligible_df[~eligible_df['player_id'].isin([p['player_id'] for p in selected_details])].sort_values(by='pvs', ascending=False)
-            swapped_in_pass = True
-            max_passes = 50
-            current_pass = 0
-            while swapped_in_pass and current_pass < max_passes and current_budget > 5:
-                swapped_in_pass = False
-                current_pass += 1
-                for i, old_player_detail in enumerate(bench_player_details):
-                    if current_budget <= 5:
-                        break
-                    best_upgrade_for_slot = None
-                    best_pvs_gain = 0
-                    for _, new_player_row in potential_upgrades_pool[
-                        (potential_upgrades_pool['simplified_position'] == old_player_detail['position']) &
-                        (potential_upgrades_pool['pvs'] > old_player_detail['pvs'])
-                    ].iterrows():
-                        cost_to_upgrade = new_player_row['mrb'] - old_player_detail['mrb_cost']
-                        if cost_to_upgrade <= current_budget:
-                            pvs_gain = new_player_row['pvs'] - old_player_detail['pvs']
-                            if pvs_gain > best_pvs_gain:
-                                best_pvs_gain = pvs_gain
-                                best_upgrade_for_slot = new_player_row
-                    if best_upgrade_for_slot is not None:
-                        new_player_upg_row = best_upgrade_for_slot
-                        cost_to_upgrade = new_player_upg_row['mrb'] - old_player_detail['mrb_cost']
-                        old_player_idx_to_remove = -1
-                        for idx_sel, sel_p_detail in enumerate(selected_details):
-                            if sel_p_detail['player_id'] == old_player_detail['player_id']:
-                                old_player_idx_to_remove = idx_sel
-                                break
-                        if old_player_idx_to_remove != -1:
-                            selected_details.pop(old_player_idx_to_remove)
-                            add_player_to_squad(new_player_upg_row, False)
-                            bench_player_details = sorted([p for p in selected_details if not p['is_starter']], key=lambda x: x['pvs'])
-                            potential_upgrades_pool = potential_upgrades_pool[potential_upgrades_pool['player_id'] != new_player_upg_row['player_id']]
-                            st.caption(f"Upgraded bench: {df.loc[df['player_id'] == old_player_detail['player_id'], 'Joueur'].iloc[0]} -> {new_player_upg_row['Joueur']} (PVS gain, MRB change: {cost_to_upgrade})")
-                            swapped_in_pass = True
-                            break
-                if not swapped_in_pass:
+def select_squad(self, df: pd.DataFrame, formation_key: str, target_squad_size: int,
+                 min_recent_games_played: int) -> Tuple[Optional[pd.DataFrame], Optional[Dict]]:
+    """
+    Enhanced squad selection that:
+    1. First respects minimum per position and total players constraints
+    2. Then optimizes for budget constraint while maximizing PVS
+    """
+    eligible_df_initial = df.copy()
+    
+    # Apply filters
+    if min_recent_games_played > 0:
+        eligible_df_initial = eligible_df_initial[eligible_df_initial['recent_games_played_count'] >= min_recent_games_played]
+    
+    if eligible_df_initial.empty:
+        return pd.DataFrame(), {}
+    
+    eligible_df = eligible_df_initial.drop_duplicates(subset=['player_id']).copy()
+    eligible_df['mrb'] = eligible_df['mrb'].astype(int)
+    
+    # Phase 1: Build initial squad ignoring budget (highest PVS first)
+    selected_players = []
+    current_pos_counts = {pos: 0 for pos in ['GK', 'DEF', 'MID', 'FWD']}
+    
+    def add_player_to_squad(player_row, is_starter_role):
+        nonlocal selected_players, current_pos_counts
+        if player_row['player_id'] in [p['player_id'] for p in selected_players]:
+            return False
+        selected_players.append({
+            'player_id': player_row['player_id'], 
+            'is_starter': is_starter_role,
+            'mrb_cost': player_row['mrb'], 
+            'pvs': player_row['pvs'],
+            'position': player_row['simplified_position'],
+            'player_data': player_row
+        })
+        current_pos_counts[player_row['simplified_position']] += 1
+        return True
+    
+    # Step 1.1: Select best players for starting formation (ignoring budget)
+    starters_needed = self.formations[formation_key].copy()
+    sorted_for_starters = eligible_df.sort_values(by='pvs', ascending=False)
+    
+    for _, player_row in sorted_for_starters.iterrows():
+        pos = player_row['simplified_position']
+        if starters_needed.get(pos, 0) > 0:
+            if add_player_to_squad(player_row, True):
+                starters_needed[pos] -= 1
+    
+    # Step 1.2: Fill minimum requirements per position (ignoring budget)
+    for pos, overall_min in self.squad_minimums.items():
+        needed = max(0, overall_min - current_pos_counts[pos])
+        if needed == 0:
+            continue
+        
+        candidates = eligible_df[
+            (eligible_df['simplified_position'] == pos) &
+            (~eligible_df['player_id'].isin([p['player_id'] for p in selected_players]))
+        ].sort_values(by=['pvs', 'mrb'], ascending=[False, True])  # Best PVS, then cheapest
+        
+        added_count = 0
+        for _, player_row in candidates.iterrows():
+            if added_count >= needed:
+                break
+            if add_player_to_squad(player_row, False):
+                added_count += 1
+    
+    # Step 1.3: Fill remaining slots to reach target squad size (ignoring budget)
+    slots_to_fill = max(0, target_squad_size - len(selected_players))
+    if slots_to_fill > 0:
+        candidates = eligible_df[
+            (~eligible_df['player_id'].isin([p['player_id'] for p in selected_players]))
+        ].sort_values(by=['pvs', 'mrb'], ascending=[False, True])
+        
+        added_count = 0
+        for _, player_row in candidates.iterrows():
+            if added_count >= slots_to_fill:
+                break
+            if add_player_to_squad(player_row, False):
+                added_count += 1
+    
+    # Phase 2: Budget optimization while maintaining constraints
+    current_cost = sum(p['mrb_cost'] for p in selected_players)
+    
+    if current_cost > self.budget:
+        st.info(f"Initial squad cost: €{current_cost} (over budget by €{current_cost - self.budget}). Optimizing...")
+        
+        # Create available players pool for swaps
+        available_players = eligible_df[
+            ~eligible_df['player_id'].isin([p['player_id'] for p in selected_players])
+        ].sort_values(by=['pvs', 'mrb'], ascending=[False, True])
+        
+        # Iterative optimization
+        max_iterations = 100
+        iteration = 0
+        improved = True
+        
+        while current_cost > self.budget and improved and iteration < max_iterations:
+            improved = False
+            iteration += 1
+            
+            # Sort current squad by value efficiency (PVS per cost) - worst first
+            bench_players = [p for p in selected_players if not p['is_starter']]
+            bench_players.sort(key=lambda x: x['pvs'] / max(x['mrb_cost'], 1))  # Worst value efficiency first
+            
+            # Try to replace bench players with cheaper alternatives
+            for i, current_player in enumerate(bench_players):
+                if current_cost <= self.budget:
                     break
-
-        if not selected_details:
-            return pd.DataFrame(), {}
-        final_squad_ids = [p['player_id'] for p in selected_details]
-        final_squad_df = df[df['player_id'].isin(final_squad_ids)].copy()
-        details_df = pd.DataFrame(selected_details)
-        final_squad_df = pd.merge(final_squad_df, details_df.drop_duplicates(subset=['player_id']), on='player_id', how='left', suffixes=('', '_selection'))
-        final_squad_df.rename(columns={'mrb_cost': 'mrb_actual_cost', 'pvs_selection': 'pvs_in_squad'}, inplace=True)
-        if 'pvs_in_squad' not in final_squad_df.columns and 'pvs' in final_squad_df.columns:
-            final_squad_df['pvs_in_squad'] = final_squad_df['pvs']
-        final_squad_df['mrb_actual_cost'] = final_squad_df['mrb_actual_cost'].round().astype(int)
-        summary = {
-            'total_players': len(final_squad_df),
-            'total_cost': final_squad_df['mrb_actual_cost'].sum(),
-            'remaining_budget': self.budget - final_squad_df['mrb_actual_cost'].sum(),
-            'position_counts': final_squad_df['simplified_position'].value_counts().to_dict(),
-            'total_squad_pvs': final_squad_df['pvs_in_squad'].sum(),
-            'total_starters_pvs': final_squad_df[final_squad_df['is_starter']]['pvs_in_squad'].sum()
-        }
-        return final_squad_df, summary
+                
+                pos = current_player['position']
+                current_cost_player = current_player['mrb_cost']
+                current_pvs_player = current_player['pvs']
+                
+                # Find cheaper alternatives in same position
+                cheaper_alternatives = available_players[
+                    (available_players['simplified_position'] == pos) &
+                    (available_players['mrb'] < current_cost_player)
+                ]
+                
+                best_replacement = None
+                best_value_loss = float('inf')
+                
+                for _, alt_player in cheaper_alternatives.iterrows():
+                    cost_saving = current_cost_player - alt_player['mrb']
+                    pvs_loss = current_pvs_player - alt_player['pvs']
+                    
+                    # Prioritize cost savings, but minimize PVS loss
+                    value_loss_ratio = pvs_loss / max(cost_saving, 1)
+                    
+                    if cost_saving > 0 and value_loss_ratio < best_value_loss:
+                        best_value_loss = value_loss_ratio
+                        best_replacement = alt_player
+                
+                # Make the swap if beneficial
+                if best_replacement is not None:
+                    cost_saving = current_cost_player - best_replacement['mrb']
+                    if current_cost - cost_saving <= self.budget or cost_saving > 0:
+                        # Remove current player
+                        selected_players = [p for p in selected_players if p['player_id'] != current_player['player_id']]
+                        current_pos_counts[pos] -= 1
+                        current_cost -= current_cost_player
+                        
+                        # Add replacement
+                        add_player_to_squad(best_replacement, False)
+                        current_cost += best_replacement['mrb']
+                        
+                        # Update available players
+                        available_players = available_players[
+                            available_players['player_id'] != best_replacement['player_id']
+                        ]
+                        
+                        st.caption(f"Iteration {iteration}: Replaced {current_player['player_data']['Joueur']} (€{current_cost_player}) with {best_replacement['Joueur']} (€{best_replacement['mrb']}) - Saved €{cost_saving}")
+                        improved = True
+                        break
+            
+            # If still over budget, try replacing starters (more aggressive)
+            if current_cost > self.budget and not improved:
+                starter_players = [p for p in selected_players if p['is_starter']]
+                starter_players.sort(key=lambda x: x['pvs'] / max(x['mrb_cost'], 1))
+                
+                for current_player in starter_players:
+                    if current_cost <= self.budget:
+                        break
+                    
+                    pos = current_player['position']
+                    current_cost_player = current_player['mrb_cost']
+                    
+                    # Find cheaper alternatives in same position
+                    cheaper_alternatives = available_players[
+                        (available_players['simplified_position'] == pos) &
+                        (available_players['mrb'] < current_cost_player)
+                    ]
+                    
+                    if not cheaper_alternatives.empty:
+                        # Take the best PVS among cheaper options
+                        best_replacement = cheaper_alternatives.iloc[0]  # Already sorted by PVS desc
+                        
+                        cost_saving = current_cost_player - best_replacement['mrb']
+                        if cost_saving > 0:
+                            # Remove current player
+                            selected_players = [p for p in selected_players if p['player_id'] != current_player['player_id']]
+                            current_pos_counts[pos] -= 1
+                            current_cost -= current_cost_player
+                            
+                            # Add replacement (keep as starter)
+                            add_player_to_squad(best_replacement, True)
+                            current_cost += best_replacement['mrb']
+                            
+                            # Update available players
+                            available_players = available_players[
+                                available_players['player_id'] != best_replacement['player_id']
+                            ]
+                            
+                            st.caption(f"Iteration {iteration}: Replaced starter {current_player['player_data']['Joueur']} (€{current_cost_player}) with {best_replacement['Joueur']} (€{best_replacement['mrb']}) - Saved €{cost_saving}")
+                            improved = True
+                            break
+    
+    # Phase 3: Final optimization - upgrade players if budget allows
+    current_cost = sum(p['mrb_cost'] for p in selected_players)
+    if current_cost < self.budget:
+        remaining_budget = self.budget - current_cost
+        st.info(f"Squad under budget by €{remaining_budget}. Looking for upgrades...")
+        
+        available_players = eligible_df[
+            ~eligible_df['player_id'].isin([p['player_id'] for p in selected_players])
+        ].sort_values(by='pvs', ascending=False)
+        
+        # Try to upgrade players starting with worst performers
+        selected_players.sort(key=lambda x: x['pvs'])  # Worst PVS first
+        
+        for i, current_player in enumerate(selected_players):
+            if remaining_budget <= 5:  # Keep some buffer
+                break
+            
+            pos = current_player['position']
+            current_cost_player = current_player['mrb_cost']
+            current_pvs_player = current_player['pvs']
+            max_affordable = current_cost_player + remaining_budget
+            
+            # Find better players we can afford
+            upgrade_candidates = available_players[
+                (available_players['simplified_position'] == pos) &
+                (available_players['mrb'] <= max_affordable) &
+                (available_players['pvs'] > current_pvs_player)
+            ]
+            
+            if not upgrade_candidates.empty:
+                best_upgrade = upgrade_candidates.iloc[0]  # Best PVS
+                upgrade_cost = best_upgrade['mrb'] - current_cost_player
+                
+                if upgrade_cost <= remaining_budget:
+                    # Make the upgrade
+                    selected_players = [p for p in selected_players if p['player_id'] != current_player['player_id']]
+                    current_pos_counts[pos] -= 1
+                    
+                    add_player_to_squad(best_upgrade, current_player['is_starter'])
+                    remaining_budget -= upgrade_cost
+                    
+                    st.caption(f"Upgraded: {current_player['player_data']['Joueur']} → {best_upgrade['Joueur']} (+€{upgrade_cost}, +{best_upgrade['pvs'] - current_pvs_player:.1f} PVS)")
+    
+    # Build final results
+    if not selected_players:
+        return pd.DataFrame(), {}
+    
+    final_squad_ids = [p['player_id'] for p in selected_players]
+    final_squad_df = df[df['player_id'].isin(final_squad_ids)].copy()
+    
+    # Merge selection details
+    details_df = pd.DataFrame([{
+        'player_id': p['player_id'],
+        'is_starter': p['is_starter'],
+        'mrb_cost': p['mrb_cost'],
+        'pvs_selection': p['pvs']
+    } for p in selected_players])
+    
+    final_squad_df = pd.merge(final_squad_df, details_df, on='player_id', how='left')
+    final_squad_df.rename(columns={'mrb_cost': 'mrb_actual_cost', 'pvs_selection': 'pvs_in_squad'}, inplace=True)
+    
+    if 'pvs_in_squad' not in final_squad_df.columns and 'pvs' in final_squad_df.columns:
+        final_squad_df['pvs_in_squad'] = final_squad_df['pvs']
+    
+    final_squad_df['mrb_actual_cost'] = final_squad_df['mrb_actual_cost'].round().astype(int)
+    
+    # Create summary
+    final_cost = final_squad_df['mrb_actual_cost'].sum()
+    summary = {
+        'total_players': len(final_squad_df),
+        'total_cost': final_cost,
+        'remaining_budget': self.budget - final_cost,
+        'position_counts': final_squad_df['simplified_position'].value_counts().to_dict(),
+        'total_squad_pvs': final_squad_df['pvs_in_squad'].sum(),
+        'total_starters_pvs': final_squad_df[final_squad_df['is_starter']]['pvs_in_squad'].sum(),
+        'budget_status': 'Within Budget' if final_cost <= self.budget else f'Over Budget by €{final_cost - self.budget}'
+    }
+    
+    return final_squad_df, summary
 
 # Main Streamlit App UI
 def main():
