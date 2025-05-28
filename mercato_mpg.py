@@ -424,20 +424,20 @@ def main():
     strategist = MPGAuctionStrategist()
 
     # Initialize session state for profiles and inputs
-        if "n_recent" not in st.session_state:
-        st.session_state.n_recent = DEFAULT_N_RECENT_GAMES
-        if "min_recent_filter" not in st.session_state:
-        st.session_state.min_recent_filter = DEFAULT_MIN_RECENT_GAMES_PLAYED
-        if 'current_profile_name' not in st.session_state:
-        st.session_state.current_profile_name = "Balanced Value"
+    if "n_recent" not in st.session_state:
+    st.session_state.n_recent = DEFAULT_N_RECENT_GAMES
+    if "min_recent_filter" not in st.session_state:
+    st.session_state.min_recent_filter = DEFAULT_MIN_RECENT_GAMES_PLAYED
+    if 'current_profile_name' not in st.session_state:
+    st.session_state.current_profile_name = "Balanced Value"
         
-        profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
-        st.session_state.n_recent = profile.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
-        st.session_state.min_recent_filter = profile.get("min_recent_games_played_filter", DEFAULT_MIN_RECENT_GAMES_PLAYED)
-        st.session_state.kpi_weights = profile.get("kpi_weights", {})
-        st.session_state.mrb_params_per_pos = profile.get("mrb_params_per_pos", {})
-        st.session_state.formation_key = DEFAULT_FORMATION
-        st.session_state.squad_size = DEFAULT_SQUAD_SIZE
+    profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
+    st.session_state.n_recent = profile.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
+    st.session_state.min_recent_filter = profile.get("min_recent_games_played_filter", DEFAULT_MIN_RECENT_GAMES_PLAYED)
+    st.session_state.kpi_weights = profile.get("kpi_weights", {})
+    st.session_state.mrb_params_per_pos = profile.get("mrb_params_per_pos", {})
+    st.session_state.formation_key = DEFAULT_FORMATION
+    st.session_state.squad_size = DEFAULT_SQUAD_SIZE
 
     # --- Sidebar UI Elements ---
     st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFr1EWtMR2tHq1FwHnCHqg2uXv1JMLYQlRZw&s", width=100)
