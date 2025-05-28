@@ -430,6 +430,10 @@ def main():
    		st.session_state.min_recent_filter = DEFAULT_MIN_RECENT_GAMES_PLAYED
     if 'current_profile_name' not in st.session_state:
    		st.session_state.current_profile_name = "Balanced Value"
+    if st.session_state.current_profile_name in PREDEFINED_PROFILES:
+   		profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
+	else:
+   		profile = PREDEFINED_PROFILES["Custom"]  # Fallback
         
     profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
     st.session_state.n_recent = profile.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
