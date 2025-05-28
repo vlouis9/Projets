@@ -38,10 +38,10 @@ PREDEFINED_PROFILES = {
         "n_recent_games": 5,
         "min_recent_games_played_filter": 1,
         "kpi_weights": {
-            'GK': {'recent_avg': 0.30, 'season_avg': 0.30, 'regularity_file': 0.20, 'calc_regularity': 0.20, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'DEF': {'recent_avg': 0.25, 'season_avg': 0.25, 'regularity_file': 0.25, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'MID': {'recent_avg': 0.20, 'season_avg': 0.20, 'regularity_file': 0.15, 'calc_regularity': 0.15, 'recent_goals': 0.15, 'season_goals': 0.15},
-            'FWD': {'recent_avg': 0.15, 'season_avg': 0.15, 'regularity_file': 0.10, 'calc_regularity': 0.10, 'recent_goals': 0.25, 'season_goals': 0.25}
+            'GK': {'recent_avg': 0.30, 'season_avg': 0.30, 'calc_regularity': 0.20, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'DEF': {'recent_avg': 0.25, 'season_avg': 0.25, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'MID': {'recent_avg': 0.20, 'season_avg': 0.20, 'calc_regularity': 0.15, 'recent_goals': 0.15, 'season_goals': 0.15},
+            'FWD': {'recent_avg': 0.15, 'season_avg': 0.15, 'calc_regularity': 0.10, 'recent_goals': 0.25, 'season_goals': 0.25}
         },
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 0.3},
@@ -54,10 +54,10 @@ PREDEFINED_PROFILES = {
         "n_recent_games": 5,
         "min_recent_games_played_filter": 0,
         "kpi_weights": {
-            'GK': {'recent_avg': 0.35, 'season_avg': 0.35, 'regularity_file': 0.10, 'calc_regularity': 0.20, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'DEF': {'recent_avg': 0.30, 'season_avg': 0.30, 'regularity_file': 0.10, 'calc_regularity': 0.30, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'MID': {'recent_avg': 0.25, 'season_avg': 0.25, 'regularity_file': 0.05, 'calc_regularity': 0.15, 'recent_goals': 0.15, 'season_goals': 0.15},
-            'FWD': {'recent_avg': 0.25, 'season_avg': 0.25, 'regularity_file': 0.0, 'calc_regularity': 0.10, 'recent_goals': 0.20, 'season_goals': 0.20}
+            'GK': {'recent_avg': 0.35, 'season_avg': 0.35, 'calc_regularity': 0.20, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'DEF': {'recent_avg': 0.30, 'season_avg': 0.30, 'calc_regularity': 0.30, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'MID': {'recent_avg': 0.25, 'season_avg': 0.25, 'calc_regularity': 0.15, 'recent_goals': 0.15, 'season_goals': 0.15},
+            'FWD': {'recent_avg': 0.25, 'season_avg': 0.25, 'calc_regularity': 0.10, 'recent_goals': 0.20, 'season_goals': 0.20}
         },
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 0.5},
@@ -70,14 +70,14 @@ PREDEFINED_PROFILES = {
         "n_recent_games": 3,
         "min_recent_games_played_filter": 1,
         "kpi_weights": {
-            'GK': {'recent_avg': 0.5, 'season_avg': 0.1, 'regularity_file': 0.1, 'calc_regularity': 0.3, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'DEF': {'recent_avg': 0.4, 'season_avg': 0.1, 'regularity_file': 0.1, 'calc_regularity': 0.4, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'MID': {'recent_avg': 0.4, 'season_avg': 0.1, 'regularity_file': 0.05, 'calc_regularity': 0.15, 'recent_goals': 0.2, 'season_goals': 0.1},
-            'FWD': {'recent_avg': 0.4, 'season_avg': 0.1, 'regularity_file': 0.05, 'calc_regularity': 0.1, 'recent_goals': 0.25, 'season_goals': 0.1}
+            'GK': {'recent_avg': 0.5, 'season_avg': 0.1, 'calc_regularity': 0.3, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'DEF': {'recent_avg': 0.4, 'season_avg': 0.1, 'calc_regularity': 0.4, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'MID': {'recent_avg': 0.4, 'season_avg': 0.1, 'calc_regularity': 0.15, 'recent_goals': 0.2, 'season_goals': 0.1},
+            'FWD': {'recent_avg': 0.4, 'season_avg': 0.1, 'calc_regularity': 0.1, 'recent_goals': 0.25, 'season_goals': 0.1}
         },
         "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.3},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.4},
+            'GK': {'max_proportional_bonus_at_pvs100': 0.4},
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.3},
             'MID': {'max_proportional_bonus_at_pvs100': 0.6},
             'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
         }
@@ -86,10 +86,10 @@ PREDEFINED_PROFILES = {
         "n_recent_games": 7,
         "min_recent_games_played_filter": 2,
         "kpi_weights": {
-            'GK': {'recent_avg': 0.15, 'season_avg': 0.4, 'regularity_file': 0.2, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'DEF': {'recent_avg': 0.1, 'season_avg': 0.4, 'regularity_file': 0.25, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'MID': {'recent_avg': 0.1, 'season_avg': 0.3, 'regularity_file': 0.2, 'calc_regularity': 0.2, 'recent_goals': 0.05, 'season_goals': 0.15},
-            'FWD': {'recent_avg': 0.1, 'season_avg': 0.3, 'regularity_file': 0.15, 'calc_regularity': 0.15, 'recent_goals': 0.1, 'season_goals': 0.2}
+            'GK': {'recent_avg': 0.15, 'season_avg': 0.4, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'DEF': {'recent_avg': 0.1, 'season_avg': 0.4, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'MID': {'recent_avg': 0.1, 'season_avg': 0.3, 'calc_regularity': 0.2, 'recent_goals': 0.05, 'season_goals': 0.15},
+            'FWD': {'recent_avg': 0.1, 'season_avg': 0.3, 'calc_regularity': 0.15, 'recent_goals': 0.1, 'season_goals': 0.2}
         },
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 0.2},
@@ -221,7 +221,6 @@ class MPGAuctionStrategist:
             pvs_sum = pd.Series(0.0, index=rdf.loc[mask].index)
             pvs_sum += rdf.loc[mask, 'norm_recent_avg'].fillna(0) * w.get('recent_avg', 0)
             pvs_sum += rdf.loc[mask, 'norm_season_avg'].fillna(0) * w.get('season_avg', 0)
-            pvs_sum += rdf.loc[mask, 'norm_regularity_file'].fillna(0) * w.get('regularity_file', 0)
             pvs_sum += rdf.loc[mask, 'norm_calc_regularity'].fillna(0) * w.get('calc_regularity', 0)
             if pos in ['MID', 'FWD']:
                 pvs_sum += rdf.loc[mask, 'norm_recent_goals'].fillna(0) * w.get('recent_goals', 0)
@@ -261,8 +260,8 @@ class MPGAuctionStrategist:
         eligible_df_initial = df.copy()
         if min_recent_games_played > 0:
             eligible_df_initial = eligible_df_initial[eligible_df_initial['recent_games_played_count'] >= min_recent_games_played]
-        if 'Indispo ?' in eligible_df_initial.columns:
-            eligible_df_initial = eligible_df_initial[~eligible_df_initial['Indispo ?']]
+        #if 'Indispo ?' in eligible_df_initial.columns:
+            #eligible_df_initial = eligible_df_initial[~eligible_df_initial['Indispo ?']]
         if eligible_df_initial.empty:
             return pd.DataFrame(), {}
         eligible_df = eligible_df_initial.drop_duplicates(subset=['player_id']).copy()
@@ -467,12 +466,11 @@ def main():
                 default_pos_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos_key]
                 current_pos_w_vals = active_kpi_weights.get(pos_key, default_pos_w)
                 weights_ui[pos_key] = {
-                    'recent_avg': st.slider(f"Recent Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('recent_avg', 0)), 0.01, key=f"{pos_key}_wRA_v4"),
                     'season_avg': st.slider(f"Season Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('season_avg', 0)), 0.01, key=f"{pos_key}_wSA_v4"),
-                    'regularity_file': st.slider(f"Regularity (%Titu file)", 0.0, 1.0, float(current_pos_w_vals.get('regularity_file', 0)), 0.01, key=f"{pos_key}_wRF_v4", help="Based on %Titu column from your file."),
+                    'season_goals': st.slider(f"Season Goals", 0.0, 1.0, float(current_pos_w_vals.get('season_goals', 0)) if pos_key in ['MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wSG_v4", disabled=pos_key not in ['MID', 'FWD']),
                     'calc_regularity': st.slider(f"Calculated Regularity", 0.0, 1.0, float(current_pos_w_vals.get('calc_regularity', 0)), 0.01, key=f"{pos_key}_wCR_v4", help="Based on starts identified in gameweek data."),
                     'recent_goals': st.slider(f"Recent Goals", 0.0, 1.0, float(current_pos_w_vals.get('recent_goals', 0)) if pos_key in ['MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wRG_v4", disabled=pos_key not in ['MID', 'FWD']),
-                    'season_goals': st.slider(f"Season Goals", 0.0, 1.0, float(current_pos_w_vals.get('season_goals', 0)) if pos_key in ['MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wSG_v4", disabled=pos_key not in ['MID', 'FWD'])
+                    'recent_avg': st.slider(f"Recent Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('recent_avg', 0)), 0.01, key=f"{pos_key}_wRA_v4"),
                 }
             if weights_ui != active_kpi_weights:
                 st.session_state.current_profile_name = "Custom"
@@ -486,7 +484,7 @@ def main():
                 default_pos_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos_key]
                 current_pos_mrb_vals = active_mrb_params.get(pos_key, default_pos_mrb)
                 mrb_params_ui[pos_key] = {
-                    'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus Factor (at PVS 100)", 0.0, 1.0, float(current_pos_mrb_vals.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos_key}_mrbMPB_v4", help="Bonus factor if PVS=100 (e.g., 0.5 = 50% bonus). MRB capped at 2x Cote.")
+                    'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus Factor (at PVS 100)", 0.0, 2.0, float(current_pos_mrb_vals.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos_key}_mrbMPB_v4", help="Bonus factor if PVS=100 (e.g., 0.5 = 50% bonus). MRB capped at 2x Cote.")
                 }
             if mrb_params_ui != active_mrb_params:
                 st.session_state.current_profile_name = "Custom"
@@ -534,17 +532,16 @@ def main():
                     sdf.rename(columns={
                         'Joueur': 'Player',
                         'simplified_position': 'Pos',
-                        'is_starter': 'Starter',
-                        'mrb_actual_cost': 'MRB Cost',
-                        'Cote': 'Price',
                         'pvs_in_squad': 'PVS',
-                        'recent_avg_rating': 'Rec.AvgR',
-                        'season_avg_rating': 'Sea.AvgR',
-                        '%Titu': 'Reg.% (File)',
-                        'calc_regularity_pct': 'Reg.% (Calc)',
+                        'Cote': 'Cote',
+                        'mrb_actual_cost': 'Suggested Bid',
+                        'season_avg_rating': 'Average',
+                        'season_goals': 'Goals',
+                        'calc_regularity_pct': '% played',
                         'recent_goals': 'Rec.G',
-                        'season_goals': 'Sea.G',
-                        'value_per_cost': 'Val/MRB'
+                        'recent_avg_rating': 'Rec.AvgR',
+                        'value_per_cost': 'Val/MRB',
+                        'is_starter': 'Starter'
                     }, inplace=True)
                     float_cols_squad = ['PVS', 'Rec.AvgR', 'Sea.AvgR', 'Reg.% (File)', 'Reg.% (Calc)', 'Val/MRB']
                     for col in float_cols_squad:
@@ -589,26 +586,18 @@ def main():
                     df_full.rename(columns={
                         'Joueur': 'Player',
                         'simplified_position': 'Pos',
-                        'Poste': 'Orig.Pos',
-                        'Indispo ?': 'Unavail.',
-                        'Cote': 'Price',
                         'pvs': 'PVS',
-                        'mrb': 'MRB',
-                        'value_per_cost': 'Val/MRB',
-                        'recent_avg_rating': 'Rec.AvgR',
-                        'season_avg_rating': 'Sea.AvgR',
-                        'calc_regularity_pct': 'Reg.%Calc',
-                        '%Titu': 'Reg.%File',
+                        'Cote': 'Cote',
+                        'mrb': 'Suggested Bid',
+                        'Indispo ?': 'Unavail.',
+                        'season_avg_rating': 'Average',
+                        'season_goals': 'Goals',
+                        'calc_regularity_pct': '% Played',
                         'recent_goals': 'Rec.G',
-                        'season_goals': 'Sea.G',
-                        'recent_games_played_count': 'Rec.Plyd',
+                        'recent_avg_rating': 'Rec.AvgR',
+                        'value_per_cost': 'Val/MRB',
                         'games_started_season': 'Sea.Start',
-                        'norm_recent_avg': 'N.RecAvg',
-                        'norm_season_avg': 'N.SeaAvg',
-                        'norm_regularity_file': 'N.RegFile',
-                        'norm_calc_regularity': 'N.RegCalc',
-                        'norm_recent_goals': 'N.RecG',
-                        'norm_season_goals': 'N.SeaG'
+                        'recent_games_played_count': 'Rec.Plyd'
                     }, inplace=True)
                     float_cols_full = ['PVS', 'Val/MRB', 'Rec.AvgR', 'Sea.AvgR', 'Reg.%File', 'Reg.%Calc',
                                        'N.RecAvg', 'N.SeaAvg', 'N.RegFile', 'N.RegCalc', 'N.RecG', 'N.SeaG']
