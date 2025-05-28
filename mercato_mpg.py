@@ -1097,9 +1097,7 @@ def main():
 
             # --- Main Panel Display Logic ---
 
-            if 'squad_df_result_final' in st.session_state and \
-
-               st.session_state['squad_df_result_final'] is not None and \
+            if 'squad_df_result_final' in st.session_state and st.session_state['squad_df_result_final'] is not None and \
 
                not st.session_state['squad_df_result_final'].empty:
 
