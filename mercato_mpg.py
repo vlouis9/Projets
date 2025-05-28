@@ -457,7 +457,7 @@ def main():
         selected_profile_name_ui = st.sidebar.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state.current_profile_name), help="Loads predefined settings. Modifying details below sets to 'Custom'.")
         if selected_profile_name_ui != st.session_state.current_profile_name:
             apply_profile_settings(selected_profile_name_ui)
-            st.experimental_rerun()
+            st.rerun()
 
         with st.sidebar.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.current_profile_name == "Custom")):
             active_kpi_weights = st.session_state.kpi_weights
