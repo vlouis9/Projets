@@ -60,10 +60,10 @@ PREDEFINED_PROFILES = {
             'FWD': {'recent_avg': 0.25, 'season_avg': 0.25, 'calc_regularity': 0.10, 'recent_goals': 0.20, 'season_goals': 0.20}
         },
         "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.5},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.6},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.8},
-            'FWD': {'max_proportional_bonus_at_pvs100': 1.0}
+            'GK': {'max_proportional_bonus_at_pvs100': 1.1},
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.9},
+            'MID': {'max_proportional_bonus_at_pvs100': 1.1},
+            'FWD': {'max_proportional_bonus_at_pvs100': 1.5}
         }
     },
     "Focus on Recent Form": {
@@ -76,10 +76,10 @@ PREDEFINED_PROFILES = {
             'FWD': {'recent_avg': 0.4, 'season_avg': 0.1, 'calc_regularity': 0.1, 'recent_goals': 0.25, 'season_goals': 0.1}
         },
         "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.4},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.3},
+            'GK': {'max_proportional_bonus_at_pvs100': 0.6},
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.5},
             'MID': {'max_proportional_bonus_at_pvs100': 0.6},
-            'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
+            'FWD': {'max_proportional_bonus_at_pvs100': 0.9}
         }
     },
     "Focus on Season Consistency": {
@@ -92,10 +92,10 @@ PREDEFINED_PROFILES = {
             'FWD': {'recent_avg': 0.0, 'season_avg': 0.5, 'calc_regularity': 0.1, 'recent_goals': 0.0, 'season_goals': 0.4}
         },
         "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.2},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.3},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.5},
-            'FWD': {'max_proportional_bonus_at_pvs100': 0.7}
+            'GK': {'max_proportional_bonus_at_pvs100': 0.9},
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.8},
+            'MID': {'max_proportional_bonus_at_pvs100': 0.9},
+            'FWD': {'max_proportional_bonus_at_pvs100': 1.2}
         }
     }
 }
