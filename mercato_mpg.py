@@ -252,7 +252,7 @@ class MPGAuctionStrategist:
             rdf.loc[mask, 'mrb'] = rdf.loc[mask].apply(_calc_mrb_player_v3, axis=1)
         rdf['mrb'] = rdf['mrb'].astype(int)
         safe_mrb = rdf['mrb'].replace(0, np.nan).astype(float)
-        rdf['value_per_cost'] = rdf['pivs'] / safe_mrb
+        rdf['value_per_cost'] = rdf['pvs'] / safe_mrb
         rdf['value_per_cost'].fillna(0, inplace=True)
         return rdf
 
