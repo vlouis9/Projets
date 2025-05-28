@@ -498,7 +498,7 @@ def main():
                 df_input_calc = pd.read_excel(uploaded_file) if uploaded_file.name.endswith(('.xlsx', '.xls')) else pd.read_csv(uploaded_file)
                 df_processed_calc = df_input.copy()
                 df_processed_calc['simplified_position'] = df_processed_calc['Poste'].apply(strategist.simplify_position)
-                df_processed_calc['player_id'] = df_processed_calc.apply(strategist.create_player_id), axis=1)
+                df_processed_calc['player_id'] = df_processed_calc.apply(strategist.create_player_id, axis=1)
                 df_processed_calc['Cote'] = pd.to_numeric(df_processed_calc['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
                 if 'Indispo ?' not in df_processed_calc.columns:
                     df_processed_calc['Indispo ?'] = False
