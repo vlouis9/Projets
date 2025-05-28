@@ -6,8 +6,8 @@ from typing import Dict, List, Tuple, Optional
 
 # Page configuration
 st.set_page_config(
-    page_title="MPG Auction Strategist v3",
-    page_icon="🚀", 
+    page_title="MPG Auction Strategist v4",
+    page_icon="🏆", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -15,22 +15,13 @@ st.set_page_config(
 # Custom CSS
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 2.5rem; font-weight: bold; color: #004080; 
-        text-align: center; margin-bottom: 2rem; font-family: 'Roboto', sans-serif;
-    }
-    .section-header {
-        font-size: 1.4rem; font-weight: bold; color: #006847; 
-        margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #006847; padding-bottom: 0.3rem;
-    }
-    .stButton>button {
-        background-color: #004080; color: white; font-weight: bold;
-        border-radius: 0.3rem; padding: 0.4rem 0.8rem; border: none; width: 100%;
-    }
-    .stButton>button:hover { background-color: #003060; color: white; }
-    .stSlider [data-baseweb="slider"] { padding-bottom: 12px; }
-    .css-1d391kg { background-color: #f8f9fa; padding-top: 1rem; } /* Sidebar class */
-    .stExpander { border: 1px solid #e0e0e0; border-radius: 0.3rem; margin-bottom: 0.5rem; }
+    .main-header {font-size: 2.5rem; font-weight: bold; color: #004080; text-align: center; margin-bottom: 2rem; font-family: 'Roboto', sans-serif;}
+    .section-header {font-size: 1.4rem; font-weight: bold; color: #006847; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #006847; padding-bottom: 0.3rem;}
+    .stButton>button {background-color: #004080; color: white; font-weight: bold; border-radius: 0.3rem; padding: 0.4rem 0.8rem; border: none; width: 100%;}
+    .stButton>button:hover {background-color: #003060; color: white;}
+    .stSlider [data-baseweb="slider"] {padding-bottom: 12px;}
+    .css-1d391kg {background-color: #f8f9fa; padding-top: 1rem;} /* Sidebar class may change */
+    .stExpander {border: 1px solid #e0e0e0; border-radius: 0.3rem; margin-bottom: 0.5rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -40,20 +31,18 @@ DEFAULT_MIN_RECENT_GAMES_PLAYED = 1
 DEFAULT_SQUAD_SIZE = 20
 DEFAULT_FORMATION = "4-4-2"
 
-# New MRB Param per position: 'max_proportional_bonus_at_pvs100': Factor (0.0-1.0) for bonus if PVS=100.
-# MRB = Cote * (1 + (PVS/100) * max_proportional_bonus_at_pvs100). Capped at 2*Cote.
 PREDEFINED_PROFILES = {
-    "Custom": "custom",
+    "Custom": "custom", # Must be first for logic
     "Balanced Value": {
         "n_recent_games": 5,
         "min_recent_games_played_filter": 1,
         "kpi_weights": {
-            'GK':  {'recent_avg': 0.35, 'season_avg': 0.35, 'regularity': 0.30, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'DEF': {'recent_avg': 0.30, 'season_avg': 0.30, 'regularity': 0.40, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'MID': {'recent_avg': 0.25, 'season_avg': 0.25, 'regularity': 0.20, 'recent_goals': 0.15, 'season_goals': 0.15},
-            'FWD': {'recent_avg': 0.20, 'season_avg': 0.20, 'regularity': 0.15, 'recent_goals': 0.25, 'season_goals': 0.20}
+            'GK':  {'recent_avg': 0.30, 'season_avg': 0.30, 'regularity_file': 0.20, 'calc_regularity': 0.20, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'DEF': {'recent_avg': 0.25, 'season_avg': 0.25, 'regularity_file': 0.25, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'MID': {'recent_avg': 0.20, 'season_avg': 0.20, 'regularity_file': 0.15, 'calc_regularity': 0.15, 'recent_goals': 0.15, 'season_goals': 0.15},
+            'FWD': {'recent_avg': 0.15, 'season_avg': 0.15, 'regularity_file': 0.10, 'calc_regularity': 0.10, 'recent_goals': 0.25, 'season_goals': 0.25}
         },
-        "mrb_params_per_pos": { # Max bonus if PVS=100. E.g., 0.5 means MRB can be Cote * 1.5 if PVS=100
+        "mrb_params_per_pos": {
             'GK':  {'max_proportional_bonus_at_pvs100': 0.3}, 
             'DEF': {'max_proportional_bonus_at_pvs100': 0.4}, 
             'MID': {'max_proportional_bonus_at_pvs100': 0.6}, 
@@ -64,23 +53,56 @@ PREDEFINED_PROFILES = {
         "n_recent_games": 5,
         "min_recent_games_played_filter": 0,
         "kpi_weights": { 
-            'GK':  {'recent_avg': 0.4, 'season_avg': 0.4, 'regularity': 0.2, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'DEF': {'recent_avg': 0.35, 'season_avg': 0.35, 'regularity': 0.3, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'MID': {'recent_avg': 0.3, 'season_avg': 0.3, 'regularity': 0.1, 'recent_goals': 0.15, 'season_goals': 0.15},
-            'FWD': {'recent_avg': 0.3, 'season_avg': 0.3, 'regularity': 0.05, 'recent_goals': 0.2, 'season_goals': 0.15}
+            'GK':  {'recent_avg': 0.35, 'season_avg': 0.35, 'regularity_file': 0.10, 'calc_regularity': 0.20, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'DEF': {'recent_avg': 0.30, 'season_avg': 0.30, 'regularity_file': 0.10, 'calc_regularity': 0.30, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'MID': {'recent_avg': 0.25, 'season_avg': 0.25, 'regularity_file': 0.05, 'calc_regularity': 0.15, 'recent_goals': 0.15, 'season_goals': 0.15},
+            'FWD': {'recent_avg': 0.25, 'season_avg': 0.25, 'regularity_file': 0.0, 'calc_regularity':  0.10, 'recent_goals': 0.20, 'season_goals': 0.20}
         },
         "mrb_params_per_pos": { 
             'GK':  {'max_proportional_bonus_at_pvs100': 0.5}, 
             'DEF': {'max_proportional_bonus_at_pvs100': 0.6}, 
             'MID': {'max_proportional_bonus_at_pvs100': 0.8}, 
-            'FWD': {'max_proportional_bonus_at_pvs100': 1.0} # Max bonus is 100% of Cote, so MRB up to 2x Cote
+            'FWD': {'max_proportional_bonus_at_pvs100': 1.0} 
+        }
+    },
+    "Focus on Recent Form": {
+        "n_recent_games": 3, 
+        "min_recent_games_played_filter": 1,
+        "kpi_weights": {
+            'GK':  {'recent_avg': 0.5, 'season_avg': 0.1, 'regularity_file': 0.1, 'calc_regularity': 0.3, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'DEF': {'recent_avg': 0.4, 'season_avg': 0.1, 'regularity_file': 0.1, 'calc_regularity': 0.4, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'MID': {'recent_avg': 0.4, 'season_avg': 0.1, 'regularity_file': 0.05, 'calc_regularity': 0.15, 'recent_goals': 0.2, 'season_goals': 0.1},
+            'FWD': {'recent_avg': 0.4, 'season_avg': 0.1, 'regularity_file': 0.05, 'calc_regularity': 0.1, 'recent_goals': 0.25, 'season_goals': 0.1}
+        },
+        "mrb_params_per_pos": { # Standard MRB
+            'GK':  {'max_proportional_bonus_at_pvs100': 0.3}, 
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.4}, 
+            'MID': {'max_proportional_bonus_at_pvs100': 0.6}, 
+            'FWD': {'max_proportional_bonus_at_pvs100': 0.8}  
+        }
+    },
+    "Focus on Season Consistency": {
+        "n_recent_games": 7, # Larger window for smoother recent form
+        "min_recent_games_played_filter": 2,
+        "kpi_weights": {
+            'GK':  {'recent_avg': 0.15, 'season_avg': 0.4, 'regularity_file': 0.2, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'DEF': {'recent_avg': 0.1, 'season_avg': 0.4, 'regularity_file': 0.25, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
+            'MID': {'recent_avg': 0.1, 'season_avg': 0.3, 'regularity_file': 0.2, 'calc_regularity': 0.2, 'recent_goals': 0.05, 'season_goals': 0.15},
+            'FWD': {'recent_avg': 0.1, 'season_avg': 0.3, 'regularity_file': 0.15, 'calc_regularity': 0.15, 'recent_goals': 0.1, 'season_goals': 0.2}
+        },
+        "mrb_params_per_pos": { # Slightly more conservative MRB
+            'GK':  {'max_proportional_bonus_at_pvs100': 0.2}, 
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.3}, 
+            'MID': {'max_proportional_bonus_at_pvs100': 0.5}, 
+            'FWD': {'max_proportional_bonus_at_pvs100': 0.7}  
         }
     }
 }
 
+
 class MPGAuctionStrategist:
     def __init__(self):
-        self.formations = { # Standard formations
+        self.formations = {
             "4-4-2": {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2}, "4-3-3": {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3},
             "3-5-2": {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2}, "3-4-3": {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3},
             "4-5-1": {"GK": 1, "DEF": 4, "MID": 5, "FWD": 1}, "5-3-2": {"GK": 1, "DEF": 5, "MID": 3, "FWD": 2},
@@ -92,7 +114,7 @@ class MPGAuctionStrategist:
     @property
     def squad_minimums_sum_val(self): return sum(self.squad_minimums.values())
 
-    def simplify_position(self, position: str) -> str: # As before
+    def simplify_position(self, position: str) -> str:
         if pd.isna(position) or str(position).strip() == '': return 'UNKNOWN'
         pos = str(position).upper().strip()
         if pos == 'G': return 'GK'
@@ -101,56 +123,77 @@ class MPGAuctionStrategist:
         elif pos == 'A': return 'FWD'
         else: return 'UNKNOWN'
 
-    def create_player_id(self, row) -> str: # As before
+    def create_player_id(self, row) -> str:
         name = str(row.get('Joueur', '')).strip()
         simplified_pos = self.simplify_position(row.get('Poste', ''))
         club = str(row.get('Club', '')).strip()
         return f"{name}_{simplified_pos}_{club}"
 
-    def extract_rating_and_goals(self, rating_str) -> Tuple[Optional[float], int, bool]: # As before
-        if pd.isna(rating_str) or str(rating_str).strip() == '' or str(rating_str).strip() == '0': return None, 0, False
-        rating_val_str = str(rating_str).strip()
-        goals = rating_val_str.count('*')
-        clean_rating_str = re.sub(r'[()\*]', '', rating_val_str)
-        try: return float(clean_rating_str), goals, True
-        except ValueError: return None, 0, False
+    def extract_rating_goals_starter(self, rating_str) -> Tuple[Optional[float], int, bool, bool]:
+        """Returns rating, goals, played_this_gw, is_starter"""
+        if pd.isna(rating_str) or str(rating_str).strip() == '' or str(rating_str).strip() == '0':
+            return None, 0, False, False # DNP
+        
+        val_str = str(rating_str).strip()
+        goals = val_str.count('*')
+        is_starter = '(' not in val_str 
+        clean_rating_str = re.sub(r'[()\*]', '', val_str)
+        
+        try:
+            rating = float(clean_rating_str)
+            return rating, goals, True, is_starter # Played
+        except ValueError:
+            return None, 0, False, False
 
-    def get_gameweek_columns(self, df_columns: List[str]) -> List[str]: # As before
+    def get_gameweek_columns(self, df_columns: List[str]) -> List[str]:
         gw_cols_data = [{'name': col, 'number': int(match.group(1))} for col in df_columns if (match := re.fullmatch(r'D(\d+)', col))]
-        return [col['name'] for col in sorted(gw_cols_data, key=lambda x: x['number'])]
+        return [col['name'] for col in sorted(gw_cols_data, key=lambda x: x['number'])] # D1 ... D34
 
-    def calculate_kpis(self, df: pd.DataFrame, n_recent: int) -> pd.DataFrame: # As before (Recent form based on played games in N window)
+    def calculate_kpis(self, df: pd.DataFrame, n_recent: int) -> pd.DataFrame:
         rdf = df.copy()
         all_gws = self.get_gameweek_columns(df.columns)
+        
         rdf[['recent_avg_rating', 'season_avg_rating']] = 0.0
-        rdf[['recent_goals', 'season_goals', 'recent_games_played_count']] = 0
+        rdf[['recent_goals', 'season_goals', 'recent_games_played_count', 
+             'calc_regularity_pct', 'games_started_season', 'total_season_gws_considered']] = 0
 
         for idx, row in rdf.iterrows():
-            s_ratings, s_goals = [], 0
+            s_ratings_p, s_goals_t, s_started, s_played = [], 0, 0, 0
             for gw_col in all_gws:
-                r, g, played = self.extract_rating_and_goals(row.get(gw_col))
-                if played and r is not None: s_ratings.append(r); s_goals += g
-            rdf.at[idx, 'season_avg_rating'] = np.mean(s_ratings) if s_ratings else 0.0
-            rdf.at[idx, 'season_goals'] = s_goals
+                r, g, played, starter = self.extract_rating_goals_starter(row.get(gw_col))
+                if played and r is not None: 
+                    s_ratings_p.append(r); s_goals_t += g; s_played +=1
+                    if starter: s_started += 1
+            
+            rdf.at[idx, 'season_avg_rating'] = np.mean(s_ratings_p) if s_ratings_p else 0.0
+            rdf.at[idx, 'season_goals'] = s_goals_t
+            rdf.at[idx, 'games_started_season'] = s_started
+            rdf.at[idx, 'total_season_gws_considered'] = len(all_gws)
+            rdf.at[idx, 'calc_regularity_pct'] = (s_started / len(all_gws) * 100) if len(all_gws) > 0 else 0.0
 
-            rec_gws = all_gws[-n_recent:]
-            rec_ratings, rec_goals_sum, rec_games_played = [], 0, 0
-            for gw_col in rec_gws:
-                r, g, played = self.extract_rating_and_goals(row.get(gw_col))
-                if played and r is not None: rec_ratings.append(r); rec_goals_sum += g; rec_games_played += 1
-            rdf.at[idx, 'recent_avg_rating'] = np.mean(rec_ratings) if rec_ratings else 0.0
-            rdf.at[idx, 'recent_goals'] = rec_goals_sum
-            rdf.at[idx, 'recent_games_played_count'] = rec_games_played
+
+            rec_gws_check = all_gws[-n_recent:]
+            rec_ratings_p, rec_goals_s, rec_games_p_window = [], 0, 0
+            for gw_col in rec_gws_check:
+                r, g, played, _ = self.extract_rating_goals_starter(row.get(gw_col)) # Don't need starter status for this KPI part
+                if played and r is not None: 
+                    rec_ratings_p.append(r); rec_goals_s += g; rec_games_p_window += 1
+            
+            rdf.at[idx, 'recent_avg_rating'] = np.mean(rec_ratings_p) if rec_ratings_p else 0.0
+            rdf.at[idx, 'recent_goals'] = rec_goals_s
+            rdf.at[idx, 'recent_games_played_count'] = rec_games_p_window
         
-        # Ensure goals are integer
-        rdf[['recent_goals', 'season_goals', 'recent_games_played_count']] = rdf[['recent_goals', 'season_goals', 'recent_games_played_count']].astype(int)
+        for col in ['recent_goals', 'season_goals', 'recent_games_played_count', 'games_started_season', 'total_season_gws_considered']:
+            rdf[col] = rdf[col].astype(int)
         return rdf
 
-    def normalize_kpis(self, df: pd.DataFrame) -> pd.DataFrame: # As before
+    def normalize_kpis(self, df: pd.DataFrame) -> pd.DataFrame:
         rdf = df.copy()
         rdf['norm_recent_avg'] = np.clip(rdf['recent_avg_rating'] * 10, 0, 100)
         rdf['norm_season_avg'] = np.clip(rdf['season_avg_rating'] * 10, 0, 100)
-        rdf['norm_regularity'] = pd.to_numeric(rdf['%Titu'], errors='coerce').fillna(0).clip(0, 100)
+        rdf['norm_regularity_file'] = pd.to_numeric(rdf['%Titu'], errors='coerce').fillna(0).clip(0, 100)
+        rdf['norm_calc_regularity'] = rdf['calc_regularity_pct'].clip(0,100) # Already 0-100
+
         rdf[['norm_recent_goals', 'norm_season_goals']] = 0.0
         for pos in ['MID', 'FWD']:
             mask = rdf['simplified_position'] == pos
@@ -160,157 +203,209 @@ class MPGAuctionStrategist:
                 rdf.loc[mask, 'norm_season_goals'] = np.clip((rdf.loc[mask, 'season_goals'] / max_sg * 100) if max_sg > 0 else 0, 0, 100)
         return rdf
 
-    def calculate_pvs(self, df: pd.DataFrame, weights: Dict[str, Dict[str, float]]) -> pd.DataFrame: # As before (PVS 0-100)
+    def calculate_pvs(self, df: pd.DataFrame, weights: Dict[str, Dict[str, float]]) -> pd.DataFrame:
         rdf = df.copy()
         rdf['pvs'] = 0.0
         for pos, w in weights.items():
-            mask = rdf['simplified_position'] == pos;
+            mask = rdf['simplified_position'] == pos; 
             if not mask.any(): continue
-            pvs = pd.Series(0.0, index=rdf.loc[mask].index)
-            pvs += rdf.loc[mask, 'norm_recent_avg'].fillna(0) * w.get('recent_avg',0)
-            pvs += rdf.loc[mask, 'norm_season_avg'].fillna(0) * w.get('season_avg',0)
-            pvs += rdf.loc[mask, 'norm_regularity'].fillna(0) * w.get('regularity',0)
+            pvs_sum = pd.Series(0.0, index=rdf.loc[mask].index)
+            pvs_sum += rdf.loc[mask, 'norm_recent_avg'].fillna(0) * w.get('recent_avg',0)
+            pvs_sum += rdf.loc[mask, 'norm_season_avg'].fillna(0) * w.get('season_avg',0)
+            pvs_sum += rdf.loc[mask, 'norm_regularity_file'].fillna(0) * w.get('regularity_file',0) # From file
+            pvs_sum += rdf.loc[mask, 'norm_calc_regularity'].fillna(0) * w.get('calc_regularity',0) # Newly calculated
             if pos in ['MID', 'FWD']:
-                pvs += rdf.loc[mask, 'norm_recent_goals'].fillna(0) * w.get('recent_goals',0)
-                pvs += rdf.loc[mask, 'norm_season_goals'].fillna(0) * w.get('season_goals',0)
-            rdf.loc[mask, 'pvs'] = pvs.clip(0, 100)
+                pvs_sum += rdf.loc[mask, 'norm_recent_goals'].fillna(0) * w.get('recent_goals',0)
+                pvs_sum += rdf.loc[mask, 'norm_season_goals'].fillna(0) * w.get('season_goals',0)
+            rdf.loc[mask, 'pvs'] = pvs_sum.clip(0, 100)
         return rdf
 
     def calculate_mrb(self, df: pd.DataFrame, mrb_params_per_pos: Dict[str, Dict[str, float]]) -> pd.DataFrame:
         rdf = df.copy()
-        # Cote is already int from main processing
-        rdf['mrb'] = rdf['Cote'] 
+        rdf['Cote'] = pd.to_numeric(rdf['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
+        rdf['mrb'] = rdf['Cote'] # Default
 
         for pos_simplified, params in mrb_params_per_pos.items():
             mask = rdf['simplified_position'] == pos_simplified
             if not mask.any(): continue
+            
+            # New MRB: Cote * (1 + (PVS/100) * MaxProportionalBonusAtPVS100_ForPosition)
+            # Capped at 2*Cote, Min Cote
+            max_prop_bonus = params.get('max_proportional_bonus_at_pvs100', 0.5) # Default if param missing
 
-            max_prop_bonus = params.get('max_proportional_bonus_at_pvs100', 0.5) # Default to 0.5 if not found
-
-            def _calc_mrb_player_v2(row):
-                cote = int(row['Cote']) # Ensure integer
-                pvs_player = float(row['pvs']) # PVS is 0-100
+            def _calc_mrb_player_v3(row):
+                cote = int(row['Cote'])
+                pvs_player_0_100 = float(row['pvs'])
                 
-                pvs_scaled_0_1 = pvs_player / 100.0
-                pvs_derived_bonus_factor = pvs_scaled_0_1 * max_prop_bonus
+                pvs_scaled_0_1 = pvs_player_0_100 / 100.0
+                pvs_derived_bonus_factor = pvs_scaled_0_1 * max_prop_bonus # This is the BONUS part
                 
                 mrb_float = cote * (1 + pvs_derived_bonus_factor)
                 
-                # Apply caps: Max 2x Cote, Min Cote
-                mrb_capped = min(mrb_float, float(cote * 2))
-                final_mrb = max(float(cote), mrb_capped)
+                mrb_capped_at_2x_cote = min(mrb_float, float(cote * 2))
+                final_mrb = max(float(cote), mrb_capped_at_2x_cote) 
                 return int(round(final_mrb))
 
-            rdf.loc[mask, 'mrb'] = rdf.loc[mask].apply(_calc_mrb_player_v2, axis=1)
+            rdf.loc[mask, 'mrb'] = rdf.loc[mask].apply(_calc_mrb_player_v3, axis=1)
         
-        rdf['mrb'] = rdf['mrb'].astype(int) # Ensure final MRB is integer
-        safe_mrb = rdf['mrb'].replace(0, np.nan).astype(float) # MRB should not be 0 due to max(cote, mrb)
-        rdf['value_per_cost'] = rdf['pvs'] / safe_mrb
+        rdf['mrb'] = rdf['mrb'].astype(int)
+        safe_mrb = rdf['mrb'].replace(0, np.nan).astype(float)
+        rdf['value_per_cost'] = rdf['pvs'] / safe_mrb # PVS/MRB
         rdf['value_per_cost'].fillna(0, inplace=True)
         return rdf
 
     def select_squad(self, df: pd.DataFrame, formation_key: str, target_squad_size: int,
                      min_recent_games_played: int) -> Tuple[Optional[pd.DataFrame], Optional[Dict]]:
         
-        eligible_df = df.copy()
+        eligible_df_initial = df.copy()
         if min_recent_games_played > 0:
-            eligible_df = eligible_df[eligible_df['recent_games_played_count'] >= min_recent_games_played]
-        if 'Indispo ?' in eligible_df.columns: eligible_df = eligible_df[~eligible_df['Indispo ?']]
+            eligible_df_initial = eligible_df_initial[eligible_df_initial['recent_games_played_count'] >= min_recent_games_played]
+        if 'Indispo ?' in eligible_df_initial.columns: 
+            eligible_df_initial = eligible_df_initial[~eligible_df_initial['Indispo ?']]
         
-        if eligible_df.empty: return pd.DataFrame(), {}
+        if eligible_df_initial.empty: return pd.DataFrame(), {}
+        eligible_df = eligible_df_initial.drop_duplicates(subset=['player_id']).copy() # Work with a copy
+        eligible_df['mrb'] = eligible_df['mrb'].astype(int)
 
-        eligible_df = eligible_df.drop_duplicates(subset=['player_id'])
-        eligible_df['mrb'] = eligible_df['mrb'].astype(int) # Ensure MRB is int for budget
-
-        selected_details = [] 
+        # --- Initialize squad building ---
+        selected_details = [] # Stores dicts of selected players
         current_budget = self.budget
         current_pos_counts = {pos: 0 for pos in ['GK', 'DEF', 'MID', 'FWD']}
         
+        # --- Helper to add player ---
+        def add_player_to_squad(player_row, is_starter_role):
+            nonlocal current_budget, selected_details, current_pos_counts
+            # Check if player already selected (robustness)
+            if player_row['player_id'] in [p['player_id'] for p in selected_details]:
+                return False
+
+            selected_details.append({
+                'player_id': player_row['player_id'], 'is_starter': is_starter_role, 
+                'mrb_cost': player_row['mrb'], 'pvs': player_row['pvs'], 
+                'position': player_row['simplified_position']
+            })
+            current_budget -= player_row['mrb']
+            current_pos_counts[player_row['simplified_position']] += 1
+            return True
+
         # --- Phase 1: Select Starters (Prioritize PVS) ---
         starters_needed = self.formations[formation_key].copy()
-        for pos, num_needed in starters_needed.items():
-            candidates = eligible_df[(eligible_df['simplified_position'] == pos) & 
-                                     (~eligible_df['player_id'].isin([p['player_id'] for p in selected_details]))
-                                    ].sort_values(by='pvs', ascending=False)
-            added_count = 0
-            for _, p_row in candidates.iterrows():
-                if added_count >= num_needed: break
-                if p_row['mrb'] <= current_budget:
-                    selected_details.append({'player_id': p_row['player_id'], 'is_starter': True, 'mrb_cost': p_row['mrb'], 'pvs': p_row['pvs'], 'position': pos})
-                    current_budget -= p_row['mrb']
-                    current_pos_counts[pos] += 1
-                    added_count += 1
+        # Sort all eligible players by PVS to pick best starters globally first
+        sorted_for_starters = eligible_df.sort_values(by='pvs', ascending=False)
         
-        # --- Phase 2: Fulfill Overall Squad Minimums (Prioritize PVS, then PVS/MRB if needed) ---
+        for _, player_row in sorted_for_starters.iterrows():
+            pos = player_row['simplified_position']
+            # If we still need starters for this position and player is affordable
+            if starters_needed.get(pos, 0) > 0 and player_row['mrb'] <= current_budget:
+                if add_player_to_squad(player_row, True):
+                    starters_needed[pos] -= 1 # Decrement needed starters for this position
+        
+        # --- Phase 2 & 3 Combined: Fulfill Minimums & Complete Squad (Prioritize PVS then PVS/MRB) ---
+        # This strategy aims to get high PVS players if affordable, then high value-for-MRB
+        
+        # First, ensure overall minimums are met by picking highest PVS affordable players
         for pos, overall_min in self.squad_minimums.items():
             needed = max(0, overall_min - current_pos_counts[pos])
             if needed == 0: continue
-            # Try PVS first for higher quality bench, then fall back to PVS/MRB if budget is an issue for top PVS.
-            # For MVP, let's use PVS/MRB for efficiency in filling these minimums, user can tune weights for PVS.
-            candidates = eligible_df[(eligible_df['simplified_position'] == pos) & 
-                                     (~eligible_df['player_id'].isin([p['player_id'] for p in selected_details]))
-                                    ].sort_values(by='value_per_cost', ascending=False) 
+            
+            candidates = eligible_df[
+                (eligible_df['simplified_position'] == pos) &
+                (~eligible_df['player_id'].isin([p['player_id'] for p in selected_details]))
+            ].sort_values(by='pvs', ascending=False) # Try best PVS first for minimums
+            
             added_count = 0
-            for _, p_row in candidates.iterrows():
+            for _, player_row in candidates.iterrows():
                 if added_count >= needed: break
-                if p_row['mrb'] <= current_budget:
-                    selected_details.append({'player_id': p_row['player_id'], 'is_starter': False, 'mrb_cost': p_row['mrb'], 'pvs': p_row['pvs'], 'position': pos})
-                    current_budget -= p_row['mrb']
-                    current_pos_counts[pos] += 1
-                    added_count += 1
+                if player_row['mrb'] <= current_budget:
+                    if add_player_to_squad(player_row, False): # Mark as non-starter initially
+                        added_count += 1
         
-        # --- Phase 3: Complete to Total Squad Size (PVS/MRB for remaining bench) ---
+        # Then, fill remaining slots up to target_squad_size, prioritizing PVS
         slots_to_fill = max(0, target_squad_size - len(selected_details))
         if slots_to_fill > 0:
-            candidates = eligible_df[(~eligible_df['player_id'].isin([p['player_id'] for p in selected_details]))
-                                    ].sort_values(by='value_per_cost', ascending=False)
+            candidates = eligible_df[
+                (~eligible_df['player_id'].isin([p['player_id'] for p in selected_details]))
+            ].sort_values(by='pvs', ascending=False) # Still PVS focused for remaining general slots
+
             added_count = 0
-            for _, p_row in candidates.iterrows():
+            for _, player_row in candidates.iterrows():
                 if added_count >= slots_to_fill: break
-                if p_row['mrb'] <= current_budget:
-                    selected_details.append({'player_id': p_row['player_id'], 'is_starter': False, 'mrb_cost': p_row['mrb'], 'pvs': p_row['pvs'], 'position': p_row['simplified_position']})
-                    current_budget -= p_row['mrb']
-                    current_pos_counts[p_row['simplified_position']] += 1
-                    added_count += 1
-
-        # --- Phase 4: Iterative Budget Utilization / Upgrade (MVP - Simple Pass) ---
-        # Attempt to use remaining budget to upgrade PVS of bench players
-        if current_budget > 5: # Only attempt if some meaningful budget remains
-            bench_players_in_squad = [p for p in selected_details if not p['is_starter']]
-            bench_players_in_squad_sorted = sorted(bench_players_in_squad, key=lambda x: x['pvs']) # Lowest PVS bench first
-
+                if player_row['mrb'] <= current_budget:
+                    if add_player_to_squad(player_row, False):
+                         added_count += 1
+        
+        # --- Phase 4: Iterative Budget Utilization / Upgrade (Spend remaining budget for PVS gains) ---
+        if current_budget > 5 and len(selected_details) == target_squad_size : # Only if squad is full and budget remains
+            # Sort selected bench players by PVS (ascending)
+            bench_player_details = sorted([p for p in selected_details if not p['is_starter']], key=lambda x: x['pvs'])
+            
+            # Consider all unselected players sorted by PVS (descending)
             potential_upgrades_pool = eligible_df[~eligible_df['player_id'].isin([p['player_id'] for p in selected_details])].sort_values(by='pvs', ascending=False)
 
-            for i, old_player_detail in enumerate(bench_players_in_squad_sorted):
-                if current_budget <= 5 : break # Stop if budget too low for meaningful upgrades
+            swapped_in_pass = True
+            max_passes = 5 # Limit passes to prevent infinite loops if logic is tricky
+            current_pass = 0
+            while swapped_in_pass and current_pass < max_passes and current_budget > 5:
+                swapped_in_pass = False
+                current_pass += 1
                 
-                # Find better PVS players for the same position not in squad
-                for _, new_player_row in potential_upgrades_pool[potential_upgrades_pool['simplified_position'] == old_player_detail['position']].iterrows():
-                    if new_player_row['pvs'] > old_player_detail['pvs']:
+                for i, old_player_detail in enumerate(bench_player_details):
+                    if current_budget <= 5 : break
+                    
+                    # Find best possible upgrade for this old_player's position
+                    best_upgrade_for_slot = None
+                    best_pvs_gain = 0
+
+                    for _, new_player_row in potential_upgrades_pool[
+                        (potential_upgrades_pool['simplified_position'] == old_player_detail['position']) &
+                        (potential_upgrades_pool['pvs'] > old_player_detail['pvs']) # Must be a PVS upgrade
+                    ].iterrows():
                         cost_to_upgrade = new_player_row['mrb'] - old_player_detail['mrb_cost']
-                        if cost_to_upgrade <= current_budget and cost_to_upgrade >= 0 : # Upgrade must be affordable and not free unless PVS gain
-                            # Perform swap in selected_details
-                            selected_details.pop(selected_details.index(old_player_detail)) # Remove old
-                            selected_details.append({'player_id': new_player_row['player_id'], 'is_starter': False, 
-                                                     'mrb_cost': new_player_row['mrb'], 'pvs': new_player_row['pvs'],
-                                                     'position': new_player_row['simplified_position']})
-                            current_budget -= cost_to_upgrade 
-                            # (Positional counts remain the same as it's a same-position swap)
-                            st.caption(f"Upgraded {df.loc[df['player_id'] == old_player_detail['player_id'], 'Joueur'].iloc[0]} to {new_player_row['Joueur']} (PVS gain, budget used: {cost_to_upgrade})")
-                            break # Move to next bench player or re-evaluate (simple pass for MVP)
-                    if current_budget <=5: break
+                        if cost_to_upgrade <= current_budget : # Affordable upgrade
+                            pvs_gain = new_player_row['pvs'] - old_player_detail['pvs']
+                            if pvs_gain > best_pvs_gain : # Found a better PVS gain
+                                best_pvs_gain = pvs_gain
+                                best_upgrade_for_slot = new_player_row
+                                # For MVP, we can pick the first good upgrade found to simplify
+                                # Or, collect all valid upgrades for this old_player and pick the one with max PVS_gain / cost_to_upgrade ratio
+                    
+                    if best_upgrade_for_slot is not None:
+                        new_player_upg_row = best_upgrade_for_slot
+                        cost_to_upgrade = new_player_upg_row['mrb'] - old_player_detail['mrb_cost']
+                        
+                        # Remove old player from selected_details
+                        # Need to find the exact dict to remove
+                        old_player_idx_to_remove = -1
+                        for idx_sel, sel_p_detail in enumerate(selected_details):
+                            if sel_p_detail['player_id'] == old_player_detail['player_id']:
+                                old_player_idx_to_remove = idx_sel
+                                break
+                        if old_player_idx_to_remove != -1:
+                            selected_details.pop(old_player_idx_to_remove)
+
+                            # Add new player
+                            add_player_to_squad(new_player_upg_row, False) # Added as bench
+
+                            # Update bench_players_in_squad for next iteration of outer loop
+                            bench_player_details = sorted([p for p in selected_details if not p['is_starter']], key=lambda x: x['pvs'])
+                            # Update potential_upgrades_pool to exclude the newly added player
+                            potential_upgrades_pool = potential_upgrades_pool[potential_upgrades_pool['player_id'] != new_player_upg_row['player_id']]
+                            
+                            swapped_in_pass = True
+                            st.caption(f"Upgraded bench: {df.loc[df['player_id'] == old_player_detail['player_id'], 'Joueur'].iloc[0]} -> {new_player_upg_row['Joueur']} (PVS gain, MRB change: {cost_to_upgrade})")
+                            break # Restart scan for upgrades on the modified bench list
+                if not swapped_in_pass: break # No swaps in this full pass over bench players
 
 
         # --- Construct Final Squad DataFrame and Summary ---
         if not selected_details: return pd.DataFrame(), {}
         final_squad_ids = [p['player_id'] for p in selected_details]
         final_squad_df = df[df['player_id'].isin(final_squad_ids)].copy()
+        
         details_df = pd.DataFrame(selected_details)
-        final_squad_df = pd.merge(final_squad_df, details_df, on='player_id', how='left', suffixes=('', '_selection'))
+        final_squad_df = pd.merge(final_squad_df, details_df.drop_duplicates(subset=['player_id']), on='player_id', how='left', suffixes=('', '_selection'))
         final_squad_df.rename(columns={'mrb_cost': 'mrb_actual_cost', 'pvs_selection': 'pvs_in_squad'}, inplace=True)
         if 'pvs_in_squad' not in final_squad_df.columns and 'pvs' in final_squad_df.columns : final_squad_df['pvs_in_squad'] = final_squad_df['pvs']
-        
-        # Ensure integer costs in final squad summary
         final_squad_df['mrb_actual_cost'] = final_squad_df['mrb_actual_cost'].round().astype(int)
 
         summary = {
@@ -321,39 +416,40 @@ class MPGAuctionStrategist:
             'total_squad_pvs': final_squad_df['pvs_in_squad'].sum(),
             'total_starters_pvs': final_squad_df[final_squad_df['is_starter']]['pvs_in_squad'].sum()
         }
-        # Validation warnings
         return final_squad_df, summary
 
 # --- Main Streamlit App UI ---
 def main():
-    st.markdown('<h1 class="main-header">🚀 MPG Auction Strategist v3</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🚀 MPG Auction Strategist v4</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
+    # Initialize session state for profiles and inputs
     if 'current_profile_name' not in st.session_state:
         st.session_state.current_profile_name = "Balanced Value"
-        profile_values = PREDEFINED_PROFILES[st.session_state.current_profile_name]
-        st.session_state.n_recent = profile_values.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
-        st.session_state.min_recent_filter = profile_values.get("min_recent_games_played_filter", DEFAULT_MIN_RECENT_GAMES_PLAYED)
-        st.session_state.kpi_weights = profile_values.get("kpi_weights", {})
-        st.session_state.mrb_params_per_pos = profile_values.get("mrb_params_per_pos", {})
+        profile = PREDEFINED_PROFILES[st.session_state.current_profile_name]
+        st.session_state.n_recent = profile.get("n_recent_games", DEFAULT_N_RECENT_GAMES)
+        st.session_state.min_recent_filter = profile.get("min_recent_games_played_filter", DEFAULT_MIN_RECENT_GAMES_PLAYED)
+        st.session_state.kpi_weights = profile.get("kpi_weights", {})
+        st.session_state.mrb_params_per_pos = profile.get("mrb_params_per_pos", {})
         st.session_state.formation_key = DEFAULT_FORMATION
         st.session_state.squad_size = DEFAULT_SQUAD_SIZE
 
+    # --- Sidebar UI Elements ---
     st.sidebar.image("https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRFr1EWtMR2tHq1FwHnCHqg2uXv1JMLYQlRZw&s", width=100)
     st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">⚙️ Controls & Settings</h2>', unsafe_allow_html=True)
 
     uploaded_file = st.sidebar.file_uploader("📁 Upload MPG Ratings File (CSV/Excel)", type=['csv', 'xlsx', 'xls'], help="Joueur, Poste, Club, Cote, %Titu, Indispo?, Gameweeks (D1..D34).")
-
+    
     st.sidebar.markdown("---")
-    st.sidebar.markdown("#### Global Data & Form Parameters")
+    st.sidebar.markdown("#### 🌎 Global Data & Form Parameters")
     n_recent_ui = st.sidebar.number_input("Recent Games Window (N)", min_value=1, max_value=38, value=st.session_state.n_recent, help="For 'Recent Form' KPIs. Avg of games *played* in this window.")
-    min_recent_games_filter_ui = st.sidebar.number_input("Filter: Min Games Played in Recent N Weeks", min_value=0, max_value=n_recent_ui, value=st.session_state.min_recent_filter, help=f"Exclude players with < this many games in the '{n_recent_ui}' recent weeks. 0 = no filter.")
+    min_recent_filter_ui = st.sidebar.number_input("Filter: Min Games Played in Recent N Weeks", min_value=0, max_value=n_recent_ui, value=st.session_state.min_recent_filter, help=f"Exclude players with < this in '{n_recent_ui}' recent weeks. 0 = no filter.")
     if n_recent_ui != st.session_state.n_recent or min_recent_games_filter_ui != st.session_state.min_recent_filter:
         st.session_state.current_profile_name = "Custom"
     st.session_state.n_recent, st.session_state.min_recent_filter = n_recent_ui, min_recent_games_filter_ui
 
     st.sidebar.markdown("---")
-    st.sidebar.markdown("#### 👥 Squad Building")
+    st.sidebar.markdown("#### 👥 Squad Building Parameters")
     formation_key_ui = st.sidebar.selectbox("Preferred Starting Formation", options=list(strategist.formations.keys()), index=list(strategist.formations.keys()).index(st.session_state.formation_key))
     target_squad_size_ui = st.sidebar.number_input("Target Total Squad Size", min_value=strategist.squad_minimums_sum_val, max_value=30, value=st.session_state.squad_size)
     if formation_key_ui != st.session_state.formation_key or target_squad_size_ui != st.session_state.squad_size:
@@ -363,59 +459,64 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 🎨 Settings Profiles")
     profile_names = list(PREDEFINED_PROFILES.keys())
-    selected_profile_name_ui = st.sidebar.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state.current_profile_name), help="Loads predefined KPI weights & MRB params. Modifying details sets to 'Custom'.")
-    if selected_profile_name_ui != st.session_state.current_profile_name:
-        apply_profile(selected_profile_name_ui) # Function to update session_state from profile
-        st.experimental_rerun() # Rerun to reflect changes in widgets below
-
-    # Define apply_profile function (could be outside main or helper class)
-    def apply_profile(profile_name_to_apply):
-        if profile_name_to_apply != "Custom" and profile_name_to_apply in PREDEFINED_PROFILES:
-            profile = PREDEFINED_PROFILES[profile_name_to_apply]
+    
+    def apply_profile_settings(profile_name):
+        if profile_name != "Custom" and profile_name in PREDEFINED_PROFILES:
+            profile = PREDEFINED_PROFILES[profile_name]
             st.session_state.n_recent = profile.get("n_recent_games", st.session_state.n_recent)
             st.session_state.min_recent_filter = profile.get("min_recent_games_played_filter", st.session_state.min_recent_filter)
-            st.session_state.kpi_weights = profile.get("kpi_weights", st.session_state.kpi_weights)
-            st.session_state.mrb_params_per_pos = profile.get("mrb_params_per_pos", st.session_state.mrb_params_per_pos)
-        st.session_state.current_profile_name = profile_name_to_apply
+            st.session_state.kpi_weights = profile.get("kpi_weights", st.session_state.kpi_weights) # Get full dict
+            st.session_state.mrb_params_per_pos = profile.get("mrb_params_per_pos", st.session_state.mrb_params_per_pos) # Get full dict
+        st.session_state.current_profile_name = profile_name
 
+    selected_profile_name_ui = st.sidebar.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state.current_profile_name), help="Loads predefined settings. Modifying details below sets to 'Custom'.")
+    if selected_profile_name_ui != st.session_state.current_profile_name:
+        apply_profile_settings(selected_profile_name_ui)
+        st.experimental_rerun()
 
-    with st.sidebar.expander("📊 KPI Weights (0.0 to 1.0)", expanded=st.session_state.current_profile_name == "Custom"):
+    # --- KPI Weights (Collapsible) ---
+    with st.sidebar.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.current_profile_name == "Custom")):
         active_kpi_weights = st.session_state.kpi_weights
         weights_ui = {}
-        for pos in ['GK', 'DEF', 'MID', 'FWD']:
-            st.markdown(f'<h6>{pos}</h6>', unsafe_allow_html=True)
-            default_pos_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
-            current_pos_w = active_kpi_weights.get(pos, default_pos_w)
-            weights_ui[pos] = {
-                'recent_avg': st.slider(f"Recent Avg Rating", 0.0,1.0,float(current_pos_w.get('recent_avg',0)),0.01,key=f"{pos}_wRA_dyn2"),
-                'season_avg': st.slider(f"Season Avg Rating", 0.0,1.0,float(current_pos_w.get('season_avg',0)),0.01,key=f"{pos}_wSA_dyn2"),
-                'regularity': st.slider(f"Regularity (%Titu)", 0.0,1.0,float(current_pos_w.get('regularity',0)),0.01,key=f"{pos}_wR_dyn2"),
-                'recent_goals': st.slider(f"Recent Goals",0.0,1.0,float(current_pos_w.get('recent_goals',0)) if pos in ['MID','FWD'] else 0.0,0.01,key=f"{pos}_wRG_dyn2",disabled=pos not in ['MID','FWD']),
-                'season_goals': st.slider(f"Season Goals",0.0,1.0,float(current_pos_w.get('season_goals',0)) if pos in ['MID','FWD'] else 0.0,0.01,key=f"{pos}_wSG_dyn2",disabled=pos not in ['MID','FWD'])
+        for pos_key in ['GK', 'DEF', 'MID', 'FWD']: # Ensure consistent key usage
+            st.markdown(f'<h6>{pos_key}</h6>', unsafe_allow_html=True)
+            # Use a comprehensive default from Balanced if custom is chosen and has no specific key yet
+            default_pos_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos_key]
+            current_pos_w_vals = active_kpi_weights.get(pos_key, default_pos_w)
+            weights_ui[pos_key] = {
+                'recent_avg': st.slider(f"Recent Avg Rating", 0.0,1.0,float(current_pos_w_vals.get('recent_avg',0)),0.01,key=f"{pos_key}_wRA_v4"),
+                'season_avg': st.slider(f"Season Avg Rating", 0.0,1.0,float(current_pos_w_vals.get('season_avg',0)),0.01,key=f"{pos_key}_wSA_v4"),
+                'regularity_file': st.slider(f"Regularity (%Titu file)", 0.0,1.0,float(current_pos_w_vals.get('regularity_file',0)),0.01,key=f"{pos_key}_wRF_v4", help="Based on %Titu column from your file."),
+                'calc_regularity': st.slider(f"Calculated Regularity", 0.0,1.0,float(current_pos_w_vals.get('calc_regularity',0)),0.01,key=f"{pos_key}_wCR_v4", help="Based on starts identified in gameweek data."),
+                'recent_goals': st.slider(f"Recent Goals",0.0,1.0,float(current_pos_w_vals.get('recent_goals',0)) if pos_key in ['MID','FWD'] else 0.0,0.01,key=f"{pos_key}_wRG_v4",disabled=pos_key not in ['MID','FWD']),
+                'season_goals': st.slider(f"Season Goals",0.0,1.0,float(current_pos_w_vals.get('season_goals',0)) if pos_key in ['MID','FWD'] else 0.0,0.01,key=f"{pos_key}_wSG_v4",disabled=pos_key not in ['MID','FWD'])
             }
-        if weights_ui != active_kpi_weights: st.session_state.current_profile_name = "Custom"
+        if weights_ui != active_kpi_weights: st.session_state.current_profile_name = "Custom" # Mark as custom if changed
         st.session_state.kpi_weights = weights_ui
 
-    with st.sidebar.expander("💰 MRB Parameters (Per Position)", expanded=st.session_state.current_profile_name == "Custom"):
+    # --- MRB Parameters (Collapsible) ---
+    with st.sidebar.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state.current_profile_name == "Custom")):
         active_mrb_params = st.session_state.mrb_params_per_pos
         mrb_params_ui = {}
-        for pos in ['GK', 'DEF', 'MID', 'FWD']:
-            st.markdown(f'<h6>{pos}</h6>', unsafe_allow_html=True)
-            default_pos_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
-            current_pos_mrb = active_mrb_params.get(pos, default_pos_mrb)
-            mrb_params_ui[pos] = {
-                'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus Factor (at PVS 100)", 0.0, 1.0, float(current_pos_mrb.get('max_proportional_bonus_at_pvs100',0.2)), 0.01, key=f"{pos}_mrbMPB_dyn2", help="Bonus if PVS=100 (0.5 = 50% bonus, MRB up to 1.5x Cote). MRB capped at 2x Cote overall.")
+        for pos_key in ['GK', 'DEF', 'MID', 'FWD']:
+            st.markdown(f'<h6>{pos_key}</h6>', unsafe_allow_html=True)
+            default_pos_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos_key]
+            current_pos_mrb_vals = active_mrb_params.get(pos_key, default_pos_mrb)
+            mrb_params_ui[pos_key] = {
+                'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus Factor (at PVS 100)", 0.0, 1.0, float(current_pos_mrb_vals.get('max_proportional_bonus_at_pvs100',0.2)), 0.01, key=f"{pos_key}_mrbMPB_v4", help="Bonus factor if PVS=100 (e.g., 0.5 = 50% bonus). MRB capped at 2x Cote.")
             }
-        if mrb_params_ui != active_mrb_params: st.session_state.current_profile_name = "Custom"
+        if mrb_params_ui != active_mrb_params: st.session_state.current_profile_name = "Custom" # Mark as custom
         st.session_state.mrb_params_per_pos = mrb_params_ui
 
-    # --- Dynamic Calculation ---
+    # --- Dynamic Calculation and Display ---
     if uploaded_file:
-        # All inputs should now be in st.session_state
-        with st.spinner("🧠 Recalculating squad based on settings..."):
+        with st.spinner("🧠 Strategizing your optimal squad..."):
             try:
+                # Use cached function for file reading if it doesn't change often based on other inputs
+                # For now, direct read and process on every run
                 df_input_calc = pd.read_excel(uploaded_file) if uploaded_file.name.endswith(('.xlsx', '.xls')) else pd.read_csv(uploaded_file)
                 df_processed_calc = df_input_calc.copy()
+                # Initial processing (as in previous main, ensure it's robust)
                 df_processed_calc['simplified_position'] = df_processed_calc['Poste'].apply(strategist.simplify_position)
                 df_processed_calc['player_id'] = df_processed_calc.apply(strategist.create_player_id, axis=1)
                 df_processed_calc['Cote'] = pd.to_numeric(df_processed_calc['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
@@ -437,117 +538,100 @@ def main():
                 st.session_state['selected_formation_key_display_final'] = st.session_state.formation_key
             except Exception as e:
                 st.error(f"💥 Error during dynamic calculation: {str(e)}")
-                # st.exception(e) # For dev debugging
+                # st.exception(e) # For dev debugging, remove for prod
 
-    # --- Main Panel Display Logic (uses updated session state keys) ---
-    # (Display logic for squad, summary, and full player list as in previous response, ensuring it uses the '_final' suffixed session state keys)
-    if 'squad_df_result_final' in st.session_state and \
-       st.session_state['squad_df_result_final'] is not None and \
-       not st.session_state['squad_df_result_final'].empty:
-        
-        col_main_results, col_summary_sidebar = st.columns([3, 1]) # Main results, then summary
-        with col_main_results:
-            st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
-            # (DataFrame display logic from previous response - no starter styling)
-            squad_display_df = st.session_state['squad_df_result_final'].copy()
-            # Ensure MRB, Cote, goals are int for display, others rounded
-            squad_display_df['Cote'] = pd.to_numeric(squad_display_df['Cote'], errors='coerce').fillna(0).round().astype(int)
-            squad_display_df['mrb_actual_cost'] = pd.to_numeric(squad_display_df['mrb_actual_cost'], errors='coerce').fillna(0).round().astype(int)
-            for col in ['recent_goals', 'season_goals']:
-                if col in squad_display_df.columns:
-                    squad_display_df[col] = pd.to_numeric(squad_display_df[col], errors='coerce').fillna(0).round().astype(int)
-
-            squad_display_cols = ['Joueur', 'Club', 'simplified_position', 'is_starter', 
-                                  'mrb_actual_cost', 'Cote', 'pvs_in_squad', 
-                                  'recent_avg_rating', 'season_avg_rating', '%Titu',
-                                  'recent_goals', 'season_goals', 'value_per_cost'] # value_per_cost uses MRB
-            display_squad_cols_exist = [col for col in squad_display_cols if col in squad_display_df.columns]
-            squad_display_df = squad_display_df[display_squad_cols_exist]
+        # --- Main Panel Display Logic ---
+        if 'squad_df_result_final' in st.session_state and \
+           st.session_state['squad_df_result_final'] is not None and \
+           not st.session_state['squad_df_result_final'].empty:
             
-            squad_display_df.rename(columns={
-                'Joueur': 'Player', 'simplified_position': 'Pos', 'is_starter': 'Starter',
-                'mrb_actual_cost': 'MRB (Cost Paid)', 'Cote': 'Listed Price', 'pvs_in_squad': 'PVS (0-100)',
-                'recent_avg_rating': 'Rec.Avg.R (0-10)', 'season_avg_rating': 'Sea.Avg.R (0-10)',
-                '%Titu': 'Regularity %', 'recent_goals': 'Rec.Goals (N)', 'season_goals': 'Sea.Goals',
-                'value_per_cost': 'PVS/MRB Ratio'
-            }, inplace=True)
-            
-            for col_name_disp in ['PVS (0-100)', 'Rec.Avg.R (0-10)', 'Sea.Avg.R (0-10)', 'PVS/MRB Ratio', 'Regularity %']:
-                if col_name_disp in squad_display_df.columns: 
-                    squad_display_df[col_name_disp] = pd.to_numeric(squad_display_df[col_name_disp], errors='coerce').fillna(0.0).round(2)
-            
-            pos_order = ['GK', 'DEF', 'MID', 'FWD']
-            if 'Pos' in squad_display_df.columns:
-                squad_display_df['Pos'] = pd.Categorical(squad_display_df['Pos'], categories=pos_order, ordered=True)
-                squad_display_df = squad_display_df.sort_values(by=['Starter', 'Pos', 'PVS (0-100)'], ascending=[False, True, False])
-            
-            st.dataframe(squad_display_df, use_container_width=True, hide_index=True) # No starter styling
+            col_main_results, col_summary_sidebar = st.columns([3, 1])
+            with col_main_results:
+                st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
+                sdf = st.session_state['squad_df_result_final'].copy() # sdf for squad_display_df
+                
+                # Ensure integer display for specific columns
+                int_cols = ['mrb_actual_cost', 'Cote', 'recent_goals', 'season_goals']
+                for col in int_cols:
+                    if col in sdf.columns: sdf[col] = pd.to_numeric(sdf[col], errors='coerce').fillna(0).round().astype(int)
 
+                squad_cols = ['Joueur', 'Club', 'simplified_position', 'is_starter', 'mrb_actual_cost', 'Cote', 'pvs_in_squad', 'recent_avg_rating', 'season_avg_rating', '%Titu', 'calc_regularity_pct','recent_goals', 'season_goals', 'value_per_cost']
+                squad_cols_exist = [col for col in squad_cols if col in sdf.columns]
+                sdf = sdf[squad_cols_exist]
+                sdf.rename(columns={
+                    'Joueur': 'Player', 'simplified_position': 'Pos', 'is_starter': 'Starter',
+                    'mrb_actual_cost': 'MRB Cost', 'Cote': 'Price', 'pvs_in_squad': 'PVS',
+                    'recent_avg_rating': 'Rec.AvgR', 'season_avg_rating': 'Sea.AvgR',
+                    '%Titu': 'Reg.% (File)', 'calc_regularity_pct': 'Reg.% (Calc)',
+                    'recent_goals': 'Rec.G', 'season_goals': 'Sea.G', 'value_per_cost': 'Val/MRB'
+                }, inplace=True)
+                
+                float_cols_squad = ['PVS', 'Rec.AvgR', 'Sea.AvgR', 'Reg.% (File)', 'Reg.% (Calc)', 'Val/MRB']
+                for col in float_cols_squad:
+                    if col in sdf.columns: sdf[col] = pd.to_numeric(sdf[col], errors='coerce').fillna(0.0).round(2)
 
-        with col_summary_sidebar:
-            st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
-            summary = st.session_state['squad_summary_result_final']
-            if summary and isinstance(summary, dict):
-                st.metric("Budget Spent (MRB)", f"€ {summary.get('total_cost',0):.0f} / {strategist.budget}", help=f"Remaining: € {summary.get('remaining_budget',0):.0f}")
-                st.metric("Final Squad Size", f"{summary.get('total_players',0)} players (Target: {st.session_state.squad_size})")
-                st.metric("Total Squad PVS", f"{summary.get('total_squad_pvs',0):.2f}")
-                st.metric("Starters PVS", f"{summary.get('total_starters_pvs',0):.2f}")
-                st.info(f"**Built for Formation:** {st.session_state.get('selected_formation_key_display_final', 'N/A')}")
-                st.markdown("**Actual Positional Breakdown:**")
-                for pos_cat in pos_order:
-                    count = summary.get('position_counts', {}).get(pos_cat, 0)
-                    min_req = strategist.squad_minimums.get(pos_cat,0)
-                    st.write(f"• **{pos_cat}:** {count} (Min: {min_req})")
-            else: st.warning("Squad summary not available.")
-        
-        st.markdown('<hr><h2 class="section-header">📋 Full Player Database & Calculated Values</h2>', unsafe_allow_html=True)
-        if 'df_for_display_final' in st.session_state and st.session_state['df_for_display_final'] is not None:
-            # Display logic for full player list (as in previous response, ensuring integer display for Cote, MRB, Goals)
-            df_full_display = st.session_state['df_for_display_final'].copy()
+                pos_order = ['GK', 'DEF', 'MID', 'FWD']
+                if 'Pos' in sdf.columns:
+                    sdf['Pos'] = pd.Categorical(sdf['Pos'], categories=pos_order, ordered=True)
+                    sdf = sdf.sort_values(by=['Starter', 'Pos', 'PVS'], ascending=[False, True, False])
+                st.dataframe(sdf, use_container_width=True, hide_index=True)
+
+            with col_summary_sidebar:
+                st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
+                summary = st.session_state['squad_summary_result_final']
+                if summary and isinstance(summary, dict):
+                    st.metric("Budget Spent (MRB)", f"€ {summary.get('total_cost',0):.0f} / {strategist.budget}", help=f"Remaining: € {summary.get('remaining_budget',0):.0f}")
+                    st.metric("Squad Size", f"{summary.get('total_players',0)} (Target: {st.session_state.squad_size})")
+                    st.metric("Total Squad PVS", f"{summary.get('total_squad_pvs',0):.2f}")
+                    st.metric("Starters PVS", f"{summary.get('total_starters_pvs',0):.2f}")
+                    st.info(f"**Formation:** {st.session_state.get('selected_formation_key_display_final', 'N/A')}")
+                    st.markdown("**Positional Breakdown:**")
+                    for pos_cat in pos_order:
+                        count = summary.get('position_counts', {}).get(pos_cat, 0)
+                        min_req = strategist.squad_minimums.get(pos_cat,0)
+                        st.write(f"• **{pos_cat}:** {count} (Min: {min_req})")
+                else: st.warning("Squad summary unavailable.")
             
-            int_cols_full_display = ['Cote', 'mrb', 'recent_goals', 'season_goals', 'recent_games_played_count']
-            for col in int_cols_full_display:
-                if col in df_full_display.columns:
-                     df_full_display[col] = pd.to_numeric(df_full_display[col], errors='coerce').fillna(0).round().astype(int)
+            st.markdown('<hr><h2 class="section-header">📋 Full Player Database & Values</h2>', unsafe_allow_html=True)
+            if 'df_for_display_final' in st.session_state and st.session_state['df_for_display_final'] is not None:
+                df_full = st.session_state['df_for_display_final'].copy()
+                int_cols_full = ['Cote', 'mrb', 'recent_goals', 'season_goals', 'recent_games_played_count', 'games_started_season', 'total_season_gws_considered']
+                for col in int_cols_full:
+                    if col in df_full.columns: df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0).round().astype(int)
 
-            all_stats_cols = [
-                'Joueur', 'Club', 'simplified_position', 'Poste','Indispo ?', 'Cote', 'pvs', 'mrb', 'value_per_cost',
-                'recent_avg_rating', 'season_avg_rating', '%Titu', 'recent_goals', 'season_goals', 'recent_games_played_count',
-                'norm_recent_avg', 'norm_season_avg', 'norm_regularity', 'norm_recent_goals', 'norm_season_goals'
-            ]
-            display_all_stats_cols_exist = [col for col in all_stats_cols if col in df_full_display.columns]
-            df_full_display = df_full_display[display_all_stats_cols_exist]
+                all_stats_cols = ['Joueur', 'Club', 'simplified_position', 'Poste','Indispo ?', 'Cote', 'pvs', 'mrb', 'value_per_cost',
+                                  'recent_avg_rating', 'season_avg_rating', '%Titu', 'calc_regularity_pct', 
+                                  'recent_goals', 'season_goals', 'recent_games_played_count', 'games_started_season',
+                                  'norm_recent_avg', 'norm_season_avg', 'norm_regularity_file', 'norm_calc_regularity', 
+                                  'norm_recent_goals', 'norm_season_goals']
+                df_full = df_full[[col for col in all_stats_cols if col in df_full.columns]]
+                df_full.rename(columns={
+                    'Joueur': 'Player', 'simplified_position': 'Pos','Poste':'Orig.Pos', 'Indispo ?': 'Unavail.',
+                    'Cote': 'Price', 'pvs': 'PVS', 'mrb': 'MRB', 'value_per_cost': 'Val/MRB',
+                    'recent_avg_rating': 'Rec.AvgR', 'season_avg_rating': 'Sea.AvgR',
+                    '%Titu': 'Reg.%File', 'calc_regularity_pct': 'Reg.%Calc',
+                    'recent_goals': 'Rec.G', 'season_goals': 'Sea.G', 'recent_games_played_count': 'Rec.Plyd', 'games_started_season': 'Sea.Start',
+                    'norm_recent_avg': 'N.RecAvg', 'norm_season_avg': 'N.SeaAvg',
+                    'norm_regularity_file': 'N.RegFile', 'norm_calc_regularity': 'N.RegCalc',
+                    'norm_recent_goals': 'N.RecG', 'norm_season_goals': 'N.SeaG'
+                }, inplace=True)
+                
+                float_cols_full = ['PVS', 'Val/MRB', 'Rec.AvgR', 'Sea.AvgR', 'Reg.%File', 'Reg.%Calc', 
+                                   'N.RecAvg', 'N.SeaAvg', 'N.RegFile', 'N.RegCalc', 'N.RecG', 'N.SeaG']
+                for col in float_cols_full:
+                    if col in df_full.columns: df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0.0).round(2)
 
-            df_full_display.rename(columns={
-                'Joueur': 'Player', 'simplified_position': 'Pos','Poste':'Orig.Pos', 'Indispo ?': 'Unavail.',
-                'Cote': 'Price', 'pvs': 'PVS', 'mrb': 'MRB', 'value_per_cost': 'Val/MRB',
-                'recent_avg_rating': 'Rec.AvgR', 'season_avg_rating': 'Sea.AvgR',
-                '%Titu': 'Reg.%', 'recent_goals': 'Rec.G', 'season_goals': 'Sea.G',
-                'recent_games_played_count': 'Rec.Plyd',
-                'norm_recent_avg': 'N.RecAvg', 'norm_season_avg': 'N.SeaAvg',
-                'norm_regularity': 'N.Reg%', 'norm_recent_goals': 'N.RecG', 'norm_season_goals': 'N.SeaG'
-            }, inplace=True)
-            
-            for col_name_disp_full in df_full_display.columns: # Round floats
-                if 'Price' in col_name_disp_full or 'MRB' in col_name_disp_full or 'G' == col_name_disp_full[-1] or 'Plyd' in col_name_disp_full or 'Reg.%' == col_name_disp_full :
-                    pass # Already int or handled by %Titu
-                elif 'PVS' in col_name_disp_full or 'Ratio' in col_name_disp_full or 'Avg' in col_name_disp_full :
-                    if col_name_disp_full in df_full_display.columns: df_full_display[col_name_disp_full] = pd.to_numeric(df_full_display[col_name_disp_full], errors='coerce').fillna(0.0).round(2)
-
-
-            search_term_all = st.text_input("🔍 Search All Players:", key="search_all_players_input_key_dyn2")
-            if search_term_all:
-                df_full_display = df_full_display[df_full_display.apply(lambda row: row.astype(str).str.contains(search_term_all, case=False, na=False).any(), axis=1)]
-            
-            st.dataframe(df_full_display.sort_values(by='PVS', ascending=False), use_container_width=True, hide_index=True, height=600)
-            st.download_button(label="📥 Download Full Player Analysis (CSV)", data=df_full_display.to_csv(index=False).encode('utf-8'), file_name="mpg_full_player_analysis_v3.csv", mime="text/csv", key="download_v3")
+                search_all = st.text_input("🔍 Search All Players:", key="search_all_v4")
+                if search_all: df_full = df_full[df_full.apply(lambda r: r.astype(str).str.contains(search_all, case=False, na=False).any(), axis=1)]
+                st.dataframe(df_full.sort_values(by='PVS', ascending=False), use_container_width=True, hide_index=True, height=600)
+                st.download_button(label="📥 Download Full Analysis (CSV)", data=df_full.to_csv(index=False).encode('utf-8'), file_name="mpg_full_player_analysis_v4.csv", mime="text/csv", key="download_v4")
         
         elif not uploaded_file: pass 
         elif 'squad_df_result_final' not in st.session_state and uploaded_file :
-             st.info("📊 Adjust settings. Results update dynamically.")
+             st.info("📊 Adjust settings in the sidebar. Results update dynamically when inputs change.")
     else:
         st.info("👈 Upload your MPG ratings file to begin.")
-        # Display Expected File Format Guide (as before)
+        # Expected File Format Guide (as before)
 
 if __name__ == "__main__":
     main()
