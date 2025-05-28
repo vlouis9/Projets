@@ -467,7 +467,7 @@ def main():
                 current_pos_w_vals = active_kpi_weights.get(pos_key, default_pos_w)
                 weights_ui[pos_key] = {
                     'season_avg': st.slider(f"Season Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('season_avg', 0)), 0.01, key=f"{pos_key}_wSA_v4"),
-                    'season_goals': st.slider(f"Season Goals", 0.0, 1.0, float(current_pos_w_vals.get('season_goals', 0)) if pos_key in ['MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wSG_v4", disabled=pos_key not in ['MID', 'FWD']),
+                    'season_goals': st.slider(f"Season Goals", 0.0, 1.0, float(current_pos_w_vals.get('season_goals', 0)) if pos_key in ['DEF', 'MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wSG_v4", disabled=pos_key not in ['MID', 'FWD']),
                     'calc_regularity': st.slider(f"Calculated Regularity", 0.0, 1.0, float(current_pos_w_vals.get('calc_regularity', 0)), 0.01, key=f"{pos_key}_wCR_v4", help="Based on starts identified in gameweek data."),
                     'recent_goals': st.slider(f"Recent Goals", 0.0, 1.0, float(current_pos_w_vals.get('recent_goals', 0)) if pos_key in ['MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wRG_v4", disabled=pos_key not in ['MID', 'FWD']),
                     'recent_avg': st.slider(f"Recent Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('recent_avg', 0)), 0.01, key=f"{pos_key}_wRA_v4"),
@@ -526,7 +526,7 @@ def main():
                     for col in int_cols:
                         if col in sdf.columns:
                             sdf[col] = pd.to_numeric(sdf[col], errors='coerce').fillna(0).round().astype(int)
-                    squad_cols = ['Joueur', 'Club', 'simplified_position', 'is_starter', 'mrb_actual_cost', 'Cote', 'pvs_in_squad', 'recent_avg_rating', 'season_avg_rating', '%Titu', 'calc_regularity_pct', 'recent_goals', 'season_goals', 'value_per_cost']
+                    squad_cols = ['Joueur', 'Club', 'simplified_position', 'pvs_in_squad', 'Cote', 'mrb_actual_cost', 'season_avg_rating', 'season_goals', 'calc_regularity_pct', 'recent_goals', 'recent_avg_rating', 'value_per_cost', 'is_starter']
                     squad_cols_exist = [col for col in squad_cols if col in sdf.columns]
                     sdf = sdf[squad_cols_exist]
                     sdf.rename(columns={
@@ -577,11 +577,9 @@ def main():
                     for col in int_cols_full:
                         if col in df_full.columns:
                             df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0).round().astype(int)
-                    all_stats_cols = ['Joueur', 'Club', 'simplified_position', 'Poste', 'Indispo ?', 'Cote', 'pvs', 'mrb', 'value_per_cost',
-                                      'recent_avg_rating', 'season_avg_rating', '%Titu', 'calc_regularity_pct',
-                                      'recent_goals', 'season_goals', 'recent_games_played_count', 'games_started_season',
-                                      'norm_recent_avg', 'norm_season_avg', 'norm_regularity_file', 'norm_calc_regularity',
-                                      'norm_recent_goals', 'norm_season_goals']
+                    all_stats_cols = ['Joueur', 'Club', 'simplified_position', 'pvs', 'Cote', 'mrb', 'Indispo ?', 'season_avg_rating', 'season_goals',
+                                      'calc_regularity_pct', 'recent_goals', 'recent_avg_rating', 'value_per_cost',
+                                       'games_started_season, 'recent_games_played_count']
                     df_full = df_full[[col for col in all_stats_cols if col in df_full.columns]]
                     df_full.rename(columns={
                         'Joueur': 'Player',
