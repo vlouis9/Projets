@@ -16,7 +16,7 @@ st.write("Select an app to open:")
 # Replace the example URLs below with your actual deployed app URLs.
 
 historical_url = "https://mercatompg.streamlit.app"  # URL for the historical_app
-new_season_url   = "newmercatompg.streamlit.app"     # URL for the new_season_app
+new_season_url   = "https://newmercatompg.streamlit.app"     # URL for the new_season_app
 
 st.markdown(f"""  
 ### [Historical Season Data Mode]({historical_url})  
