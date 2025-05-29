@@ -1,225 +1,290 @@
+# new_season_app.py
+
 import streamlit as st
 import pandas as pd
 import numpy as np
+from typing import Dict
+from season_with_data import MPGAuctionStrategist
 
-# Set page configuration (must be the very first Streamlit command)
+# =============================================================================
+# 0. Page Configuration
+# =============================================================================
 st.set_page_config(
-    page_title="MPG Auction Strategist - New Season Mode",
+    page_title="MPG Auction Strategist – New Season Mode",
     page_icon="🏆",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="expanded",
 )
 
-st.title("New Season Mode: Composite Player Evaluation")
+st.title("🚀 New Season Mode: Composite Player Evaluation")
 
 # =============================================================================
-# 1. File Upload
+# 1. Default Profile & Session State
 # =============================================================================
-st.sidebar.markdown("### Upload Data File")
+DEFAULT_PROFILE = {
+    "weights": {
+        "base_multiplier": 1.0,
+        "talent_weight":   1.0,
+        "buzz_weight":     1.0,
+        "expert_weight":   1.0,
+    },
+    "mrb_params": {
+        "GK": {"max_proportional_bonus_at_pvs100": 0.3},
+        "DEF": {"max_proportional_bonus_at_pvs100": 0.4},
+        "MID": {"max_proportional_bonus_at_pvs100": 0.6},
+        "FWD": {"max_proportional_bonus_at_pvs100": 0.8},
+    },
+    "formation":        "4-4-2",
+    "squad_size":       20,
+    "min_recent_filter": 1,
+}
+
+# Initialize session state
+for key, val in DEFAULT_PROFILE["weights"].items():
+    if key not in st.session_state:
+        st.session_state[key] = val
+
+if "mrb_params" not in st.session_state:
+    st.session_state.mrb_params = DEFAULT_PROFILE["mrb_params"].copy()
+
+if "formation_key" not in st.session_state:
+    st.session_state.formation_key = DEFAULT_PROFILE["formation"]
+if "squad_size" not in st.session_state:
+    st.session_state.squad_size = DEFAULT_PROFILE["squad_size"]
+if "min_recent_filter" not in st.session_state:
+    st.session_state.min_recent_filter = DEFAULT_PROFILE["min_recent_filter"]
+
+# =============================================================================
+# 2. Load Data (Cached)
+# =============================================================================
+@st.cache_data(show_spinner=False)
+def load_data(uploaded) -> pd.DataFrame:
+    if uploaded.name.lower().endswith(".csv"):
+        return pd.read_csv(uploaded)
+    return pd.read_excel(uploaded)
+
 uploaded_file = st.sidebar.file_uploader(
-    "Upload your new season data file (CSV/Excel)", 
-    type=["csv", "xlsx", "xls"]
+    "📁 Upload New Season Data (CSV/Excel)",
+    type=["csv", "xlsx", "xls"],
+)
+if not uploaded_file:
+    st.info("Please upload a data file to begin.")
+    st.stop()
+
+df_raw = load_data(uploaded_file)
+st.subheader("1️⃣ Raw Data Preview")
+st.dataframe(df_raw.head(), use_container_width=True)
+
+# =============================================================================
+# 3. Auto‐Fill Missing Parameters
+# =============================================================================
+def fill_missing_params(df: pd.DataFrame) -> pd.DataFrame:
+    df2 = df.copy()
+    n = len(df2)
+    if "talent_potential" not in df2:
+        df2["talent_potential"] = np.random.uniform(4, 8, n).round(1)
+    if "market_buzz" not in df2:
+        df2["market_buzz"] = np.random.uniform(3, 9, n).round(1)
+    if "expert_sentiment" not in df2:
+        df2["expert_sentiment"] = np.random.uniform(5, 9, n).round(1)
+    return df2
+
+df_filled = fill_missing_params(df_raw)
+
+# =============================================================================
+# 4. Normalize Attributes (Cached)
+# =============================================================================
+@st.cache_data(show_spinner=False)
+def normalize_player_attributes(df: pd.DataFrame) -> pd.DataFrame:
+    dfn = df.copy()
+    # Cote → 1–100
+    dfn["Cote"] = pd.to_numeric(dfn["Cote"], errors="coerce").fillna(1).clip(1, 100)
+    dfn["norm_cote"]   = dfn["Cote"]
+    # 0–10 → 0–100
+    dfn["norm_talent"] = dfn["talent_potential"].astype(float).clip(0,10) * 10
+    dfn["norm_buzz"]   = dfn["market_buzz"].astype(float).clip(0,10)    * 10
+    dfn["norm_expert"] = dfn["expert_sentiment"].astype(float).clip(0,10)* 10
+    return dfn
+
+df_norm = normalize_player_attributes(df_filled)
+
+# =============================================================================
+# 5. Sidebar: Composite Score & MRB Settings + Reset
+# =============================================================================
+with st.sidebar.expander("🎯 Composite Score Settings", expanded=True):
+    st.slider(
+        "Cote Weight",
+        0.1, 5.0,
+        key="base_multiplier",
+        step=0.1,
+        help="Weight for the player's current rating (0–100)."
+    )
+    st.slider(
+        "Talent Potential Weight",
+        0.1, 5.0,
+        key="talent_weight",
+        step=0.1,
+        help="Weight for projected talent (0–10 scale)."
+    )
+    st.slider(
+        "Market Buzz Weight",
+        0.1, 5.0,
+        key="buzz_weight",
+        step=0.1,
+        help="Weight for market hype (0–10 scale)."
+    )
+    st.slider(
+        "Expert Sentiment Weight",
+        0.1, 5.0,
+        key="expert_weight",
+        step=0.1,
+        help="Weight for expert opinions (0–10 scale)."
+    )
+
+with st.sidebar.expander("💰 MRB Parameters"):
+    for pos in ["GK", "DEF", "MID", "FWD"]:
+        st.session_state.mrb_params[pos]["max_proportional_bonus_at_pvs100"] = st.slider(
+            f"{pos} Max MRB Bonus @ PVS=100", 0.0, 1.0,
+            value=st.session_state.mrb_params[pos]["max_proportional_bonus_at_pvs100"],
+            step=0.01,
+            help="Proportional bonus on top of Cote if PVS=100 (capped at 2×Cote)."
+        )
+
+with st.sidebar.expander("🔄 Controls"):
+    if st.button("Reset to Default"):
+        # Reset composite weights
+        for k, v in DEFAULT_PROFILE["weights"].items():
+            st.session_state[k] = v
+        # Reset MRB params
+        st.session_state.mrb_params = DEFAULT_PROFILE["mrb_params"].copy()
+        # Reset squad settings
+        st.session_state.formation_key    = DEFAULT_PROFILE["formation"]
+        st.session_state.squad_size       = DEFAULT_PROFILE["squad_size"]
+        st.session_state.min_recent_filter= DEFAULT_PROFILE["min_recent_filter"]
+        st.experimental_rerun()
+
+# =============================================================================
+# 6. Calculate PVS (Cached)
+# =============================================================================
+@st.cache_data(show_spinner=False)
+def calculate_pvs(
+    df: pd.DataFrame,
+    w_base: float,
+    w_talent: float,
+    w_buzz: float,
+    w_expert: float
+) -> pd.DataFrame:
+    d = df.copy()
+    total_w = w_base + w_talent + w_buzz + w_expert
+    d["pvs"] = (
+        d["norm_cote"] * w_base +
+        d["norm_talent"] * w_talent +
+        d["norm_buzz"]   * w_buzz +
+        d["norm_expert"] * w_expert
+    ) / max(total_w, 1e-6)
+    return d.clip(lower=0, upper=100, axis=1)
+
+df_pvs = calculate_pvs(
+    df_norm,
+    st.session_state.base_multiplier,
+    st.session_state.talent_weight,
+    st.session_state.buzz_weight,
+    st.session_state.expert_weight
 )
 
-# If no file uploaded, stop further execution.
-if uploaded_file is None:
-    st.info("Please upload a data file using the sidebar.")
-    st.stop()
-
 # =============================================================================
-# 2. Data Loading
+# 7. Calculate MRB & Value-per-Cost (Cached)
 # =============================================================================
-try:
-    if uploaded_file.name.endswith('.csv'):
-        df = pd.read_csv(uploaded_file)
-    else:
-        df = pd.read_excel(uploaded_file)
-except Exception as e:
-    st.error(f"Error reading file: {e}")
-    st.stop()
-
-st.subheader("Raw Data Preview")
-st.dataframe(df.head())
-
-# =============================================================================
-# 3. Preprocessing of the 'Cote' Column
-# =============================================================================
-# Convert the "Cote" column to numeric; if conversion fails, default to 1.
-df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(1)
-
-# Normalization Function
-def normalize_player_attributes(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Normalizes player attributes to a consistent scale (0-100).
-    """
-    df_normalized = df.copy()
-
-    df_normalized['Cote'] = pd.to_numeric(df_normalized['Cote'], errors='coerce').fillna(1).clip(1, 100)
-    df_normalized['norm_cote'] = df_normalized['Cote']
-    df_normalized['norm_talent'] = df_normalized.get('talent_potential', 5.0) * 10
-    df_normalized['norm_buzz'] = df_normalized.get('market_buzz', 5.0) * 10
-    df_normalized['norm_expert'] = df_normalized.get('expert_sentiment', 5.0) * 10
-    df_normalized[['norm_talent', 'norm_buzz', 'norm_expert']] = df_normalized[['norm_talent', 'norm_buzz', 'norm_expert']].clip(0, 100)
-
-    return df_normalized
-
-def calculate_pvs(df: pd.DataFrame, base_multiplier: float, talent_weight: float, buzz_weight: float, expert_weight: float) -> pd.DataFrame:
-    """
-    Computes the Player Value Score (PVS) using a weighted formula.
-    
-    Parameters:
-        df: DataFrame with normalized player attributes.
-        base_multiplier: Weight for the 'Cote' (normalized baseline rating).
-        talent_weight: Weight for the player's talent potential.
-        buzz_weight: Weight for market buzz.
-        expert_weight: Weight for expert sentiment.
-        
-    Returns:
-        Updated DataFrame with a new column 'pvs'.
-    """
-    df_pvs = df.copy()
-
-    # Ensure total weight sum is valid to avoid division errors
-    total_weight = base_multiplier + talent_weight + buzz_weight + expert_weight
-    if total_weight == 0:
-        st.error("Invalid weight settings: total weight cannot be zero.")
-        return df_pvs
-
-    # Calculate PVS using a weighted average formula
-    df_pvs['pvs'] = (
-        (df_pvs['norm_cote'] * base_multiplier) +
-        (df_pvs['norm_talent'] * talent_weight) +
-        (df_pvs['norm_buzz'] * buzz_weight) +
-        (df_pvs['norm_expert'] * expert_weight)
-    ) / total_weight
-
-    # Ensure PVS stays within the expected range (0-100)
-    df_pvs['pvs'] = df_pvs['pvs'].clip(0, 100)
-
-    return df_pvs
-
-def calculate_mrb(df: pd.DataFrame, mrb_params_per_pos: Dict[str, Dict[str, float]]) -> pd.DataFrame:
-    """
-    Calculates Market Reference Bid (MRB) based on Player Value Score (PVS).
-    
-    Parameters:
-        df: DataFrame containing evaluated players.
-        mrb_params_per_pos: Dictionary of position-based MRB scaling factors.
-        
-    Returns:
-        Updated DataFrame with 'mrb' and 'value_per_cost' columns.
-    """
-    df_mrb = df.copy()
-
-    # Define MRB as baseline 'Cote' initially
-    df_mrb['mrb'] = df_mrb['Cote']
-
-    for pos, params in mrb_params_per_pos.items():
-        mask = df_mrb['simplified_position'] == pos
+@st.cache_data(show_spinner=False)
+def calculate_mrb(
+    df: pd.DataFrame,
+    mrb_params: Dict[str, Dict[str, float]]
+) -> pd.DataFrame:
+    d = df.copy()
+    d["mrb"] = d["Cote"].astype(int)
+    for pos, params in mrb_params.items():
+        mask = d["simplified_position"] == pos
         if not mask.any():
             continue
+        max_bonus = params["max_proportional_bonus_at_pvs100"]
+        def _calc(row):
+            base = row["Cote"]
+            bonus = (row["pvs"] / 100) * max_bonus
+            val = base * (1 + bonus)
+            val = min(val, base * 2)
+            return int(round(max(base, val)))
+        d.loc[mask, "mrb"] = d.loc[mask].apply(_calc, axis=1)
+    d["value_per_cost"] = d["pvs"] / d["mrb"].replace(0, np.nan)
+    d["value_per_cost"].fillna(0, inplace=True)
+    return d
 
-        max_bonus_factor = params.get('max_proportional_bonus_at_pvs100', 0.5)
+df_evaluated = calculate_mrb(df_pvs, st.session_state.mrb_params)
 
-        def compute_mrb(row):
-            cote = row['Cote']
-            pvs = row['pvs']
-            pvs_scaled = pvs / 100.0
-            bonus_factor = pvs_scaled * max_bonus_factor
-            calculated_mrb = cote * (1 + bonus_factor)
-            capped_mrb = min(calculated_mrb, cote * 2)  # Prevent excessive bids
-            return int(round(max(cote, capped_mrb)))  # Ensure MRB is at least equal to Cote
-
-        df_mrb.loc[mask, 'mrb'] = df_mrb.loc[mask].apply(compute_mrb, axis=1)
-
-    # Ensure MRB remains an integer and calculate value-per-cost ratio
-    df_mrb['mrb'] = df_mrb['mrb'].astype(int)
-    df_mrb['value_per_cost'] = df_mrb['pvs'] / df_mrb['mrb'].replace(0, np.nan)
-    df_mrb['value_per_cost'].fillna(0, inplace=True)
-
-    return df_mrb
-
-
-import streamlit as st
-from season_with_data import MPGAuctionStrategist  # <-- your historical file
-
-# … your existing new‐season code that produces `df_evaluated` …
-
-# Sidebar controls for squad building (same as historical UI)
-formation_key = st.sidebar.selectbox(
-    "Preferred Starting Formation",
-    options=list(MPGAuctionStrategist().formations.keys()),
-    index=list(MPGAuctionStrategist().formations.keys()).index("4-4-2")
-)
-target_squad_size = st.sidebar.number_input(
-    "Target Total Squad Size",
-    min_value=MPGAuctionStrategist().squad_minimums_sum_val,
-    max_value=30,
-    value=20
-)
-min_recent_filter = st.sidebar.number_input(
-    "Filter: Min Recent Games Played",
-    min_value=0,
-    max_value=st.session_state.get('n_recent', 5),
-    value=st.session_state.get('min_recent_filter', 1)
+# =============================================================================
+# 8. Searchable Evaluated Table
+# =============================================================================
+st.subheader("2️⃣ Evaluated Players")
+search = st.text_input("🔍 Search Evaluated Players")
+df_display = df_evaluated.copy()
+if search:
+    df_display = df_display[
+        df_display.apply(lambda r: r.astype(str).str.contains(search, case=False).any(), axis=1)
+    ]
+st.dataframe(df_display.reset_index(drop=True), use_container_width=True, height=300)
+st.download_button(
+    "📥 Download Evaluated Data",
+    data=df_evaluated.to_csv(index=False).encode("utf-8"),
+    file_name="evaluated_players.csv",
+    mime="text/csv",
 )
 
-# Build the squad via your historical logic
+# =============================================================================
+# 9. Squad Building (reuse your historical logic)
+# =============================================================================
+st.sidebar.markdown("---")
+st.sidebar.markdown("🛡️ Squad Building Settings")
+
+# Formation selector
 strategist = MPGAuctionStrategist()
+formation_key = st.sidebar.selectbox(
+    "Formation",
+    options=list(strategist.formations.keys()),
+    index=list(strategist.formations.keys()).index(st.session_state.formation_key),
+    key="formation_key",
+)
+# Squad size
+squad_size = st.sidebar.number_input(
+    "Squad Size",
+    min_value=strategist.squad_minimums_sum_val,
+    max_value=30,
+    value=st.session_state.squad_size,
+    key="squad_size",
+)
+# Min recent games filter
+min_recent = st.sidebar.number_input(
+    "Min Recent Games Played",
+    min_value=0,
+    max_value=st.session_state.min_recent_filter * 2 + 5,
+    value=st.session_state.min_recent_filter,
+    key="min_recent_filter",
+)
+
+# Build & display squad
 squad_df, squad_summary = strategist.select_squad(
     df_evaluated,
     formation_key,
-    target_squad_size,
-    min_recent_filter
+    squad_size,
+    min_recent,
 )
 
-# Display exactly as in your historical app
 st.subheader("🏆 Suggested Squad")
-st.dataframe(squad_df, use_container_width=True)
+st.dataframe(squad_df.reset_index(drop=True), use_container_width=True, height=300)
+
 st.subheader("📈 Squad Summary")
 st.write(squad_summary)
-# =============================================================================
-# 4. Sidebar Default Values for Extra Parameters
-# =============================================================================
-st.sidebar.markdown("### Default Values for Extra Parameters")
-default_talent = st.sidebar.number_input(
-    "Default Talent Potential (0-10)", 
-    value=5.0, min_value=0.0, max_value=10.0, step=0.1,
-    help="Used if the file does not include a 'talent_potential' column."
+st.download_button(
+    "📥 Download Squad CSV",
+    data=squad_df.to_csv(index=False).encode("utf-8"),
+    file_name="suggested_squad.csv",
+    mime="text/csv",
 )
-default_buzz = st.sidebar.number_input(
-    "Default Market Buzz (0-10)", 
-    value=5.0, min_value=0.0, max_value=10.0, step=0.1,
-    help="Used if the file does not include a 'market_buzz' column."
-)
-default_expert = st.sidebar.number_input(
-    "Default Expert Sentiment (0-10)", 
-    value=5.0, min_value=0.0, max_value=10.0, step=0.1,
-    help="Used if the file does not include an 'expert_sentiment' column."
-)
-
-# =============================================================================
-# 5. Check for Extra Parameters and Fill Defaults if Needed
-# =============================================================================
-# For each extra parameter, verify if the column is present. If not, fill it with the default.
-if "talent_potential" not in df.columns:
-    st.warning("Column 'talent_potential' not found. Filling with default value.")
-    df["talent_potential"] = default_talent
-
-if "market_buzz" not in df.columns:
-    st.warning("Column 'market_buzz' not found. Filling with default value.")
-    df["market_buzz"] = default_buzz
-
-if "expert_sentiment" not in df.columns:
-    st.warning("Column 'expert_sentiment' not found. Filling with default value.")
-    df["expert_sentiment"] = default_expert
-
-# =============================================================================
-# 6. Display Preprocessed Data Preview
-# =============================================================================
-st.subheader("Preprocessed Data Preview")
-st.dataframe(df.head())
-
-# Optionally, you may include additional sanity checks such as:
-# - Verifying that "Cote" falls within an expected range.
-# - Checking for any missing values in critical columns, etc.
