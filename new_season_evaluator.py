@@ -138,7 +138,46 @@ def calculate_mrb(df: pd.DataFrame, mrb_params_per_pos: Dict[str, Dict[str, floa
     df_mrb['value_per_cost'].fillna(0, inplace=True)
 
     return df_mrb
-    
+
+
+import streamlit as st
+from season_with_data import MPGAuctionStrategist  # <-- your historical file
+
+# … your existing new‐season code that produces `df_evaluated` …
+
+# Sidebar controls for squad building (same as historical UI)
+formation_key = st.sidebar.selectbox(
+    "Preferred Starting Formation",
+    options=list(MPGAuctionStrategist().formations.keys()),
+    index=list(MPGAuctionStrategist().formations.keys()).index("4-4-2")
+)
+target_squad_size = st.sidebar.number_input(
+    "Target Total Squad Size",
+    min_value=MPGAuctionStrategist().squad_minimums_sum_val,
+    max_value=30,
+    value=20
+)
+min_recent_filter = st.sidebar.number_input(
+    "Filter: Min Recent Games Played",
+    min_value=0,
+    max_value=st.session_state.get('n_recent', 5),
+    value=st.session_state.get('min_recent_filter', 1)
+)
+
+# Build the squad via your historical logic
+strategist = MPGAuctionStrategist()
+squad_df, squad_summary = strategist.select_squad(
+    df_evaluated,
+    formation_key,
+    target_squad_size,
+    min_recent_filter
+)
+
+# Display exactly as in your historical app
+st.subheader("🏆 Suggested Squad")
+st.dataframe(squad_df, use_container_width=True)
+st.subheader("📈 Squad Summary")
+st.write(squad_summary)
 # =============================================================================
 # 4. Sidebar Default Values for Extra Parameters
 # =============================================================================
