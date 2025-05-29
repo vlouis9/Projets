@@ -5,12 +5,12 @@ import re
 from typing import Dict, List, Tuple, Optional, Set 
 
 #  Page configuration
-#st.set_page_config(
-   # page_title="MPG Auction Strategist v4 (Optimized)", # Changed title
-   # page_icon="🏆",
-   # layout="wide",
-   # initial_sidebar_state="expanded"
-#)
+st.set_page_config(
+    page_title="MPG Auction Strategist v4 (Optimized)", # Changed title
+    page_icon="🏆",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
 # Custom CSS ( 그대로 유지 )
 st.markdown("""
