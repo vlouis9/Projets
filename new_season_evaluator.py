@@ -12,21 +12,6 @@ st.set_page_config(
 
 st.title("New Season Mode: Composite Player Evaluation")
 
-import streamlit as st
-import pandas as pd
-
-# =============================================================================
-# Page Configuration (must be the very first Streamlit command)
-# =============================================================================
-st.set_page_config(
-    page_title="New Season Mode - Step 1: Data Ingestion & Preprocessing",
-    page_icon="🏆",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-st.title("Step 1: Data Ingestion & Preprocessing")
-
 # =============================================================================
 # 1. File Upload
 # =============================================================================
