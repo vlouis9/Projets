@@ -1,27 +1,44 @@
-# app.py
-
+# launcher.py
 import streamlit as st
 
-# Set page config immediately—this must be the first Streamlit command.
+# Configure the page at the top of this main file.
 st.set_page_config(
-    page_title="MPG Auction Strategist v4 (Optimized)",
+    page_title="MPG Auction Strategist Launcher",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Now import your mode modules.
-# (Ensure that these modules do NOT call st.set_page_config themselves.)
-from season_with_data import run_historical_mode
-from new_season_evaluator import run_new_season_mode
+st.title("MPG Auction Strategist Launcher")
+st.write("Select an app to open:")
 
-# Selector UI: Choose either Historical Mode or New Season Mode.
-mode = st.sidebar.selectbox(
-    "Select Season Mode",
-    ("Historical Season Data Mode", "New Season Mode (No Historical Data)")
-)
+# If you know the URLs of your deployed apps, you can simply link to them.
+# Replace the example URLs below with your actual deployed app URLs.
 
-if mode == "Historical Season Data Mode":
-    run_historical_mode()
-else:
-    run_new_season_mode()
+historical_url = "https://your-domain.com/historical"   # URL for the historical_app
+new_season_url   = "https://your-domain.com/newseason"     # URL for the new_season_app
+
+st.markdown(f"""  
+### [Historical Season Data Mode]({historical_url})  
+Click this link to open the Historical data app in a new tab.
+""", unsafe_allow_html=True)
+
+st.markdown(f"""  
+### [New Season Mode (No Historical Data)]({new_season_url})  
+Click this link to open the New Season app in a new tab.
+""", unsafe_allow_html=True)
+
+# Alternatively, you can provide buttons that open the apps via a simple HTML snippet.
+def open_in_new_tab(url: str):
+    # This JavaScript snippet opens the URL in a new tab.
+    js = f"window.open('{url}')"  
+    html = f'<input type="button" value="Open App" onclick="{js}">'
+    st.markdown(html, unsafe_allow_html=True)
+
+st.write("Or, use the buttons below:")
+
+st.write("Historical Season Data Mode:")
+open_in_new_tab(historical_url)
+
+st.write("New Season Mode (No Historical Data):")
+open_in_new_tab(new_season_url)
