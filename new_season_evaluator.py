@@ -97,6 +97,47 @@ def calculate_pvs(df: pd.DataFrame, base_multiplier: float, talent_weight: float
     df_pvs['pvs'] = df_pvs['pvs'].clip(0, 100)
 
     return df_pvs
+
+def calculate_mrb(df: pd.DataFrame, mrb_params_per_pos: Dict[str, Dict[str, float]]) -> pd.DataFrame:
+    """
+    Calculates Market Reference Bid (MRB) based on Player Value Score (PVS).
+    
+    Parameters:
+        df: DataFrame containing evaluated players.
+        mrb_params_per_pos: Dictionary of position-based MRB scaling factors.
+        
+    Returns:
+        Updated DataFrame with 'mrb' and 'value_per_cost' columns.
+    """
+    df_mrb = df.copy()
+
+    # Define MRB as baseline 'Cote' initially
+    df_mrb['mrb'] = df_mrb['Cote']
+
+    for pos, params in mrb_params_per_pos.items():
+        mask = df_mrb['simplified_position'] == pos
+        if not mask.any():
+            continue
+
+        max_bonus_factor = params.get('max_proportional_bonus_at_pvs100', 0.5)
+
+        def compute_mrb(row):
+            cote = row['Cote']
+            pvs = row['pvs']
+            pvs_scaled = pvs / 100.0
+            bonus_factor = pvs_scaled * max_bonus_factor
+            calculated_mrb = cote * (1 + bonus_factor)
+            capped_mrb = min(calculated_mrb, cote * 2)  # Prevent excessive bids
+            return int(round(max(cote, capped_mrb)))  # Ensure MRB is at least equal to Cote
+
+        df_mrb.loc[mask, 'mrb'] = df_mrb.loc[mask].apply(compute_mrb, axis=1)
+
+    # Ensure MRB remains an integer and calculate value-per-cost ratio
+    df_mrb['mrb'] = df_mrb['mrb'].astype(int)
+    df_mrb['value_per_cost'] = df_mrb['pvs'] / df_mrb['mrb'].replace(0, np.nan)
+    df_mrb['value_per_cost'].fillna(0, inplace=True)
+
+    return df_mrb
     
 # =============================================================================
 # 4. Sidebar Default Values for Extra Parameters
