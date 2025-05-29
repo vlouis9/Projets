@@ -41,6 +41,22 @@ except Exception as e:
 st.subheader("Raw Data Preview")
 st.dataframe(df.head())
 
+# Normalization Function
+def normalize_player_attributes(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Normalizes player attributes to a consistent scale (0-100).
+    """
+    df_normalized = df.copy()
+
+    df_normalized['Cote'] = pd.to_numeric(df_normalized['Cote'], errors='coerce').fillna(1).clip(1, 100)
+    df_normalized['norm_cote'] = df_normalized['Cote']
+    df_normalized['norm_talent'] = df_normalized.get('talent_potential', 5.0) * 10
+    df_normalized['norm_buzz'] = df_normalized.get('market_buzz', 5.0) * 10
+    df_normalized['norm_expert'] = df_normalized.get('expert_sentiment', 5.0) * 10
+    df_normalized[['norm_talent', 'norm_buzz', 'norm_expert']] = df_normalized[['norm_talent', 'norm_buzz', 'norm_expert']].clip(0, 100)
+
+    return df_normalized
+    
 # =============================================================================
 # 3. Preprocessing of the 'Cote' Column
 # =============================================================================
