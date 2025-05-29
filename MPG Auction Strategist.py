@@ -9,7 +9,7 @@ from new_season_evaluator import (
 )
 
 # Import your existing evaluation pipeline from your historical season module.
-from mpg_strategist import MPGAuctionStrategist, load_and_preprocess_data
+from season_with_data import MPGAuctionStrategist, load_and_preprocess_data
 
 def main():
     st.title("MPG Auction Strategist - Hybrid Mode")
