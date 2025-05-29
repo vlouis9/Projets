@@ -41,6 +41,12 @@ except Exception as e:
 st.subheader("Raw Data Preview")
 st.dataframe(df.head())
 
+# =============================================================================
+# 3. Preprocessing of the 'Cote' Column
+# =============================================================================
+# Convert the "Cote" column to numeric; if conversion fails, default to 1.
+df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(1)
+
 # Normalization Function
 def normalize_player_attributes(df: pd.DataFrame) -> pd.DataFrame:
     """
@@ -56,13 +62,42 @@ def normalize_player_attributes(df: pd.DataFrame) -> pd.DataFrame:
     df_normalized[['norm_talent', 'norm_buzz', 'norm_expert']] = df_normalized[['norm_talent', 'norm_buzz', 'norm_expert']].clip(0, 100)
 
     return df_normalized
-    
-# =============================================================================
-# 3. Preprocessing of the 'Cote' Column
-# =============================================================================
-# Convert the "Cote" column to numeric; if conversion fails, default to 1.
-df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(1)
 
+def calculate_pvs(df: pd.DataFrame, base_multiplier: float, talent_weight: float, buzz_weight: float, expert_weight: float) -> pd.DataFrame:
+    """
+    Computes the Player Value Score (PVS) using a weighted formula.
+    
+    Parameters:
+        df: DataFrame with normalized player attributes.
+        base_multiplier: Weight for the 'Cote' (normalized baseline rating).
+        talent_weight: Weight for the player's talent potential.
+        buzz_weight: Weight for market buzz.
+        expert_weight: Weight for expert sentiment.
+        
+    Returns:
+        Updated DataFrame with a new column 'pvs'.
+    """
+    df_pvs = df.copy()
+
+    # Ensure total weight sum is valid to avoid division errors
+    total_weight = base_multiplier + talent_weight + buzz_weight + expert_weight
+    if total_weight == 0:
+        st.error("Invalid weight settings: total weight cannot be zero.")
+        return df_pvs
+
+    # Calculate PVS using a weighted average formula
+    df_pvs['pvs'] = (
+        (df_pvs['norm_cote'] * base_multiplier) +
+        (df_pvs['norm_talent'] * talent_weight) +
+        (df_pvs['norm_buzz'] * buzz_weight) +
+        (df_pvs['norm_expert'] * expert_weight)
+    ) / total_weight
+
+    # Ensure PVS stays within the expected range (0-100)
+    df_pvs['pvs'] = df_pvs['pvs'].clip(0, 100)
+
+    return df_pvs
+    
 # =============================================================================
 # 4. Sidebar Default Values for Extra Parameters
 # =============================================================================
