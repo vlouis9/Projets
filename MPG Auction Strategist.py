@@ -2,22 +2,39 @@ import streamlit as st
 
 st.set_page_config(
     page_title="MPG Strategist Hub",
-    page_icon="👋",
+    page_icon="🔗",
     layout="wide"
 )
 
-st.title("🚀 Welcome to the MPG Auction Strategist Hub!")
+st.title("🚀 MPG Auction Strategist Hub")
 st.markdown("---")
 
-st.subheader("Please select an application from the navigation sidebar to get started.")
+st.header("Choose Your Strategist Tool:")
 
-st.markdown("""
-    Use the sidebar on the left to choose between:
+# --- Replace with your actual URLs ---
+URL_HISTORICAL_APP = "mercatompg.streamlit.app"
+URL_NEW_SEASON_APP = "newmercatompg.streamlit.app"
 
-    * **Historical Data App**: For analyzing players and building squads when you have season performance data (scores, goals, regularity, etc.).
+col1, col2 = st.columns(2)
 
-    * **New Season App**: Designed for new leagues or when detailed historical data is unavailable. This app uses your subjective estimations for player performance, potential, regularity, and goals.
-    """)
+with col1:
+    st.subheader("📊 Historical Data App")
+    st.markdown("For leagues with past season performance data.")
+    if URL_HISTORICAL_APP != "YOUR_URL_FOR_THE_HISTORICAL_DATA_APP_HERE":
+        st.link_button("Launch Historical App", URL_HISTORICAL_APP)
+    else:
+        st.warning("Historical App URL not configured.")
 
-st.info("👈 Click on the arrow in the top-left corner to open the sidebar if it's hidden.")
+with col2:
+    st.subheader("🎯 New Season App")
+    st.markdown("For new leagues, using subjective estimations.")
+    if URL_NEW_SEASON_APP != "YOUR_URL_FOR_THE_NEW_SEASON_APP_HERE":
+        st.link_button("Launch New Season App", URL_NEW_SEASON_APP)
+    else:
+        st.warning("New Season App URL not configured.")
 
+st.sidebar.title("About")
+st.sidebar.info(
+    "This Hub provides access to different MPG Auction Strategist tools. "
+    "Select an application above to open it."
+)
