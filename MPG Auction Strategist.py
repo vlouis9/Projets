@@ -1,44 +1,23 @@
-# launcher.py
 import streamlit as st
 
-# Configure the page at the top of this main file.
 st.set_page_config(
-    page_title="MPG Auction Strategist Launcher",
-    page_icon="🏆",
-    layout="wide",
-    initial_sidebar_state="expanded"
+    page_title="MPG Strategist Hub",
+    page_icon="👋",
+    layout="wide"
 )
 
-st.title("MPG Auction Strategist Launcher")
-st.write("Select an app to open:")
+st.title("🚀 Welcome to the MPG Auction Strategist Hub!")
+st.markdown("---")
 
-# If you know the URLs of your deployed apps, you can simply link to them.
-# Replace the example URLs below with your actual deployed app URLs.
+st.subheader("Please select an application from the navigation sidebar to get started.")
 
-historical_url = "https://mercatompg.streamlit.app"  # URL for the historical_app
-new_season_url   = "https://newmercatompg.streamlit.app"     # URL for the new_season_app
+st.markdown("""
+    Use the sidebar on the left to choose between:
 
-st.markdown(f"""  
-### [Historical Season Data Mode]({historical_url})  
-Click this link to open the Historical data app in a new tab.
-""", unsafe_allow_html=True)
+    * **Historical Data App**: For analyzing players and building squads when you have season performance data (scores, goals, regularity, etc.).
 
-st.markdown(f"""  
-### [New Season Mode (No Historical Data)]({new_season_url})  
-Click this link to open the New Season app in a new tab.
-""", unsafe_allow_html=True)
+    * **New Season App**: Designed for new leagues or when detailed historical data is unavailable. This app uses your subjective estimations for player performance, potential, regularity, and goals.
+    """)
 
-# Alternatively, you can provide buttons that open the apps via a simple HTML snippet.
-def open_in_new_tab(url: str):
-    # This JavaScript snippet opens the URL in a new tab.
-    js = f"window.open('{url}')"  
-    html = f'<input type="button" value="Open App" onclick="{js}">'
-    st.markdown(html, unsafe_allow_html=True)
+st.info("👈 Click on the arrow in the top-left corner to open the sidebar if it's hidden.")
 
-st.write("Or, use the buttons below:")
-
-st.write("Historical Season Data Mode:")
-open_in_new_tab(historical_url)
-
-st.write("New Season Mode (No Historical Data):")
-open_in_new_tab(new_season_url)
