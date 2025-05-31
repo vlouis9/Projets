@@ -12,8 +12,8 @@ st.markdown("---")
 st.header("Choose Your Strategist Tool:")
 
 # --- Replace with your actual URLs ---
-URL_HISTORICAL_APP = "mercatompg.streamlit.app"
-URL_NEW_SEASON_APP = "newmercatompg.streamlit.app"
+URL_HISTORICAL_APP = "https://mercatompg.streamlit.app"
+URL_NEW_SEASON_APP = "https://newmercatompg.streamlit.app"
 
 col1, col2 = st.columns(2)
 
