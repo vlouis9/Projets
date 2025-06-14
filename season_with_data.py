@@ -4,7 +4,7 @@ import numpy as np
 import re
 from typing import Dict, List, Tuple, Optional, Set
 
-#  Page configuration
+# Page configuration
 st.set_page_config(
     page_title="MPG Auction Strategist v5 (with Squad Saving)",
     page_icon="💾",
@@ -34,8 +34,7 @@ DEFAULT_FORMATION = "4-4-2"
 PREDEFINED_PROFILES = {
     "Custom": "custom",
     "Balanced Value": {
-        "n_recent_games": 5,
-        "min_recent_games_played_filter": 1,
+        "n_recent_games": 5, "min_recent_games_played_filter": 1,
         "kpi_weights": {
             'GK': {'recent_avg': 0.05, 'season_avg': 0.70, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
             'DEF': {'recent_avg': 0.25, 'season_avg': 0.25, 'calc_regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
@@ -88,12 +87,9 @@ PREDEFINED_PROFILES = {
     }
 }
 
-# --- Cached Data Loading and Preprocessing Function ---
 @st.cache_data
 def load_and_preprocess_data(uploaded_file_obj):
-    """Loads data from uploaded file and performs initial processing."""
-    if uploaded_file_obj is None:
-        return None
+    if uploaded_file_obj is None: return None
     try:
         df_input = pd.read_excel(uploaded_file_obj) if uploaded_file_obj.name.endswith(('.xlsx', '.xls')) else pd.read_csv(uploaded_file_obj)
         df_processed = df_input.copy()
@@ -110,10 +106,6 @@ def load_and_preprocess_data(uploaded_file_obj):
         return None
 
 class MPGAuctionStrategist:
-    # --- [This class definition is complete and unchanged from the previous version] ---
-    # It contains __init__, simplify_position, create_player_id, calculate_kpis,
-    # normalize_kpis, calculate_pvs, calculate_mrb, get_evaluated_players_df, and select_squad.
-    # For brevity, the full class code is omitted here, but should be included from your file.
     def __init__(self):
         self.formations = {
             "4-4-2": {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2}, "4-3-3": {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3},
@@ -408,7 +400,6 @@ class MPGAuctionStrategist:
         if final_pos_counts_check_final.get('GK',0) > 2: st.error(f"Issue: Too many GKs! ({final_pos_counts_check_final.get('GK',0)}/2)")
         return final_squad_df, summary
 
-# --- Main Streamlit App UI ---
 def main():
     st.markdown('<h1 class="main-header">🚀 MPG Auction Strategist v5 (with Squad Saving)</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
@@ -482,15 +473,14 @@ def main():
             mrb_params_ui[pos_key] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus Factor (at PVS 100)", 0.0, 1.0, float(current_pos_mrb_vals.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos_key}_mrbMPB_v5_opt_main", help="Bonus factor if PVS=100 (e.g., 0.5 = 50% bonus implies MRB up to 1.5x Cote). Overall MRB is capped at 2x Cote.")}
         if mrb_params_ui != active_mrb_params: st.session_state.current_profile_name = "Custom"; st.session_state.mrb_params_per_pos = mrb_params_ui
 
-    # --- Main Panel: Calculation and Display ---
     if uploaded_file:
         df_processed_calc = load_and_preprocess_data(uploaded_file)
         if df_processed_calc is not None and not df_processed_calc.empty:
-            with st.spinner("🧠 Calculating player evaluations... (Updates on parameter change)"):
+            with st.spinner("🧠 Calculating player evaluations..."):
                 try:
                     df_evaluated_players = MPGAuctionStrategist.get_evaluated_players_df(df_processed_calc, st.session_state.n_recent, st.session_state.kpi_weights, st.session_state.mrb_params_per_pos)
                     if not df_evaluated_players.empty:
-                        with st.spinner("🎯 Selecting optimal squad... (Updates on squad parameter change)"):
+                        with st.spinner("🎯 Selecting optimal squad..."):
                             squad_df_result, squad_summary_result = strategist.select_squad(df_evaluated_players, st.session_state.formation_key, st.session_state.squad_size, st.session_state.min_recent_filter)
                         st.session_state['df_for_display_final'] = df_evaluated_players
                         st.session_state['squad_df_result_final'] = squad_df_result
@@ -503,12 +493,8 @@ def main():
                 except Exception as e:
                     st.error(f"💥 Error during calculation pipeline: {str(e)}")
 
-        # Helper function for displaying squad dataframes to avoid code duplication
         def display_squad_dataframe(df_to_display):
             sdf = df_to_display.copy()
-            int_cols_squad = ['mrb_actual_cost', 'Cote', 'recent_goals', 'season_goals']
-            for col in int_cols_squad:
-                if col in sdf.columns: sdf[col] = pd.to_numeric(sdf[col], errors='coerce').fillna(0).round().astype(int)
             squad_cols_display = ['Joueur', 'Club', 'simplified_position', 'pvs_in_squad', 'Cote', 'mrb_actual_cost', 'season_avg_rating', 'season_goals', 'calc_regularity_pct', 'recent_goals', 'recent_avg_rating', 'value_per_cost', 'is_starter']
             squad_cols_exist_display = [col for col in squad_cols_display if col in sdf.columns]
             sdf_display = sdf[squad_cols_exist_display].rename(columns={
@@ -517,8 +503,7 @@ def main():
                 'calc_regularity_pct': '% played', 'recent_goals': 'Rec.G', 'recent_avg_rating': 'Rec.AvgR',
                 'value_per_cost': 'Val/MRB', 'is_starter': 'Starter'
             })
-            float_cols_squad_format = ['PVS', 'Average', '% played', 'Rec.AvgR', 'Val/MRB']
-            for col in float_cols_squad_format:
+            for col in ['PVS', 'Average', '% played', 'Rec.AvgR', 'Val/MRB']:
                 if col in sdf_display.columns: sdf_display[col] = pd.to_numeric(sdf_display[col], errors='coerce').fillna(0.0).round(2)
             pos_order = ['GK', 'DEF', 'MID', 'FWD']
             if 'Pos' in sdf_display.columns:
@@ -534,35 +519,30 @@ def main():
             with col_summary:
                 st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
                 summary = st.session_state['squad_summary_result_final']
-                if summary and isinstance(summary, dict):
+                if summary:
                     st.metric("Budget Spent (MRB)", f"€ {summary.get('total_cost', 0):.0f}", help=f"Remaining: € {summary.get('remaining_budget', 0):.0f}")
                     st.metric("Squad Size", f"{summary.get('total_players', 0)} (Target: {st.session_state.squad_size})")
                     st.metric("Total Squad PVS", f"{summary.get('total_squad_pvs', 0):.2f}")
                     st.metric("Starters PVS", f"{summary.get('total_starters_pvs', 0):.2f}")
                     st.info(f"**Formation:** {st.session_state.get('selected_formation_key_display_final', 'N/A')}")
-                    st.markdown("**Positional Breakdown:**")
                     pos_order = ['GK', 'DEF', 'MID', 'FWD']
                     for pos_cat_sum in pos_order:
                         count_sum = summary.get('position_counts', {}).get(pos_cat_sum, 0)
                         min_req_sum = strategist.squad_minimums.get(pos_cat_sum, 0)
                         st.markdown(f"• **{pos_cat_sum}:** {count_sum} (Min: {min_req_sum})")
-                else: st.warning("Squad summary unavailable.")
 
-                # --- NEW: SAVE SQUAD UI ---
                 st.markdown("---")
                 st.markdown("#### 💾 Save Current Squad")
-                # Generate default name
                 next_squad_num = 1
                 if st.session_state.saved_squads:
-                    # Find numbers from existing default-style names
                     default_name_nums = [int(s['name'].split('#')[-1]) for s in st.session_state.saved_squads if s['name'].startswith(f"{st.session_state.formation_key}_{st.session_state.current_profile_name}_")]
                     if default_name_nums: next_squad_num = max(default_name_nums) + 1
                 default_name = f"{st.session_state.formation_key}_{st.session_state.current_profile_name}_#{next_squad_num}"
-                squad_name_input = st.text_input("Enter or confirm a name for this squad:", value=default_name, key="squad_name_input")
+                squad_name_input = st.text_input("Enter or confirm squad name:", value=default_name, key="squad_name_input")
                 if st.button("Save Squad", key="save_squad_button"):
                     if squad_name_input:
                         if any(s['name'] == squad_name_input for s in st.session_state.saved_squads):
-                            st.warning(f"A squad named '{squad_name_input}' already exists. Please choose a different name.")
+                            st.warning(f"A squad named '{squad_name_input}' already exists.")
                         else:
                             saved_squad_df = st.session_state['squad_df_result_final'].copy()
                             saved_squad_summary = st.session_state['squad_summary_result_final'].copy()
@@ -572,13 +552,31 @@ def main():
                             st.success(f"Squad '{squad_name_input}' saved!")
                     else: st.warning("Please enter a name to save the squad.")
 
-            # Full Player Database Display
             st.markdown('<hr><h2 class="section-header">📋 Full Player Database & Values</h2>', unsafe_allow_html=True)
             if 'df_for_display_final' in st.session_state and st.session_state['df_for_display_final'] is not None:
-                # ... (code for displaying full database as before) ...
-                st.dataframe(df_full.sort_values(by='PVS', ascending=False), use_container_width=True, hide_index=True, height=600)
+                df_full = st.session_state['df_for_display_final'].copy()
+                all_stats_cols_display = ['Joueur', 'Club', 'simplified_position', 'pvs', 'Cote', 'mrb', 'Indispo ?', 'season_avg_rating', 'season_goals', 'calc_regularity_pct', 'recent_goals', 'recent_avg_rating', 'value_per_cost', 'games_started_season', 'recent_games_played_count']
+                df_full = df_full[[col for col in all_stats_cols_display if col in df_full.columns]]
+                df_full.rename(columns={
+                    'Joueur': 'Player', 'simplified_position': 'Pos', 'pvs': 'PVS', 'Cote': 'Cote',
+                    'mrb': 'Suggested Bid', 'Indispo ?': 'Unavail.', 'season_avg_rating': 'Average',
+                    'season_goals': 'Goals', 'calc_regularity_pct': '% Played', 'recent_goals': 'Rec.G',
+                    'recent_avg_rating': 'Rec.AvgR', 'value_per_cost': 'Val/MRB',
+                    'games_started_season': 'Sea.Start', 'recent_games_played_count': 'Rec.Plyd'
+                }, inplace=True)
+                for col in ['PVS', 'Average', '% Played', 'Rec.AvgR', 'Val/MRB']:
+                    if col in df_full.columns: df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0.0).round(2)
+                search_all = st.text_input("🔍 Search All Players:", key="search_all_v5_opt_main")
+                if search_all: df_full = df_full[df_full.apply(lambda r: r.astype(str).str.contains(search_all, case=False, na=False).any(), axis=1)]
 
-        # --- NEW: DISPLAY SAVED SQUADS SECTION ---
+                if 'PVS' in df_full.columns:
+                    st.dataframe(df_full.sort_values(by='PVS', ascending=False), use_container_width=True, hide_index=True, height=600)
+                else:
+                    st.warning("PVS column not available for sorting. Displaying without sorting.")
+                    st.dataframe(df_full, use_container_width=True, hide_index=True, height=600)
+
+                st.download_button(label="📥 Download Full Analysis (CSV)", data=df_full.to_csv(index=False).encode('utf-8'), file_name="mpg_full_player_analysis.csv", mime="text/csv")
+
         if st.session_state.saved_squads:
             st.markdown('<hr style="margin-top: 2rem; margin-bottom: 2rem;">', unsafe_allow_html=True)
             st.markdown('<h2 class="section-header">💾 My Saved Squads</h2>', unsafe_allow_html=True)
@@ -595,7 +593,12 @@ def main():
                         st.rerun()
     else:
         st.info("👈 Upload your MPG ratings file to begin.")
-        # ... (code for showing expected file format as before) ...
+        example_data = {
+            'Joueur': ['Player A', 'Player B'], 'Poste': ['A', 'M'], 'Club': ['Club X', 'Club Y'],
+            'Indispo ?': ['', 'TRUE'], 'Cote': [45, 30], '%Titu': [90, 75],
+            'D34': ['7.5*', '6.5'], 'D33': ['(6.0)**', '0'], 'D32': ['', '5.5*']
+        }
+        st.dataframe(pd.DataFrame(example_data), use_container_width=True, hide_index=True)
 
 if __name__ == "__main__":
     main()
