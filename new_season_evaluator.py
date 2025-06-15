@@ -1,6 +1,11 @@
 #Stripped-Down MPG Auction Strategist (Clean Rewrite)
 
-import streamlit as st import pandas as pd import numpy as np import re
+# Stripped-Down MPG Auction Strategist (Clean Rewrite)
+
+import streamlit as st
+import pandas as pd
+import numpy as np
+import re
 
 --- Page Setup ---
 
