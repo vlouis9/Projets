@@ -30,6 +30,7 @@ st.markdown("""
     .tier-relegation {background-color: #f08080; border: 2px solid #cd5c5c;}
     .club-item {padding: 0.5rem; margin: 0.25rem 0; background-color: #f0f0f0; border-radius: 0.25rem;}
     .dataframe {font-size: 0.9rem;}
+    .stMultiSelect [data-baseweb=select] span{max-width: 250px; font-size: 0.9rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -286,8 +287,7 @@ class MPGAuctionStrategist:
     @staticmethod 
     def select_squad(df_evaluated_players: pd.DataFrame, formation_key: str, 
                     target_squad_size: int, budget: int) -> Tuple[pd.DataFrame, Dict]:
-        # Implementation of squad selection algorithm
-        formation = {
+        formations = {
             "4-4-2": {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2},
             "4-3-3": {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3},
             "3-5-2": {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2},
@@ -295,7 +295,10 @@ class MPGAuctionStrategist:
             "4-5-1": {"GK": 1, "DEF": 4, "MID": 5, "FWD": 1},
             "5-3-2": {"GK": 1, "DEF": 5, "MID": 3, "FWD": 2},
             "5-4-1": {"GK": 1, "DEF": 5, "MID": 4, "FWD": 1}
-        }[formation_key]
+        }
+        
+        formation = formations.get(formation_key, formations["4-4-2"])
+        min_requirements = {"GK": 2, "DEF": 6, "MID": 6, "FWD": 4}
         
         df = df_evaluated_players.copy()
         df = df.sort_values('value_per_cost', ascending=False)
@@ -315,7 +318,6 @@ class MPGAuctionStrategist:
                     df = df[df['player_id'] != player['player_id']]
         
         # Fill minimums
-        min_requirements = {"GK": 2, "DEF": 6, "MID": 6, "FWD": 4}
         for pos, min_count in min_requirements.items():
             while position_counts[pos] < min_count and len(squad) < target_squad_size:
                 candidates = df[df['simplified_position'] == pos]
@@ -342,14 +344,29 @@ class MPGAuctionStrategist:
                 break
         
         squad_df = pd.DataFrame(squad)
+        
+        # Determine starters based on PVS within formation
+        starters = []
+        formation_counts = formation.copy()
+        squad_sorted = squad_df.sort_values('pvs', ascending=False)
+        
+        for _, player in squad_sorted.iterrows():
+            pos = player['simplified_position']
+            if formation_counts.get(pos, 0) > 0:
+                starters.append(player['player_id'])
+                formation_counts[pos] -= 1
+        
+        squad_df['is_starter'] = squad_df['player_id'].isin(starters)
+        
         summary = {
             'total_players': len(squad_df),
             'total_cost': total_cost,
             'remaining_budget': budget - total_cost,
             'position_counts': position_counts,
             'total_squad_pvs': squad_df['pvs'].sum(),
-            'total_starters_pvs': squad_df.head(11)['pvs'].sum()
+            'total_starters_pvs': squad_df[squad_df['is_starter']]['pvs'].sum()
         }
+        
         return squad_df, summary
 
 # --- Data Loading Functions ---
@@ -405,48 +422,85 @@ def merge_player_data(historical_df, new_season_df):
 
 def team_tier_ui(clubs):
     st.markdown("### 🏆 Team Tier Assignment")
-    st.info("Drag clubs between tiers to assign values (Winner: 100, European: 75, Average: 50, Relegation: 25)")
+    st.info("Assign each club to exactly one tier (Winner: 100, European: 75, Average: 50, Relegation: 25)")
+    
+    # Initialize session state for tiers if not exists
+    if 'team_tiers' not in st.session_state:
+        st.session_state.team_tiers = {club: 50 for club in clubs}  # Default to average
     
     # Create columns for each tier
     cols = st.columns(4)
     tier_assignments = {tier: [] for tier in TIER_VALUES}
     
+    # Get current assignments from session state
+    for club, value in st.session_state.team_tiers.items():
+        for tier, tier_value in TIER_VALUES.items():
+            if value == tier_value:
+                tier_assignments[tier].append(club)
+                break
+    
     with cols[0]:
         st.subheader("Winner Tier (100)")
         st.markdown('<div class="tier-box tier-winner">', unsafe_allow_html=True)
-        tier_assignments["Winner"] = st.multiselect("", clubs, key="winner_tier", label_visibility="collapsed")
+        winner_tier = st.multiselect(
+            "Winner Tier", 
+            options=[c for c in clubs if c not in tier_assignments["European"] + tier_assignments["Average"] + tier_assignments["Relegation"]],
+            default=tier_assignments["Winner"],
+            key="winner_tier_select"
+        )
         st.markdown('</div>', unsafe_allow_html=True)
     
     with cols[1]:
         st.subheader("European Tier (75)")
         st.markdown('<div class="tier-box tier-europe">', unsafe_allow_html=True)
-        tier_assignments["European"] = st.multiselect("", clubs, key="europe_tier", label_visibility="collapsed")
+        europe_tier = st.multiselect(
+            "European Tier", 
+            options=[c for c in clubs if c not in tier_assignments["Winner"] + tier_assignments["Average"] + tier_assignments["Relegation"]],
+            default=tier_assignments["European"],
+            key="europe_tier_select"
+        )
         st.markdown('</div>', unsafe_allow_html=True)
     
     with cols[2]:
         st.subheader("Average Tier (50)")
         st.markdown('<div class="tier-box tier-average">', unsafe_allow_html=True)
-        tier_assignments["Average"] = st.multiselect("", clubs, key="average_tier", label_visibility="collapsed")
+        average_tier = st.multiselect(
+            "Average Tier", 
+            options=[c for c in clubs if c not in tier_assignments["Winner"] + tier_assignments["European"] + tier_assignments["Relegation"]],
+            default=tier_assignments["Average"],
+            key="average_tier_select"
+        )
         st.markdown('</div>', unsafe_allow_html=True)
     
     with cols[3]:
         st.subheader("Relegation Tier (25)")
         st.markdown('<div class="tier-box tier-relegation">', unsafe_allow_html=True)
-        tier_assignments["Relegation"] = st.multiselect("", clubs, key="relegation_tier", label_visibility="collapsed")
+        relegation_tier = st.multiselect(
+            "Relegation Tier", 
+            options=[c for c in clubs if c not in tier_assignments["Winner"] + tier_assignments["European"] + tier_assignments["Average"]],
+            default=tier_assignments["Relegation"],
+            key="relegation_tier_select"
+        )
         st.markdown('</div>', unsafe_allow_html=True)
     
-    # Create club-tier mapping
+    # Update session state with new assignments
     club_tiers = {}
-    for tier, clubs_in_tier in tier_assignments.items():
-        for club in clubs_in_tier:
-            club_tiers[club] = TIER_VALUES[tier]
+    for club in winner_tier:
+        club_tiers[club] = TIER_VALUES["Winner"]
+    for club in europe_tier:
+        club_tiers[club] = TIER_VALUES["European"]
+    for club in average_tier:
+        club_tiers[club] = TIER_VALUES["Average"]
+    for club in relegation_tier:
+        club_tiers[club] = TIER_VALUES["Relegation"]
     
-    # Set default for unassigned clubs
+    # Set default for any unassigned clubs
     all_clubs_set = set(clubs)
-    assigned_clubs = set(club for clubs_in_tier in tier_assignments.values() for club in clubs_in_tier)
+    assigned_clubs = set(club_tiers.keys())
     for club in all_clubs_set - assigned_clubs:
         club_tiers[club] = 50  # Default to average
     
+    st.session_state.team_tiers = club_tiers
     return club_tiers
 
 def new_player_kpi_ui(new_players_df):
@@ -454,7 +508,6 @@ def new_player_kpi_ui(new_players_df):
     st.info("Set KPIs for new players based on historical data ranges")
     
     kpis = [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]
-    options = [0, 25, 50, 75, 100]
     
     for idx, player in new_players_df.iterrows():
         with st.expander(f"{player['Joueur']} ({player['simplified_position']}, {player['Club']})"):
@@ -485,6 +538,54 @@ def get_new_player_kpis(new_players_df):
             player_kpis[kpi] = st.session_state.get(slider_key, 50)  # Default to 50 if not set
         kpi_values[player['player_id']] = player_kpis
     return kpi_values
+
+def format_player_display(df, is_squad=False):
+    # Define display columns and their names
+    display_cols_mapping = {
+        'Joueur': 'Player',
+        'Club': 'Club',
+        'simplified_position': 'Position',
+        'pvs': 'PVS',
+        'Cote': 'Base Price',
+        'mrb': 'MRB',
+        KPI_PERFORMANCE: 'Performance',
+        KPI_POTENTIAL: 'Potential',
+        KPI_REGULARITY: 'Regularity',
+        KPI_GOALS: 'Goals',
+        KPI_TEAM_TIER: 'Team Tier',
+        'value_per_cost': 'Value/MRB'
+    }
+    
+    if is_squad:
+        display_cols_mapping['is_starter'] = 'Starter'
+    
+    # Select only columns that exist in the dataframe
+    display_cols = [col for col in display_cols_mapping.keys() if col in df.columns]
+    
+    # Create display dataframe
+    display_df = df[display_cols].rename(columns=display_cols_mapping)
+    
+    # Sort by position and PVS
+    pos_order = CategoricalDtype(['GK', 'DEF', 'MID', 'FWD'], ordered=True)
+    display_df['Position'] = display_df['Position'].astype(pos_order)
+    
+    if is_squad:
+        display_df = display_df.sort_values(['Starter', 'Position', 'PVS'], ascending=[False, True, False])
+    else:
+        display_df = display_df.sort_values(['Position', 'PVS'], ascending=[True, False])
+    
+    # Format numeric columns
+    numeric_cols = ['PVS', 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Tier', 'Value/MRB']
+    for col in numeric_cols:
+        if col in display_df.columns:
+            display_df[col] = display_df[col].round(1)
+    
+    # Format MRB and Base Price as integers
+    for col in ['MRB', 'Base Price']:
+        if col in display_df.columns:
+            display_df[col] = display_df[col].astype(int)
+    
+    return display_df
 
 # --- Main App ---
 def main():
@@ -589,9 +690,10 @@ def main():
                 )
                 
                 st.session_state.player_data = df_mrb
+                st.session_state.calculated = True
         
         # Squad selection
-        if 'player_data' in st.session_state:
+        if 'player_data' in st.session_state and st.session_state.get('calculated', False):
             if st.button("Build Optimal Squad"):
                 with st.spinner("Selecting best squad..."):
                     squad_df, summary = strategist.select_squad(
@@ -604,44 +706,66 @@ def main():
                     st.session_state.squad_summary = summary
         
         # Display results
-        if 'squad_df' in st.session_state:
+        if 'squad_df' in st.session_state and 'squad_summary' in st.session_state:
             st.markdown("## 🏆 Recommended Squad")
             
-            # Format display columns
-            display_cols = [
-                'Joueur', 'Club', 'simplified_position', 'pvs', 'mrb', 'Cote',
-                KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS, KPI_TEAM_TIER
-            ]
-            display_cols = [col for col in display_cols if col in st.session_state.squad_df.columns]
+            # Format squad display
+            squad_display = format_player_display(st.session_state.squad_df, is_squad=True)
+            st.dataframe(squad_display, height=600)
             
-            # Format display names
-            display_names = {
-                'Joueur': 'Player',
-                'simplified_position': 'Position',
-                'pvs': 'PVS',
-                'mrb': 'MRB',
-                'Cote': 'Base Price',
-                KPI_PERFORMANCE: 'Performance',
-                KPI_POTENTIAL: 'Potential',
-                KPI_REGULARITY: 'Regularity',
-                KPI_GOALS: 'Goals',
-                KPI_TEAM_TIER: 'Team Tier'
-            }
-            
-            # Create display dataframe
-            display_df = st.session_state.squad_df[display_cols].rename(columns=display_names)
-            
-            # Sort by position and PVS
-            pos_order = CategoricalDtype(['GK', 'DEF', 'MID', 'FWD'], ordered=True)
-            display_df['Position'] = display_df['Position'].astype(pos_order)
-            display_df = display_df.sort_values(['Position', 'PVS'], ascending=[True, False])
-            
-            # Format numeric columns
-            for col in ['PVS', 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Tier']:
-                if col in display_df.columns:
-                    display_df[col] = display_df[col].round(1)
-            
-            st.dataframe(display_df, height=600)
-            
+            # Squad summary
             st.markdown("### 📊 Squad Summary")
-            summary = st.session
+            summary = st.session_state.squad_summary
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Total Cost", f"€{summary['total_cost']}")
+            with col2:
+                st.metric("Remaining Budget", f"€{summary['remaining_budget']}")
+            with col3:
+                st.metric("Total PVS", f"{summary['total_squad_pvs']:.1f}")
+            with col4:
+                st.metric("Starters PVS", f"{summary['total_starters_pvs']:.1f}")
+            
+            st.markdown("**Positional Breakdown:**")
+            for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                count = summary['position_counts'].get(pos, 0)
+                min_req = strategist.squad_minimums.get(pos, 0)
+                st.write(f"- **{pos}:** {count} (Minimum: {min_req})")
+            
+            # Download button
+            st.download_button(
+                "💾 Download Squad",
+                st.session_state.squad_df.to_csv(index=False),
+                "mpg_optimal_squad.csv"
+            )
+        
+        # Display full player database if values have been calculated
+        if 'player_data' in st.session_state and st.session_state.get('calculated', False):
+            st.markdown("## 📋 Full Player Database")
+            
+            # Format full database display
+            full_display = format_player_display(st.session_state.player_data)
+            
+            # Add search functionality
+            search_term = st.text_input("🔍 Search Players:", "")
+            if search_term:
+                search_mask = full_display.apply(lambda row: row.astype(str).str.contains(search_term, case=False).any(), axis=1)
+                full_display = full_display[search_mask]
+            
+            st.dataframe(full_display, height=600)
+            
+            # Download button for full database
+            st.download_button(
+                "💾 Download Full Database",
+                st.session_state.player_data.to_csv(index=False),
+                "mpg_full_database.csv"
+            )
+    
+    else:
+        st.info("👋 Welcome to MPG Ultimate Strategist! Please upload both historical and new season data to begin.")
+        st.image("https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80", 
+                 caption="Football Strategy Dashboard")
+
+if __name__ == "__main__":
+    main() 
