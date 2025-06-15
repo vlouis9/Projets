@@ -88,7 +88,7 @@ PREDEFINED_PROFILES = {
     },
     "Emphasis on Performance & Regularity": {
         "kpi_weights": {
-            'GK':  {KPI_PERFORMANCE: 0.45, KPI_POTENTIAL: 0.05, KPI_REGULARITY: 0.40, KPI_GOals: 0.00, KPI_TEAM_TIER: 0.10},
+            'GK':  {KPI_PERFORMANCE: 0.45, KPI_POTENTIAL: 0.05, KPI_REGULARITY: 0.40, KPI_GOALS: 0.00, KPI_TEAM_TIER: 0.10},
             'DEF': {KPI_PERFORMANCE: 0.40, KPI_POTENTIAL: 0.05, KPI_REGULARITY: 0.35, KPI_GOALS: 0.10, KPI_TEAM_TIER: 0.10},
             'MID': {KPI_PERFORMANCE: 0.35, KPI_POTENTIAL: 0.10, KPI_REGULARITY: 0.25, KPI_GOALS: 0.20, KPI_TEAM_TIER: 0.10},
             'FWD': {KPI_PERFORMANCE: 0.30, KPI_POTENTIAL: 0.10, KPI_REGULARITY: 0.20, KPI_GOALS: 0.30, KPI_TEAM_TIER: 0.10}
@@ -830,4 +830,4 @@ def main():
                  caption="Football Strategy Dashboard")
 
 if __name__ == "__main__":
-    main()
+    main() 
