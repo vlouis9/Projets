@@ -1,128 +1,75 @@
-import streamlit as st
-import pandas as pd
-import numpy as np
-import re
-import json
-import os
-from typing import Dict, List, Tuple, Optional, Set
+#Stripped-Down MPG Auction Strategist (Clean Rewrite)
 
-# --- Page Configuration ---
-st.set_page_config(
-    page_title="MPG Combined Strategist",
-    page_icon="⚽",
-    layout="wide"
-)
+import streamlit as st import pandas as pd import numpy as np import re
 
-# --- Constants ---
-DEFAULT_FORMATION = "4-4-2"
-DEFAULT_SQUAD_SIZE = 20
-CLUB_TIER_SCORES = {"Winner": 100, "European": 75, "Average": 50, "Relegation": 25}
-SUBJECTIVE_KPI_KEYS = ["PerformanceEstimation", "PotentialEstimation", "RegularityEstimation", "GoalsEstimation"]
+--- Page Setup ---
 
-# --- Load File ---
-@st.cache_data
-def load_excel_or_csv(file):
-    return pd.read_excel(file) if file.name.endswith(('xls', 'xlsx')) else pd.read_csv(file)
+st.set_page_config(page_title="MPG Strategist", layout="wide") st.title("⚽ MPG Auction Strategist — Clean Version")
 
-# --- UI ---
-st.title("⚽ MPG Combined Strategist")
-st.markdown("Upload both historical and new season files to begin.")
+--- Constants ---
 
-col1, col2 = st.columns(2)
-hist_file = col1.file_uploader("📂 Historical data file", type=["csv", "xls", "xlsx"])
-new_file = col2.file_uploader("📂 New season file", type=["csv", "xls", "xlsx"])
+KPI_KEYS = ["PerformanceEstimation", "PotentialEstimation", "RegularityEstimation", "GoalsEstimation"] CLUB_TIERS = {"Winner": 100, "European": 75, "Average": 50, "Relegation": 25} DEFAULT_WEIGHTS = { 'GK':  {"PerformanceEstimation": 0.5, "PotentialEstimation": 0.2, "RegularityEstimation": 0.3, "GoalsEstimation": 0.0}, 'DEF': {"PerformanceEstimation": 0.4, "PotentialEstimation": 0.2, "RegularityEstimation": 0.3, "GoalsEstimation": 0.1}, 'MID': {"PerformanceEstimation": 0.3, "PotentialEstimation": 0.2, "RegularityEstimation": 0.2, "GoalsEstimation": 0.3}, 'FWD': {"PerformanceEstimation": 0.3, "PotentialEstimation": 0.2, "RegularityEstimation": 0.1, "GoalsEstimation": 0.4}, }
 
-if hist_file and new_file:
-    df_hist = load_excel_or_csv(hist_file)
-    df_new = load_excel_or_csv(new_file)
+--- Upload Section ---
 
-    for df in [df_hist, df_new]:
-        df['simplified_position'] = df['Poste'].apply(MPGAuctionStrategist.simplify_position)
-        df['player_id'] = df.apply(MPGAuctionStrategist.create_player_id, axis=1)
+st.markdown("### 📂 Upload Your Files") col1, col2 = st.columns(2) file_hist = col1.file_uploader("Historical MPG Data", type=["csv", "xls", "xlsx"]) file_new = col2.file_uploader("New Season File", type=["csv", "xls", "xlsx"])
 
-    # --- Identify Players ---
-    known_ids = set(df_hist['player_id'])
-    new_ids = set(df_new['player_id'])
+@st.cache_data def load_file(f): return pd.read_excel(f) if f.name.endswith((".xls", ".xlsx")) else pd.read_csv(f)
 
-    new_players_df = df_new[df_new['player_id'].isin(new_ids - known_ids)].copy()
-    returning_players_df = df_new[df_new['player_id'].isin(new_ids & known_ids)].copy()
-    removed_players_df = df_hist[~df_hist['player_id'].isin(new_ids)].copy()
+@st.cache_data def simplify_position(pos): p = str(pos).upper().strip() return "GK" if p == "G" else "DEF" if p in ["D", "DL", "DC"] else "MID" if p in ["M", "MD", "MO"] else "FWD" if p == "A" else "UNKNOWN"
 
-    st.markdown(f"**🆕 New players detected**: {len(new_players_df)}")
-    st.markdown(f"**👋 Removed players**: {len(removed_players_df)}")
+@st.cache_data def make_id(row): return f"{row['Joueur']}{simplify_position(row['Poste'])}{row['Club']}"
 
-    # --- Club Tier Editor ---
-    st.markdown("### 🏆 Club Tiers")
-    club_tiers = {}
-    for club in sorted(df_new['Club'].dropna().unique()):
-        tier = st.selectbox(f"{club}", options=list(CLUB_TIER_SCORES.keys()), index=2, key=f"tier_{club}")
-        club_tiers[club] = CLUB_TIER_SCORES[tier]
-    tier_weight = st.slider("Weight of Club Tier in PVS", 0.0, 1.0, 0.25, step=0.05)
+if file_hist and file_new: df_hist = load_file(file_hist) df_new = load_file(file_new)
 
-    # --- Normalize New Player Slider Ranges ---
-    df_hist_kpis = MPGAuctionStrategist.calculate_historical_kpis(df_hist)
-    df_hist_norm = MPGAuctionStrategist.normalize_kpis(df_hist_kpis)
+for df in [df_hist, df_new]:
+    df["simplified_position"] = df["Poste"].apply(simplify_position)
+    df["player_id"] = df.apply(make_id, axis=1)
 
-    kpi_ranges = {}
-    for pos in ['GK', 'DEF', 'MID', 'FWD']:
-        sub = df_hist_norm[df_hist_norm['simplified_position'] == pos]
-        kpi_ranges[pos] = {}
-        for kpi in SUBJECTIVE_KPI_KEYS:
-            col = f"norm_{kpi.lower()}" if f"norm_{kpi.lower()}" in sub.columns else None
-            kpi_ranges[pos][kpi] = (0, 100)  # default fallback
+# --- Club Tier Section ---
+st.markdown("### 🏆 Club Tier Assignment")
+club_tier_input = {}
+for c in sorted(df_new["Club"].dropna().unique()):
+    tier = st.selectbox(f"{c}", list(CLUB_TIERS.keys()), index=2, key=f"tier_{c}")
+    club_tier_input[c] = CLUB_TIERS[tier]
+tier_weight = st.slider("Tier Weight in PVS", 0.0, 1.0, 0.25)
 
-    # --- Manual Slider Input ---
-    st.markdown("### 🎛️ Manual KPI sliders for new players")
-    manual_data = []
-    for _, row in new_players_df.iterrows():
-        st.markdown(f"**{row['Joueur']} ({row['simplified_position']})**")
-        sliders = {}
-        for kpi in SUBJECTIVE_KPI_KEYS:
-            val = st.slider(
-                f"{kpi}", min_value=0, max_value=100, value=50,
-                key=f"{row['player_id']}_{kpi}"
-            )
-            sliders[kpi] = val
-        sliders.update({
-            "player_id": row['player_id'],
-            "Joueur": row['Joueur'],
-            "Poste": row['Poste'],
-            "Club": row['Club'],
-            "simplified_position": row['simplified_position'],
-        })
-        manual_data.append(sliders)
+# --- Detect New & Returners ---
+known_ids = set(df_hist['player_id'])
+df_returning = df_new[df_new['player_id'].isin(known_ids)].copy()
+df_new_only = df_new[~df_new['player_id'].isin(known_ids)].copy()
 
-    df_manual = pd.DataFrame(manual_data)
-    for k in SUBJECTIVE_KPI_KEYS:
-        df_manual[f'norm_{k}'] = df_manual[k].clip(0, 100)
-    df_manual['pvs'] = df_manual[[f'norm_{k}' for k in SUBJECTIVE_KPI_KEYS]].mean(axis=1)
-    df_manual['pvs'] += df_manual['Club'].map(club_tiers).fillna(50) * tier_weight
-    df_manual['pvs'] = df_manual['pvs'].clip(0, 100)
+# --- Manual KPI Sliders ---
+st.markdown("### ✍️ Subjective KPIs for New Players")
+sliders = []
+for _, row in df_new_only.iterrows():
+    st.markdown(f"**{row['Joueur']} ({row['simplified_position']})**")
+    entry = {"player_id": row['player_id'], "Joueur": row['Joueur'], "Poste": row['Poste'], "Club": row['Club'], "simplified_position": row['simplified_position']}
+    for k in KPI_KEYS:
+        entry[k] = st.slider(f"{k}", 0, 100, 50, key=row['player_id']+k)
+    sliders.append(entry)
+df_manual = pd.DataFrame(sliders)
 
-    # --- Evaluate Returning Players ---
-    default_weights = {
-        'GK': {'recent_avg': 0.2, 'season_avg': 0.5, 'reg': 0.3},
-        'DEF': {'recent_avg': 0.2, 'season_avg': 0.3, 'reg': 0.2, 'recent_goals': 0.1, 'season_goals': 0.2},
-        'MID': {'recent_avg': 0.2, 'season_avg': 0.2, 'reg': 0.1, 'recent_goals': 0.2, 'season_goals': 0.3},
-        'FWD': {'recent_avg': 0.2, 'season_avg': 0.2, 'reg': 0.1, 'recent_goals': 0.2, 'season_goals': 0.3}
-    }
+for k in KPI_KEYS:
+    df_manual[f"n_{k}"] = df_manual[k]
 
-    df_returning_kpis = df_hist_norm[df_hist_norm['player_id'].isin(returning_players_df['player_id'])].copy()
-    df_returning_eval = MPGAuctionStrategist.calculate_pvs(df_returning_kpis, default_weights, club_tiers, tier_weight)
+df_manual["club_tier"] = df_manual["Club"].map(club_tier_input).fillna(50)
 
-    # --- Combine All Evaluated Players ---
-    df_all_eval = pd.concat([df_returning_eval, df_manual], ignore_index=True, sort=False)
+def calc_pvs(row):
+    pos = row["simplified_position"]
+    weights = DEFAULT_WEIGHTS.get(pos, {})
+    kpi_score = sum([row[f"n_{k}"] * weights.get(k, 0) for k in KPI_KEYS])
+    return np.clip(kpi_score + row["club_tier"] * tier_weight, 0, 100)
 
-    # --- Display Final Player Table ---
-    st.markdown("### 🧮 Final Evaluated Players")
-    st.dataframe(df_all_eval[['Joueur', 'Poste', 'Club', 'pvs']].sort_values(by='pvs', ascending=False).reset_index(drop=True))
+df_manual["pvs"] = df_manual.apply(calc_pvs, axis=1)
 
-    # --- Squad Builder Button (uses existing logic) ---
-    if st.button("💼 Build Squad with select_squad"):
-        strategist = MPGAuctionStrategist()
-        squad_df, summary = strategist.select_squad(df_all_eval, DEFAULT_FORMATION, DEFAULT_SQUAD_SIZE)
-        st.success("Squad successfully built!")
-        st.dataframe(squad_df)
-        st.json(summary)
-else:
-    st.info("Please upload both historical and new season files to begin.")
+# --- Display Final Table ---
+st.markdown("### 🧮 Final Evaluated Players")
+st.dataframe(df_manual[["Joueur", "Poste", "Club", "pvs"]].sort_values(by="pvs", ascending=False).reset_index(drop=True))
+
+# --- Placeholder: Squad Builder ---
+if st.button("💼 Build Squad"):
+    st.info("You can plug in your select_squad() logic here with df_manual as input.")
+
+else: st.warning("Upload both historical and new season files to proceed.")
+
