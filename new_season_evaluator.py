@@ -29,6 +29,7 @@ st.markdown("""
     .tier-average {background-color: #b0e0e6; border: 2px solid #87ceeb;}
     .tier-relegation {background-color: #f08080; border: 2px solid #cd5c5c;}
     .club-item {padding: 0.5rem; margin: 0.25rem 0; background-color: #f0f0f0; border-radius: 0.25rem;}
+    .dataframe {font-size: 0.9rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -231,7 +232,7 @@ class MPGAuctionStrategist:
     @staticmethod 
     def normalize_subjective_kpis(df: pd.DataFrame) -> pd.DataFrame: 
         rdf = df.copy()
-        for kpi_col in [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]:
+        for kpi_col in [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS, KPI_TEAM_TIER]:
             if kpi_col in rdf.columns:
                 rdf[kpi_col] = rdf[kpi_col].clip(0, 100)
         return rdf
@@ -286,14 +287,16 @@ class MPGAuctionStrategist:
     def select_squad(df_evaluated_players: pd.DataFrame, formation_key: str, 
                     target_squad_size: int, budget: int) -> Tuple[pd.DataFrame, Dict]:
         # Implementation of squad selection algorithm
-        # ... (similar to previous implementation but updated for new KPIs)
-        # This would be a lengthy implementation - using placeholder logic
         formation = {
             "4-4-2": {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2},
-            # ... other formations
+            "4-3-3": {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3},
+            "3-5-2": {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2},
+            "3-4-3": {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3},
+            "4-5-1": {"GK": 1, "DEF": 4, "MID": 5, "FWD": 1},
+            "5-3-2": {"GK": 1, "DEF": 5, "MID": 3, "FWD": 2},
+            "5-4-1": {"GK": 1, "DEF": 5, "MID": 4, "FWD": 1}
         }[formation_key]
         
-        # Simplified squad selection logic
         df = df_evaluated_players.copy()
         df = df.sort_values('value_per_cost', ascending=False)
         
@@ -380,25 +383,26 @@ def load_new_season_data(uploaded_file):
         return None
 
 def merge_player_data(historical_df, new_season_df):
-    # Identify returning players
+    # Map historical KPIs to new KPI system
+    historical_df[KPI_PERFORMANCE] = historical_df['norm_performance']
+    historical_df[KPI_POTENTIAL] = historical_df['norm_potential']
+    historical_df[KPI_REGULARITY] = historical_df['norm_regularity']
+    historical_df[KPI_GOALS] = historical_df['norm_goals']
+    
+    # Merge with new season data
     merged = pd.merge(
         new_season_df, 
-        historical_df[['player_id', 'norm_performance', 'norm_potential', 'norm_regularity', 'norm_goals']],
+        historical_df[['player_id', KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]],
         on='player_id', 
         how='left'
     )
     
-    # Identify new players
-    new_players = merged[merged['norm_performance'].isna()]
-    known_players = merged[~merged['norm_performance'].isna()]
+    # Identify new players (those without historical data)
+    new_players = merged[merged[KPI_PERFORMANCE].isna()]
+    known_players = merged[~merged[KPI_PERFORMANCE].isna()]
     
     return known_players, new_players
 
-def assign_team_tiers(clubs):
-    tiers = {tier: [] for tier in TIER_VALUES}
-    return {club: 50 for club in clubs}  # Default to average
-
-# --- UI Components ---
 def team_tier_ui(clubs):
     st.markdown("### 🏆 Team Tier Assignment")
     st.info("Drag clubs between tiers to assign values (Winner: 100, European: 75, Average: 50, Relegation: 25)")
@@ -445,7 +449,7 @@ def team_tier_ui(clubs):
     
     return club_tiers
 
-def new_player_kpi_ui(new_players_df, kpi_ranges):
+def new_player_kpi_ui(new_players_df):
     st.markdown("### 🆕 New Player KPI Assignment")
     st.info("Set KPIs for new players based on historical data ranges")
     
@@ -458,14 +462,29 @@ def new_player_kpi_ui(new_players_df, kpi_ranges):
             for i, kpi in enumerate(kpis):
                 pos = player['simplified_position']
                 with cols[i]:
-                    st.slider(
+                    # Store slider values in session state
+                    slider_key = f"{player['player_id']}_{kpi}"
+                    if slider_key not in st.session_state:
+                        st.session_state[slider_key] = 50  # Default value
+                    
+                    st.session_state[slider_key] = st.slider(
                         kpi.split("Estimation")[0], 
                         min_value=0, 
                         max_value=100, 
-                        value=50, 
+                        value=st.session_state[slider_key], 
                         step=25,
-                        key=f"{player['player_id']}_{kpi}"
+                        key=f"slider_{slider_key}"
                     )
+
+def get_new_player_kpis(new_players_df):
+    kpi_values = {}
+    for _, player in new_players_df.iterrows():
+        player_kpis = {}
+        for kpi in [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]:
+            slider_key = f"{player['player_id']}_{kpi}"
+            player_kpis[kpi] = st.session_state.get(slider_key, 50)  # Default to 50 if not set
+        kpi_values[player['player_id']] = player_kpis
+    return kpi_values
 
 # --- Main App ---
 def main():
@@ -501,13 +520,7 @@ def main():
         
         # New player KPI assignment
         if not new_players.empty:
-            new_player_kpi_ui(new_players, None)  # Simplified version
-        
-        # Apply KPI values to new players
-        for idx, player in new_players.iterrows():
-            for kpi in [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]:
-                # In real implementation, get values from session state
-                new_season_df.loc[new_season_df['player_id'] == player['player_id'], kpi] = 50  # Default
+            new_player_kpi_ui(new_players)
         
         # Profile configuration
         st.sidebar.markdown("## ⚙️ Configuration")
@@ -541,35 +554,40 @@ def main():
         # Calculate PVS and MRB
         if st.button("Calculate Player Values"):
             with st.spinner("Calculating PVS and MRB..."):
-                # Prepare KPI columns
+                # Prepare final dataframe with all KPIs
+                final_df = new_season_df.copy()
+                
+                # Add team tier (already set from UI)
+                final_df[KPI_TEAM_TIER] = final_df['Club'].map(club_tiers)
+                
+                # For known players: use historical KPIs
+                known_mask = final_df['player_id'].isin(known_players['player_id'])
                 for kpi in [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]:
-                    if kpi not in new_season_df.columns:
-                        # Apply default values for known players
-                        if kpi == KPI_PERFORMANCE:
-                            new_season_df[kpi] = new_season_df.get('norm_performance', 50)
-                        elif kpi == KPI_POTENTIAL:
-                            new_season_df[kpi] = new_season_df.get('norm_potential', 50)
-                        elif kpi == KPI_REGULARITY:
-                            new_season_df[kpi] = new_season_df.get('norm_regularity', 50)
-                        elif kpi == KPI_GOALS:
-                            new_season_df[kpi] = new_season_df.get('norm_goals', 0)
+                    final_df.loc[known_mask, kpi] = known_players[kpi]
                 
-                # Normalize
-                df_normalized = MPGAuctionStrategist.normalize_subjective_kpis(new_season_df)
+                # For new players: get values from UI sliders
+                new_player_kpis = get_new_player_kpis(new_players)
+                for player_id, kpis in new_player_kpis.items():
+                    for kpi, value in kpis.items():
+                        final_df.loc[final_df['player_id'] == player_id, kpi] = value
                 
-                # Calculate PVS
+                # Ensure all KPIs are properly filled
+                for kpi in SUBJECTIVE_KPI_COLUMNS:
+                    if kpi not in final_df.columns:
+                        final_df[kpi] = 0  # Fallback
+                    final_df[kpi] = final_df[kpi].fillna(0).clip(0, 100)
+                
+                # Now calculate PVS and MRB
+                df_normalized = MPGAuctionStrategist.normalize_subjective_kpis(final_df)
                 df_pvs = MPGAuctionStrategist.calculate_pvs(
                     df_normalized, 
                     st.session_state.kpi_weights
                 )
-                
-                # Calculate MRB
                 df_mrb = MPGAuctionStrategist.calculate_mrb(
                     df_pvs, 
                     st.session_state.mrb_params
                 )
                 
-                # Store results
                 st.session_state.player_data = df_mrb
         
         # Squad selection
@@ -588,34 +606,42 @@ def main():
         # Display results
         if 'squad_df' in st.session_state:
             st.markdown("## 🏆 Recommended Squad")
-            st.dataframe(st.session_state.squad_df[
-                ['Joueur', 'Club', 'simplified_position', 'pvs', 'mrb', 'Cote']
-            ].rename(columns={
+            
+            # Format display columns
+            display_cols = [
+                'Joueur', 'Club', 'simplified_position', 'pvs', 'mrb', 'Cote',
+                KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS, KPI_TEAM_TIER
+            ]
+            display_cols = [col for col in display_cols if col in st.session_state.squad_df.columns]
+            
+            # Format display names
+            display_names = {
                 'Joueur': 'Player',
                 'simplified_position': 'Position',
                 'pvs': 'PVS',
                 'mrb': 'MRB',
-                'Cote': 'Base Price'
-            }))
+                'Cote': 'Base Price',
+                KPI_PERFORMANCE: 'Performance',
+                KPI_POTENTIAL: 'Potential',
+                KPI_REGULARITY: 'Regularity',
+                KPI_GOALS: 'Goals',
+                KPI_TEAM_TIER: 'Team Tier'
+            }
+            
+            # Create display dataframe
+            display_df = st.session_state.squad_df[display_cols].rename(columns=display_names)
+            
+            # Sort by position and PVS
+            pos_order = CategoricalDtype(['GK', 'DEF', 'MID', 'FWD'], ordered=True)
+            display_df['Position'] = display_df['Position'].astype(pos_order)
+            display_df = display_df.sort_values(['Position', 'PVS'], ascending=[True, False])
+            
+            # Format numeric columns
+            for col in ['PVS', 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Tier']:
+                if col in display_df.columns:
+                    display_df[col] = display_df[col].round(1)
+            
+            st.dataframe(display_df, height=600)
             
             st.markdown("### 📊 Squad Summary")
-            summary = st.session_state.squad_summary
-            st.metric("Total Cost", f"€{summary['total_cost']}")
-            st.metric("Remaining Budget", f"€{summary['remaining_budget']}")
-            st.metric("Total PVS", f"{summary['total_squad_pvs']:.1f}")
-            st.metric("Starters PVS", f"{summary['total_starters_pvs']:.1f}")
-            
-            # Download button
-            st.download_button(
-                "💾 Download Squad",
-                st.session_state.squad_df.to_csv(index=False),
-                "mpg_optimal_squad.csv"
-            )
-    
-    else:
-        st.info("👋 Welcome to MPG Ultimate Strategist! Please upload both historical and new season data to begin.")
-        st.image("https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?auto=format&fit=crop&w=1200&q=80", 
-                 caption="Football Strategy Dashboard")
-
-if __name__ == "__main__":
-    main()
+            summary = st.session
