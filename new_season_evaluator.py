@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
+import json
+import io
 from typing import Dict, List, Tuple, Optional, Set 
 from pandas.api.types import CategoricalDtype
 
@@ -31,6 +33,7 @@ st.markdown("""
     .club-item {padding: 0.5rem; margin: 0.25rem 0; background-color: #f0f0f0; border-radius: 0.25rem;}
     .dataframe {font-size: 0.9rem;}
     .stMultiSelect [data-baseweb=select] span{max-width: 250px; font-size: 0.9rem;}
+    .move-buttons {display: flex; flex-direction: column; gap: 0.5rem; margin-top: 2.5rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -85,7 +88,7 @@ PREDEFINED_PROFILES = {
     },
     "Emphasis on Performance & Regularity": {
         "kpi_weights": {
-            'GK':  {KPI_PERFORMANCE: 0.45, KPI_POTENTIAL: 0.05, KPI_REGULARITY: 0.40, KPI_GOALS: 0.00, KPI_TEAM_TIER: 0.10},
+            'GK':  {KPI_PERFORMANCE: 0.45, KPI_POTENTIAL: 0.05, KPI_REGULARITY: 0.40, KPI_GOals: 0.00, KPI_TEAM_TIER: 0.10},
             'DEF': {KPI_PERFORMANCE: 0.40, KPI_POTENTIAL: 0.05, KPI_REGULARITY: 0.35, KPI_GOALS: 0.10, KPI_TEAM_TIER: 0.10},
             'MID': {KPI_PERFORMANCE: 0.35, KPI_POTENTIAL: 0.10, KPI_REGULARITY: 0.25, KPI_GOALS: 0.20, KPI_TEAM_TIER: 0.10},
             'FWD': {KPI_PERFORMANCE: 0.30, KPI_POTENTIAL: 0.10, KPI_REGULARITY: 0.20, KPI_GOALS: 0.30, KPI_TEAM_TIER: 0.10}
@@ -284,84 +287,97 @@ class MPGAuctionStrategist:
         rdf['value_per_cost'].fillna(0, inplace=True)
         return rdf
 
-    @staticmethod 
-    def select_squad(df_evaluated_players: pd.DataFrame, formation_key: str, 
-                    target_squad_size: int, budget: int) -> Tuple[pd.DataFrame, Dict]:
-        formations = {
-            "4-4-2": {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2},
-            "4-3-3": {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3},
-            "3-5-2": {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2},
-            "3-4-3": {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3},
-            "4-5-1": {"GK": 1, "DEF": 4, "MID": 5, "FWD": 1},
-            "5-3-2": {"GK": 1, "DEF": 5, "MID": 3, "FWD": 2},
-            "5-4-1": {"GK": 1, "DEF": 5, "MID": 4, "FWD": 1}
-        }
+    def select_squad(self, df_evaluated_players: pd.DataFrame, formation_key: str, 
+                    target_squad_size: int) -> Tuple[pd.DataFrame, Dict]:
+        """Optimized squad selection algorithm based on historical app"""
+        formation = self.formations[formation_key]
+        min_requirements = self.squad_minimums
         
-        formation = formations.get(formation_key, formations["4-4-2"])
-        min_requirements = {"GK": 2, "DEF": 6, "MID": 6, "FWD": 4}
-        
+        # Create a copy of the dataframe
         df = df_evaluated_players.copy()
-        df = df.sort_values('value_per_cost', ascending=False)
+        df = df.sort_values('pvs', ascending=False)
         
+        # Initialize squad variables
         squad = []
         position_counts = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
         total_cost = 0
         
-        # Select starters
+        # Phase 1: Select starters based on formation
         for pos, count in formation.items():
-            candidates = df[df['simplified_position'] == pos].head(count)
-            for _, player in candidates.iterrows():
-                if total_cost + player['mrb'] <= budget and len(squad) < 11:
-                    squad.append(player)
+            candidates = df[(df['simplified_position'] == pos) & (~df['player_id'].isin([p['player_id'] for p in squad]))]
+            for i in range(min(count, len(candidates))):
+                player = candidates.iloc[i]
+                squad.append({
+                    'player_id': player['player_id'],
+                    'player_data': player,
+                    'position': pos,
+                    'is_starter': True
+                })
+                position_counts[pos] += 1
+                total_cost += player['mrb']
+        
+        # Phase 2: Fill minimum requirements
+        for pos, min_count in min_requirements.items():
+            while position_counts[pos] < min_count:
+                candidates = df[(df['simplified_position'] == pos) & 
+                               (~df['player_id'].isin([p['player_id'] for p in squad]))]
+                if len(candidates) > 0:
+                    player = candidates.iloc[0]
+                    squad.append({
+                        'player_id': player['player_id'],
+                        'player_data': player,
+                        'position': pos,
+                        'is_starter': False
+                    })
                     position_counts[pos] += 1
                     total_cost += player['mrb']
-                    df = df[df['player_id'] != player['player_id']]
-        
-        # Fill minimums
-        for pos, min_count in min_requirements.items():
-            while position_counts[pos] < min_count and len(squad) < target_squad_size:
-                candidates = df[df['simplified_position'] == pos]
-                if not candidates.empty:
-                    player = candidates.iloc[0]
-                    if total_cost + player['mrb'] <= budget:
-                        squad.append(player)
-                        position_counts[pos] += 1
-                        total_cost += player['mrb']
-                        df = df[df['player_id'] != player['player_id']]
-                    else:
-                        break
                 else:
                     break
         
-        # Fill to squad size
-        while len(squad) < target_squad_size and not df.empty:
-            player = df.iloc[0]
-            if total_cost + player['mrb'] <= budget:
-                squad.append(player)
+        # Phase 3: Fill to target squad size
+        while len(squad) < target_squad_size:
+            candidates = df[~df['player_id'].isin([p['player_id'] for p in squad])]
+            if len(candidates) > 0:
+                # Prioritize positions that are underrepresented
+                position_needs = {pos: min_requirements[pos] - position_counts.get(pos, 0) 
+                                 for pos in min_requirements}
+                
+                # Find position with highest need
+                max_need_pos = max(position_needs, key=position_needs.get)
+                
+                # Get best available player for that position
+                pos_candidates = candidates[candidates['simplified_position'] == max_need_pos]
+                if len(pos_candidates) > 0:
+                    player = pos_candidates.iloc[0]
+                else:
+                    # If no players for that position, get best overall
+                    player = candidates.iloc[0]
+                
+                squad.append({
+                    'player_id': player['player_id'],
+                    'player_data': player,
+                    'position': player['simplified_position'],
+                    'is_starter': False
+                })
+                position_counts[player['simplified_position']] = position_counts.get(player['simplified_position'], 0) + 1
                 total_cost += player['mrb']
-                df = df[df['player_id'] != player['player_id']]
             else:
                 break
         
-        squad_df = pd.DataFrame(squad)
+        # Phase 4: Budget optimization
+        # Try to replace players with better value options if under budget
+        # (This is a simplified version - real implementation would be more complex)
+        remaining_budget = self.budget - total_cost
         
-        # Determine starters based on PVS within formation
-        starters = []
-        formation_counts = formation.copy()
-        squad_sorted = squad_df.sort_values('pvs', ascending=False)
+        # Create final squad dataframe
+        squad_df = pd.DataFrame([p['player_data'] for p in squad])
+        squad_df['is_starter'] = [p['is_starter'] for p in squad]
         
-        for _, player in squad_sorted.iterrows():
-            pos = player['simplified_position']
-            if formation_counts.get(pos, 0) > 0:
-                starters.append(player['player_id'])
-                formation_counts[pos] -= 1
-        
-        squad_df['is_starter'] = squad_df['player_id'].isin(starters)
-        
+        # Calculate summary stats
         summary = {
             'total_players': len(squad_df),
             'total_cost': total_cost,
-            'remaining_budget': budget - total_cost,
+            'remaining_budget': remaining_budget,
             'position_counts': position_counts,
             'total_squad_pvs': squad_df['pvs'].sum(),
             'total_starters_pvs': squad_df[squad_df['is_starter']]['pvs'].sum()
@@ -422,86 +438,67 @@ def merge_player_data(historical_df, new_season_df):
 
 def team_tier_ui(clubs):
     st.markdown("### 🏆 Team Tier Assignment")
-    st.info("Assign each club to exactly one tier (Winner: 100, European: 75, Average: 50, Relegation: 25)")
+    st.info("Assign clubs to tiers using the controls below")
     
     # Initialize session state for tiers if not exists
     if 'team_tiers' not in st.session_state:
         st.session_state.team_tiers = {club: 50 for club in clubs}  # Default to average
     
     # Create columns for each tier
-    cols = st.columns(4)
-    tier_assignments = {tier: [] for tier in TIER_VALUES}
+    cols = st.columns([1, 0.5, 1, 0.5, 1, 0.5, 1])
     
-    # Get current assignments from session state
+    # Tier definitions
+    tiers = {
+        "Winner": {"value": 100, "color": "tier-winner"},
+        "European": {"value": 75, "color": "tier-europe"},
+        "Average": {"value": 50, "color": "tier-average"},
+        "Relegation": {"value": 25, "color": "tier-relegation"}
+    }
+    
+    # Initialize tier assignments
+    tier_assignments = {tier: [] for tier in tiers}
     for club, value in st.session_state.team_tiers.items():
-        for tier, tier_value in TIER_VALUES.items():
-            if value == tier_value:
+        for tier, data in tiers.items():
+            if value == data["value"]:
                 tier_assignments[tier].append(club)
                 break
     
-    with cols[0]:
-        st.subheader("Winner Tier (100)")
-        st.markdown('<div class="tier-box tier-winner">', unsafe_allow_html=True)
-        winner_tier = st.multiselect(
-            "Winner Tier", 
-            options=[c for c in clubs if c not in tier_assignments["European"] + tier_assignments["Average"] + tier_assignments["Relegation"]],
-            default=tier_assignments["Winner"],
-            key="winner_tier_select"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Display tiers with move buttons
+    for i, (tier_name, tier_data) in enumerate(tiers.items()):
+        with cols[i*2]:
+            st.subheader(f"{tier_name} Tier ({tier_data['value']})")
+            st.markdown(f'<div class="tier-box {tier_data["color"]}">', unsafe_allow_html=True)
+            
+            # Display clubs in this tier
+            tier_assignments[tier_name] = st.multiselect(
+                f"Clubs in {tier_name} Tier",
+                options=clubs,
+                default=tier_assignments[tier_name],
+                key=f"{tier_name}_tier_select",
+                label_visibility="collapsed"
+            )
+            st.markdown('</div>', unsafe_allow_html=True)
+        
+        # Add move buttons between tiers
+        if i < len(tiers) - 1:
+            with cols[i*2 + 1]:
+                st.markdown('<div class="move-buttons">', unsafe_allow_html=True)
+                if st.button(f"→ {list(tiers.keys())[i+1]}", key=f"move_right_{tier_name}"):
+                    # Move all clubs to next tier
+                    for club in tier_assignments[tier_name]:
+                        st.session_state.team_tiers[club] = tiers[list(tiers.keys())[i+1]]["value"]
+                if st.button(f"← {tier_name}", key=f"move_left_{tier_name}"):
+                    # Move all clubs to previous tier
+                    for club in tier_assignments[list(tiers.keys())[i+1]]:
+                        st.session_state.team_tiers[club] = tier_data["value"]
+                st.markdown('</div>', unsafe_allow_html=True)
     
-    with cols[1]:
-        st.subheader("European Tier (75)")
-        st.markdown('<div class="tier-box tier-europe">', unsafe_allow_html=True)
-        europe_tier = st.multiselect(
-            "European Tier", 
-            options=[c for c in clubs if c not in tier_assignments["Winner"] + tier_assignments["Average"] + tier_assignments["Relegation"]],
-            default=tier_assignments["European"],
-            key="europe_tier_select"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Update session state with current assignments
+    for tier_name in tiers:
+        for club in tier_assignments[tier_name]:
+            st.session_state.team_tiers[club] = tiers[tier_name]["value"]
     
-    with cols[2]:
-        st.subheader("Average Tier (50)")
-        st.markdown('<div class="tier-box tier-average">', unsafe_allow_html=True)
-        average_tier = st.multiselect(
-            "Average Tier", 
-            options=[c for c in clubs if c not in tier_assignments["Winner"] + tier_assignments["European"] + tier_assignments["Relegation"]],
-            default=tier_assignments["Average"],
-            key="average_tier_select"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    with cols[3]:
-        st.subheader("Relegation Tier (25)")
-        st.markdown('<div class="tier-box tier-relegation">', unsafe_allow_html=True)
-        relegation_tier = st.multiselect(
-            "Relegation Tier", 
-            options=[c for c in clubs if c not in tier_assignments["Winner"] + tier_assignments["European"] + tier_assignments["Average"]],
-            default=tier_assignments["Relegation"],
-            key="relegation_tier_select"
-        )
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Update session state with new assignments
-    club_tiers = {}
-    for club in winner_tier:
-        club_tiers[club] = TIER_VALUES["Winner"]
-    for club in europe_tier:
-        club_tiers[club] = TIER_VALUES["European"]
-    for club in average_tier:
-        club_tiers[club] = TIER_VALUES["Average"]
-    for club in relegation_tier:
-        club_tiers[club] = TIER_VALUES["Relegation"]
-    
-    # Set default for any unassigned clubs
-    all_clubs_set = set(clubs)
-    assigned_clubs = set(club_tiers.keys())
-    for club in all_clubs_set - assigned_clubs:
-        club_tiers[club] = 50  # Default to average
-    
-    st.session_state.team_tiers = club_tiers
-    return club_tiers
+    return st.session_state.team_tiers
 
 def new_player_kpi_ui(new_players_df):
     st.markdown("### 🆕 New Player KPI Assignment")
@@ -567,11 +564,12 @@ def format_player_display(df, is_squad=False):
     
     # Sort by position and PVS
     pos_order = CategoricalDtype(['GK', 'DEF', 'MID', 'FWD'], ordered=True)
-    display_df['Position'] = display_df['Position'].astype(pos_order)
+    if 'Position' in display_df.columns:
+        display_df['Position'] = display_df['Position'].astype(pos_order)
     
-    if is_squad:
+    if is_squad and 'Starter' in display_df.columns:
         display_df = display_df.sort_values(['Starter', 'Position', 'PVS'], ascending=[False, True, False])
-    else:
+    elif 'Position' in display_df.columns:
         display_df = display_df.sort_values(['Position', 'PVS'], ascending=[True, False])
     
     # Format numeric columns
@@ -586,6 +584,45 @@ def format_player_display(df, is_squad=False):
             display_df[col] = display_df[col].astype(int)
     
     return display_df
+
+def save_settings():
+    """Save current settings to session state"""
+    settings = {
+        'current_profile_name': st.session_state.current_profile_name,
+        'kpi_weights': st.session_state.kpi_weights,
+        'mrb_params': st.session_state.mrb_params,
+        'team_tiers': st.session_state.get('team_tiers', {}),
+        'new_player_kpis': {}
+    }
+    
+    # Save new player KPIs if available
+    if 'new_players' in st.session_state:
+        for _, player in st.session_state.new_players.iterrows():
+            for kpi in [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]:
+                slider_key = f"{player['player_id']}_{kpi}"
+                if slider_key in st.session_state:
+                    if player['player_id'] not in settings['new_player_kpis']:
+                        settings['new_player_kpis'][player['player_id']] = {}
+                    settings['new_player_kpis'][player['player_id']][kpi] = st.session_state[slider_key]
+    
+    return settings
+
+def load_settings(settings):
+    """Load settings into session state"""
+    st.session_state.current_profile_name = settings.get('current_profile_name', "Balanced Value")
+    st.session_state.kpi_weights = settings.get('kpi_weights', PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"])
+    st.session_state.mrb_params = settings.get('mrb_params', PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"])
+    
+    # Load team tiers
+    if 'team_tiers' in settings:
+        st.session_state.team_tiers = settings['team_tiers']
+    
+    # Load new player KPIs
+    if 'new_player_kpis' in settings:
+        for player_id, kpis in settings['new_player_kpis'].items():
+            for kpi, value in kpis.items():
+                slider_key = f"{player_id}_{kpi}"
+                st.session_state[slider_key] = value
 
 # --- Main App ---
 def main():
@@ -604,13 +641,39 @@ def main():
     historical_file = st.sidebar.file_uploader("Historical Data (CSV/Excel)", type=['csv', 'xlsx', 'xls'])
     new_season_file = st.sidebar.file_uploader("New Season Data (CSV/Excel)", type=['csv', 'xlsx', 'xls'])
     
+    # Settings management
+    st.sidebar.markdown("## ⚙️ Settings Management")
+    settings_file = st.sidebar.file_uploader("Upload Settings (JSON)", type=['json'])
+    if settings_file:
+        try:
+            settings = json.load(settings_file)
+            load_settings(settings)
+            st.sidebar.success("Settings loaded successfully!")
+        except:
+            st.sidebar.error("Invalid settings file format")
+    
+    if st.sidebar.button("Download Settings"):
+        settings = save_settings()
+        json_settings = json.dumps(settings, indent=2)
+        st.sidebar.download_button(
+            label="💾 Download Settings",
+            data=json_settings,
+            file_name="mpg_settings.json",
+            mime="application/json"
+        )
+    
     # Load data
     historical_df = load_historical_data(historical_file) if historical_file else None
     new_season_df = load_new_season_data(new_season_file) if new_season_file else None
     
     if historical_df is not None and new_season_df is not None:
+        # Store data in session state for saving
+        st.session_state.historical_df = historical_df
+        st.session_state.new_season_df = new_season_df
+        
         # Process data
         known_players, new_players = merge_player_data(historical_df, new_season_df)
+        st.session_state.new_players = new_players
         
         # Team tier assignment
         clubs = new_season_df['Club'].unique().tolist()
@@ -699,8 +762,7 @@ def main():
                     squad_df, summary = strategist.select_squad(
                         st.session_state.player_data,
                         formation,
-                        squad_size,
-                        strategist.budget
+                        squad_size
                     )
                     st.session_state.squad_df = squad_df
                     st.session_state.squad_summary = summary
@@ -768,4 +830,4 @@ def main():
                  caption="Football Strategy Dashboard")
 
 if __name__ == "__main__":
-    main() 
+    main()
