@@ -7,7 +7,7 @@ from io import BytesIO
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v3.2",
+    page_title="MPG Hybrid Strategist v3.3",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -34,36 +34,6 @@ PLAYER_KPI_COLUMNS = [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]
 
 DEFAULT_FORMATION = "4-4-2"
 DEFAULT_SQUAD_SIZE = 20
-
-PREDEFINED_PROFILES = {
-    "Custom": "custom",
-    "Balanced Value": {
-        "team_rank_weight": 0.20,
-        "kpi_weights": {
-            'GK':  {KPI_PERFORMANCE: 0.50, KPI_POTENTIAL: 0.10, KPI_REGULARITY: 0.40, KPI_GOALS: 0.00},
-            'DEF': {KPI_PERFORMANCE: 0.40, KPI_POTENTIAL: 0.15, KPI_REGULARITY: 0.35, KPI_GOALS: 0.10},
-            'MID': {KPI_PERFORMANCE: 0.35, KPI_POTENTIAL: 0.20, KPI_REGULARITY: 0.25, KPI_GOALS: 0.20},
-            'FWD': {KPI_PERFORMANCE: 0.30, KPI_POTENTIAL: 0.20, KPI_REGULARITY: 0.20, KPI_GOALS: 0.30}
-        },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.3}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.4},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.6}, 'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
-        }
-    },
-    "Focus on High Potential": {
-        "team_rank_weight": 0.15,
-        "kpi_weights": {
-            'GK':  {KPI_PERFORMANCE: 0.20, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.30, KPI_GOALS: 0.00},
-            'DEF': {KPI_PERFORMANCE: 0.20, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.20, KPI_GOALS: 0.10},
-            'MID': {KPI_PERFORMANCE: 0.15, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.15, KPI_GOALS: 0.20},
-            'FWD': {KPI_PERFORMANCE: 0.15, KPI_POTENTIAL: 0.45, KPI_REGULARITY: 0.10, KPI_GOALS: 0.30}
-        },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.5}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.6},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.8}, 'FWD': {'max_proportional_bonus_at_pvs100': 1.0}
-        }
-    }
-}
 
 class MPGAuctionStrategist:
     def __init__(self):
@@ -136,13 +106,11 @@ class MPGAuctionStrategist:
             counts = {pos: 0 for pos in self.squad_minimums}
             for p in squad: counts[p['pos']] = counts.get(p['pos'], 0) + 1
             return counts
-
         def add_player(p_row, is_starter):
             if p_row['player_id'] in get_squad_ids(): return False
             if p_row['simplified_position'] == 'GK' and get_pos_counts().get('GK', 0) >= 2: return False
             squad.append({'player_id': p_row['player_id'], 'mrb': int(p_row['mrb']), 'pvs': float(p_row['pvs']), 'pos': p_row['simplified_position'], 'is_starter': is_starter})
             return True
-
         def remove_player(p_id):
             nonlocal squad
             squad = [p for p in squad if p['player_id'] != p_id]
@@ -151,8 +119,7 @@ class MPGAuctionStrategist:
         starters_map = self.formations[formation_key].copy()
         for _, row in all_players_sorted_pvs.iterrows():
             if starters_map.get(row['simplified_position'], 0) > 0:
-                if add_player(row, True):
-                    starters_map[row['simplified_position']] -= 1
+                if add_player(row, True): starters_map[row['simplified_position']] -= 1
 
         for pos, min_needed in self.squad_minimums.items():
             while get_pos_counts().get(pos, 0) < min_needed:
@@ -188,7 +155,6 @@ class MPGAuctionStrategist:
         summary = {'total_players': len(final_df), 'total_cost': int(final_df['mrb_actual_cost'].sum()),'remaining_budget': int(self.budget - final_df['mrb_actual_cost'].sum()), 'position_counts': final_df['simplified_position'].value_counts().to_dict(),'total_squad_pvs': round(final_df['pvs_in_squad'].sum(), 2),'total_starters_pvs': round(final_df[final_df['is_starter']]['pvs_in_squad'].sum(), 2)}
         return final_df, summary
 
-# --- Data Processing Functions ---
 @st.cache_data
 def load_and_reconcile_players(hist_file, new_season_file):
     try:
@@ -214,15 +180,16 @@ def calculate_historical_kpis(df_hist, returning_ids):
     gw_cols = [col for col in df.columns if str(col).startswith('D')]
     kpi_data = []
     for _, row in df.iterrows():
-        ratings, goals = [], 0
-        all_ratings = [res[0] for res in (extract_rating(row.get(gw)) for gw in gw_cols) if res[0] is not None]
-        if all_ratings:
-            goals = sum(res[1] for res in (extract_rating(row.get(gw)) for gw in gw_cols) if res[0] is not None)
+        all_ratings, goals = [], 0
+        ratings_with_goals = [extract_rating(row.get(gw)) for gw in gw_cols]
+        valid_ratings = [r[0] for r in ratings_with_goals if r[0] is not None]
+        if valid_ratings:
+            goals = sum(r[1] for r in ratings_with_goals if r[0] is not None)
             kpi_data.append({
                 'player_id': row['player_id'],
-                KPI_PERFORMANCE: np.mean(all_ratings),
-                KPI_POTENTIAL: np.mean(sorted(all_ratings, reverse=True)[:5]),
-                KPI_REGULARITY: (len(all_ratings) / len(gw_cols) * 100) if gw_cols else 0,
+                KPI_PERFORMANCE: np.mean(valid_ratings),
+                KPI_POTENTIAL: np.mean(sorted(valid_ratings, reverse=True)[:5]),
+                KPI_REGULARITY: (len(valid_ratings) / len(gw_cols) * 100) if gw_cols else 0,
                 KPI_GOALS: goals
             })
     if not kpi_data: return pd.DataFrame()
@@ -232,9 +199,8 @@ def calculate_historical_kpis(df_hist, returning_ids):
         kpi_df[f"norm_{kpi}"] = (kpi_df[kpi] / max_val * 100) if max_val > 0 else 0
     return kpi_df
 
-# --- Main App ---
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v3.2</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v3.3</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">📁 File Inputs</h2>', unsafe_allow_html=True)
@@ -260,7 +226,7 @@ def main():
     assigned_clubs = {club for tier_list in st.session_state.team_tiers.values() for club in tier_list}
     for i, tier in enumerate(tier_names):
         with tier_cols[i]:
-            current_selection = st.session_state.team_tiers[tier]
+            current_selection = [c for c in st.session_state.team_tiers.get(tier, []) if c in all_clubs]
             options_for_this_tier = sorted(list((set(all_clubs) - assigned_clubs) | set(current_selection)))
             st.session_state.team_tiers[tier] = st.multiselect(f"**{tier} Tier**", options=options_for_this_tier, default=current_selection, key=f"tier_{tier}")
 
@@ -273,17 +239,13 @@ def main():
             default_kpis = {}
             for pos in ['GK', 'DEF', 'MID', 'FWD']:
                 default_kpis[pos] = {}
-                # THIS IS THE FIX: The logic to get returning players in a specific position is now correct.
                 returning_players_in_pos_ids = df_new[(df_new['simplified_position'] == pos) & (df_new['player_id'].isin(returning_ids))]['player_id']
                 df_returning_pos = df_returning_kpis[df_returning_kpis['player_id'].isin(returning_players_in_pos_ids)]
-                
                 for kpi in PLAYER_KPI_COLUMNS:
                     norm_kpi = f"norm_{kpi}"
                     default_kpis[pos][kpi] = df_returning_pos[norm_kpi].median() if not df_returning_pos.empty and df_returning_pos[norm_kpi].notna().any() else 50.0
-            
             new_player_data = [{'player_id': p['player_id'], 'Joueur': p['Joueur'], 'Club': p['Club'], 'Poste': p['Poste'], **{kpi: default_kpis.get(p['simplified_position'], {}).get(kpi, 50.0) for kpi in PLAYER_KPI_COLUMNS}} for _, p in df_new_players_info.iterrows()]
             st.session_state.new_player_kpis_df = pd.DataFrame(new_player_data)
-
         st.markdown(f"Define KPIs for **{len(df_new_players_info)}** new players using the table below (scores are 0-100).")
         st.session_state.new_player_kpis_df = st.data_editor(st.session_state.new_player_kpis_df, column_config={"player_id": None, "Joueur": st.column_config.TextColumn(disabled=True), "Club": st.column_config.TextColumn(disabled=True), "Poste": st.column_config.TextColumn(disabled=True), **{kpi: st.column_config.NumberColumn(f"{kpi.replace('Estimation','')}", min_value=0, max_value=100, step=1) for kpi in PLAYER_KPI_COLUMNS}}, hide_index=True, key="new_player_editor")
 
@@ -294,17 +256,19 @@ def main():
     st.session_state.squad_size = st.sidebar.number_input("Squad Size", min_value=18, max_value=30, value=DEFAULT_SQUAD_SIZE)
 
     if st.sidebar.button("🚀 Generate Optimal Squad", type="primary"):
-        df_new_kpis = st.session_state.new_player_kpis_df.copy()
-        for kpi in PLAYER_KPI_COLUMNS: df_new_kpis[f"norm_{kpi}"] = df_new_kpis[kpi]
-        all_kpis_df = pd.concat([df_returning_kpis, df_new_kpis.drop(columns=PLAYER_KPI_COLUMNS)], ignore_index=True)
+        df_new_kpis_edited = st.session_state.new_player_kpis_df.copy()
+        for kpi in PLAYER_KPI_COLUMNS: df_new_kpis_edited[f"norm_{kpi}"] = df_new_kpis_edited[kpi]
+        all_kpis_df = pd.concat([df_returning_kpis, df_new_kpis_edited.drop(columns=PLAYER_KPI_COLUMNS + ['Joueur', 'Club', 'Poste'])], ignore_index=True)
 
         tier_map = {100: "Winner", 75: "European", 50: "Average", 25: "Relegation"}
         club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
+        
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1)
         df_merged = pd.merge(df_new, all_kpis_df, on='player_id', how='left').dropna(subset=[f"norm_{kpi}" for kpi in PLAYER_KPI_COLUMNS])
         df_merged[KPI_TEAM_RANK] = df_merged['Club'].map(club_to_score).fillna(50)
 
         with st.spinner("🧠 Analyzing players and building your squad..."):
+            # Using placeholder weights for now. A full implementation would use sidebar controls for customization.
             weights = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"]
             mrb_params = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"]
             df_pvs = strategist.calculate_pvs(df_merged, st.session_state.team_rank_weight, weights)
@@ -317,7 +281,7 @@ def main():
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
         
         with tab1:
-            st.dataframe(st.session_state.squad_df_result.rename(columns={'simplified_position': 'Pos', 'pvs_in_squad': 'PVS', 'mrb_actual_cost': 'Bid'}), use_container_width=True)
+            st.dataframe(st.session_state.squad_df_result.rename(columns={'simplified_position': 'Pos', 'pvs_in_squad': 'PVS', 'mrb_actual_cost': 'Bid', 'is_starter': 'Starter'}), use_container_width=True, hide_index=True)
             st.json(st.session_state.squad_summary_result)
 
         with tab2:
