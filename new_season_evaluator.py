@@ -7,7 +7,7 @@ from io import BytesIO
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v3.3",
+    page_title="MPG Hybrid Strategist v4.0",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -23,7 +23,6 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-
 # --- KPI & Profile Definitions ---
 KPI_PERFORMANCE = "PerformanceEstimation"
 KPI_POTENTIAL = "PotentialEstimation"
@@ -34,6 +33,36 @@ PLAYER_KPI_COLUMNS = [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]
 
 DEFAULT_FORMATION = "4-4-2"
 DEFAULT_SQUAD_SIZE = 20
+
+PREDEFINED_PROFILES = {
+    "Custom": "custom",
+    "Balanced Value": {
+        "team_rank_weight": 0.20,
+        "kpi_weights": {
+            'GK':  {KPI_PERFORMANCE: 0.50, KPI_POTENTIAL: 0.10, KPI_REGULARITY: 0.40, KPI_GOALS: 0.00},
+            'DEF': {KPI_PERFORMANCE: 0.40, KPI_POTENTIAL: 0.15, KPI_REGULARITY: 0.35, KPI_GOALS: 0.10},
+            'MID': {KPI_PERFORMANCE: 0.35, KPI_POTENTIAL: 0.20, KPI_REGULARITY: 0.25, KPI_GOALS: 0.20},
+            'FWD': {KPI_PERFORMANCE: 0.30, KPI_POTENTIAL: 0.20, KPI_REGULARITY: 0.20, KPI_GOALS: 0.30}
+        },
+        "mrb_params_per_pos": {
+            'GK': {'max_proportional_bonus_at_pvs100': 0.3}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.4},
+            'MID': {'max_proportional_bonus_at_pvs100': 0.6}, 'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
+        }
+    },
+    "Focus on High Potential": {
+        "team_rank_weight": 0.15,
+        "kpi_weights": {
+            'GK':  {KPI_PERFORMANCE: 0.20, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.30, KPI_GOALS: 0.00},
+            'DEF': {KPI_PERFORMANCE: 0.20, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.20, KPI_GOALS: 0.10},
+            'MID': {KPI_PERFORMANCE: 0.15, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.15, KPI_GOALS: 0.20},
+            'FWD': {KPI_PERFORMANCE: 0.15, KPI_POTENTIAL: 0.45, KPI_REGULARITY: 0.10, KPI_GOALS: 0.30}
+        },
+        "mrb_params_per_pos": {
+            'GK': {'max_proportional_bonus_at_pvs100': 0.5}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.6},
+            'MID': {'max_proportional_bonus_at_pvs100': 0.8}, 'FWD': {'max_proportional_bonus_at_pvs100': 1.0}
+        }
+    }
+}
 
 class MPGAuctionStrategist:
     def __init__(self):
@@ -73,7 +102,7 @@ class MPGAuctionStrategist:
                 if norm_kpi_col in rdf.columns:
                     pos_pvs_sum += rdf.loc[mask, norm_kpi_col].fillna(0) * weight
             if total_weight > 0:
-                player_pvs.loc[mask] = (pos_pvs_sum / total_weight * 100) if total_weight != 1.0 else pos_pvs_sum
+                player_pvs.loc[mask] = (pos_pvs_sum / total_weight * 100) if abs(total_weight - 1.0) > 1e-6 else pos_pvs_sum
         player_pvs = player_pvs.clip(0, 100)
         team_rank_score = rdf[KPI_TEAM_RANK].clip(0, 100)
         rdf['pvs'] = ((player_pvs * (1 - team_rank_weight)) + (team_rank_score * team_rank_weight)).clip(0, 100)
@@ -118,8 +147,8 @@ class MPGAuctionStrategist:
         all_players_sorted_pvs = eligible_df.sort_values(by='pvs', ascending=False)
         starters_map = self.formations[formation_key].copy()
         for _, row in all_players_sorted_pvs.iterrows():
-            if starters_map.get(row['simplified_position'], 0) > 0:
-                if add_player(row, True): starters_map[row['simplified_position']] -= 1
+            if starters_map.get(row['simplified_position'], 0) > 0 and add_player(row, True):
+                starters_map[row['simplified_position']] -= 1
 
         for pos, min_needed in self.squad_minimums.items():
             while get_pos_counts().get(pos, 0) < min_needed:
@@ -169,10 +198,10 @@ def load_and_reconcile_players(hist_file, new_season_file):
         st.error(f"Error loading files: {e}"); return None, None, None, None
 
 def extract_rating(rating_str):
-    if pd.isna(rating_str) or str(rating_str).strip() in ['', '0']: return None, 0
+    if pd.isna(rating_str) or str(rating_str).strip() in ['', '0']: return None
     clean_str = re.sub(r'[()\*]', '', str(rating_str).strip())
-    try: return float(clean_str), str(rating_str).count('*')
-    except (ValueError, TypeError): return None, 0
+    try: return float(clean_str)
+    except (ValueError, TypeError): return None
 
 @st.cache_data
 def calculate_historical_kpis(df_hist, returning_ids):
@@ -180,11 +209,10 @@ def calculate_historical_kpis(df_hist, returning_ids):
     gw_cols = [col for col in df.columns if str(col).startswith('D')]
     kpi_data = []
     for _, row in df.iterrows():
-        all_ratings, goals = [], 0
-        ratings_with_goals = [extract_rating(row.get(gw)) for gw in gw_cols]
-        valid_ratings = [r[0] for r in ratings_with_goals if r[0] is not None]
+        ratings_and_goals = [(extract_rating(row.get(gw)), str(row.get(gw, '')).count('*')) for gw in gw_cols]
+        valid_ratings = [r[0] for r in ratings_and_goals if r[0] is not None]
         if valid_ratings:
-            goals = sum(r[1] for r in ratings_with_goals if r[0] is not None)
+            goals = sum(r[1] for r in ratings_and_goals if r[0] is not None)
             kpi_data.append({
                 'player_id': row['player_id'],
                 KPI_PERFORMANCE: np.mean(valid_ratings),
@@ -200,8 +228,15 @@ def calculate_historical_kpis(df_hist, returning_ids):
     return kpi_df
 
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v3.3</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v4.0</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
+
+    # --- Session State Initialization ---
+    if 'current_profile_name' not in st.session_state:
+        st.session_state.current_profile_name = "Balanced Value"
+        st.session_state.kpi_weights = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"]
+        st.session_state.mrb_params_per_pos = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"]
+        st.session_state.team_rank_weight = PREDEFINED_PROFILES["Balanced Value"]["team_rank_weight"]
 
     st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">📁 File Inputs</h2>', unsafe_allow_html=True)
     hist_file = st.sidebar.file_uploader("1. Upload Historical Data", type=['csv', 'xlsx'])
@@ -249,33 +284,51 @@ def main():
         st.markdown(f"Define KPIs for **{len(df_new_players_info)}** new players using the table below (scores are 0-100).")
         st.session_state.new_player_kpis_df = st.data_editor(st.session_state.new_player_kpis_df, column_config={"player_id": None, "Joueur": st.column_config.TextColumn(disabled=True), "Club": st.column_config.TextColumn(disabled=True), "Poste": st.column_config.TextColumn(disabled=True), **{kpi: st.column_config.NumberColumn(f"{kpi.replace('Estimation','')}", min_value=0, max_value=100, step=1) for kpi in PLAYER_KPI_COLUMNS}}, hide_index=True, key="new_player_editor")
 
+    # --- Sidebar Controls ---
     st.sidebar.markdown("<hr>", unsafe_allow_html=True)
     st.sidebar.markdown("### 3. PVS & Squad Parameters")
-    st.session_state.team_rank_weight = st.sidebar.slider("Team Ranking KPI Weight", 0.0, 1.0, 0.2, 0.05)
+    
+    def apply_profile(profile_name):
+        st.session_state.current_profile_name = profile_name
+        if profile_name != "Custom":
+            profile = PREDEFINED_PROFILES[profile_name]
+            st.session_state.team_rank_weight = profile["team_rank_weight"]
+            st.session_state.kpi_weights = profile["kpi_weights"]
+            st.session_state.mrb_params_per_pos = profile["mrb_params_per_pos"]
+
+    selected_profile = st.sidebar.selectbox("Select Profile", options=list(PREDEFINED_PROFILES.keys()), key="profile_selector", on_change=apply_profile, args=(st.session_state.profile_selector,))
+    
+    trw_ui = st.sidebar.slider("Team Ranking KPI Weight", 0.0, 1.0, st.session_state.team_rank_weight, 0.05)
+    if trw_ui != st.session_state.team_rank_weight: st.session_state.current_profile_name = "Custom"; st.session_state.team_rank_weight = trw_ui
+    
+    with st.sidebar.expander("Customize Player KPI Weights"):
+        # UI for kpi_weights...
+        pass
+    
     st.session_state.formation_key = st.sidebar.selectbox("Formation", list(strategist.formations.keys()))
     st.session_state.squad_size = st.sidebar.number_input("Squad Size", min_value=18, max_value=30, value=DEFAULT_SQUAD_SIZE)
 
     if st.sidebar.button("🚀 Generate Optimal Squad", type="primary"):
-        df_new_kpis_edited = st.session_state.new_player_kpis_df.copy()
-        for kpi in PLAYER_KPI_COLUMNS: df_new_kpis_edited[f"norm_{kpi}"] = df_new_kpis_edited[kpi]
-        all_kpis_df = pd.concat([df_returning_kpis, df_new_kpis_edited.drop(columns=PLAYER_KPI_COLUMNS + ['Joueur', 'Club', 'Poste'])], ignore_index=True)
+        df_new_kpis = st.session_state.new_player_kpis_df.copy()
+        for kpi in PLAYER_KPI_COLUMNS: df_new_kpis[f"norm_{kpi}"] = df_new_kpis[kpi]
+        all_kpis_df = pd.concat([df_returning_kpis, df_new_kpis.drop(columns=[c for c in ['Joueur', 'Club', 'Poste'] + PLAYER_KPI_COLUMNS if c in df_new_kpis.columns])], ignore_index=True)
 
         tier_map = {100: "Winner", 75: "European", 50: "Average", 25: "Relegation"}
         club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
-        
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1)
-        df_merged = pd.merge(df_new, all_kpis_df, on='player_id', how='left').dropna(subset=[f"norm_{kpi}" for kpi in PLAYER_KPI_COLUMNS])
+        
+        # FIX: The merge needs to be done with the original df_new to ensure all columns are present
+        df_merged = pd.merge(df_new, all_kpis_df, on='player_id', how='left')
+        df_merged.dropna(subset=[f"norm_{kpi}" for kpi in PLAYER_KPI_COLUMNS], inplace=True)
         df_merged[KPI_TEAM_RANK] = df_merged['Club'].map(club_to_score).fillna(50)
 
         with st.spinner("🧠 Analyzing players and building your squad..."):
-            # Using placeholder weights for now. A full implementation would use sidebar controls for customization.
-            weights = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"]
-            mrb_params = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"]
-            df_pvs = strategist.calculate_pvs(df_merged, st.session_state.team_rank_weight, weights)
-            st.session_state.df_full_eval = strategist.calculate_mrb(df_pvs, mrb_params)
+            df_pvs = strategist.calculate_pvs(df_merged, st.session_state.team_rank_weight, st.session_state.kpi_weights)
+            st.session_state.df_full_eval = strategist.calculate_mrb(df_pvs, st.session_state.mrb_params_per_pos)
             squad_df, summary = strategist.select_squad(st.session_state.df_full_eval, st.session_state.formation_key, st.session_state.squad_size)
             st.session_state.squad_df_result, st.session_state.squad_summary_result = squad_df, summary
 
+    # --- Display Results ---
     if 'squad_df_result' in st.session_state:
         st.markdown('<hr><h2 class="section-header">🏆 Final Results</h2>', unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
