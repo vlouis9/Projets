@@ -7,7 +7,7 @@ from io import BytesIO
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v3.1",
+    page_title="MPG Hybrid Strategist v3.2",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -234,7 +234,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
 
 # --- Main App ---
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v3.1 (Fixed)</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v3.2</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">📁 File Inputs</h2>', unsafe_allow_html=True)
@@ -261,7 +261,6 @@ def main():
     for i, tier in enumerate(tier_names):
         with tier_cols[i]:
             current_selection = st.session_state.team_tiers[tier]
-            # THE FIX IS HERE: The options now correctly include unassigned clubs PLUS the currently selected clubs for THIS tier.
             options_for_this_tier = sorted(list((set(all_clubs) - assigned_clubs) | set(current_selection)))
             st.session_state.team_tiers[tier] = st.multiselect(f"**{tier} Tier**", options=options_for_this_tier, default=current_selection, key=f"tier_{tier}")
 
@@ -274,8 +273,10 @@ def main():
             default_kpis = {}
             for pos in ['GK', 'DEF', 'MID', 'FWD']:
                 default_kpis[pos] = {}
-                pos_players_hist_ids = df_new[df_new['simplified_position'] == pos]['player_id'].isin(returning_ids)
-                df_returning_pos = df_returning_kpis[df_returning_kpis['player_id'].isin(df_new[pos_players_hist_ids]['player_id'])]
+                # THIS IS THE FIX: The logic to get returning players in a specific position is now correct.
+                returning_players_in_pos_ids = df_new[(df_new['simplified_position'] == pos) & (df_new['player_id'].isin(returning_ids))]['player_id']
+                df_returning_pos = df_returning_kpis[df_returning_kpis['player_id'].isin(returning_players_in_pos_ids)]
+                
                 for kpi in PLAYER_KPI_COLUMNS:
                     norm_kpi = f"norm_{kpi}"
                     default_kpis[pos][kpi] = df_returning_pos[norm_kpi].median() if not df_returning_pos.empty and df_returning_pos[norm_kpi].notna().any() else 50.0
@@ -286,7 +287,6 @@ def main():
         st.markdown(f"Define KPIs for **{len(df_new_players_info)}** new players using the table below (scores are 0-100).")
         st.session_state.new_player_kpis_df = st.data_editor(st.session_state.new_player_kpis_df, column_config={"player_id": None, "Joueur": st.column_config.TextColumn(disabled=True), "Club": st.column_config.TextColumn(disabled=True), "Poste": st.column_config.TextColumn(disabled=True), **{kpi: st.column_config.NumberColumn(f"{kpi.replace('Estimation','')}", min_value=0, max_value=100, step=1) for kpi in PLAYER_KPI_COLUMNS}}, hide_index=True, key="new_player_editor")
 
-    # Sidebar Controls
     st.sidebar.markdown("<hr>", unsafe_allow_html=True)
     st.sidebar.markdown("### 3. PVS & Squad Parameters")
     st.session_state.team_rank_weight = st.sidebar.slider("Team Ranking KPI Weight", 0.0, 1.0, 0.2, 0.05)
@@ -312,7 +312,6 @@ def main():
             squad_df, summary = strategist.select_squad(st.session_state.df_full_eval, st.session_state.formation_key, st.session_state.squad_size)
             st.session_state.squad_df_result, st.session_state.squad_summary_result = squad_df, summary
 
-    # Display Results
     if 'squad_df_result' in st.session_state:
         st.markdown('<hr><h2 class="section-header">🏆 Final Results</h2>', unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
