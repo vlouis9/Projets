@@ -452,7 +452,7 @@ def main():
             default_pos_w_structure = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos_key]; current_pos_w_vals = active_kpi_weights.get(pos_key, default_pos_w_structure)
             weights_ui[pos_key] = {
                 'estimated_avg': st.slider(f"Season Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('estimated_avg', 0.0)), 0.01, key=f"{pos_key}_wSA_v5_opt_main"),
-                'estimated_potential': st.slider(f"Potential Rating", 0.0, 1.0, float(current_pos_w_vals.get('estimated_potential', 0.0)), 0.01, key=f"{pos_key}_wSA_v5_opt_main"),
+                'estimated_potential': st.slider(f"Potential Rating", 0.0, 1.0, float(current_pos_w_vals.get('estimated_potential', 0.0)), 0.01, key=f"{pos_key}_wSB_v5_opt_main"),
                 'estimated_ goals': st.slider(f"Season Goals", 0.0, 1.0, float(current_pos_w_vals.get('estimated_ goals', 0.0)) if pos_key in ['DEF', 'MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wSG_v5_opt_main", disabled=pos_key not in ['DEF','MID', 'FWD']),
                 'estimated_regularity': st.slider(f"Calculated Regularity", 0.0, 1.0, float(current_pos_w_vals.get('estimated_regularity', 0.0)), 0.01, key=f"{pos_key}_wCR_v5_opt_main", help="Based on starts identified in gameweek data."),
             }
