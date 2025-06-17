@@ -3,11 +3,10 @@ import pandas as pd
 import numpy as np
 import re
 from typing import Dict, List, Tuple, Set
-from io import BytesIO
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v5.0",
+    page_title="MPG Hybrid Strategist v5.1",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -19,7 +18,6 @@ st.markdown("""
     .section-header {font-size: 1.4rem; font-weight: bold; color: #006847; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #006847; padding-bottom: 0.3rem;}
     .stButton>button {background-color: #004080; color: white; font-weight: bold; border-radius: 0.3rem; padding: 0.4rem 0.8rem; border: none; width: 100%;}
     .stButton>button:hover {background-color: #003060; color: white;}
-    .stExpander {border: 1px solid #e0e0e0; border-radius: 0.3rem; margin-bottom: 0.5rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -216,7 +214,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
     return kpi_df
 
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v5.0</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v5.1</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     # --- Session State Initialization ---
@@ -225,8 +223,7 @@ def main():
         st.session_state.kpi_weights = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"]
         st.session_state.mrb_params_per_pos = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"]
         st.session_state.team_rank_weight = PREDEFINED_PROFILES["Balanced Value"]["team_rank_weight"]
-    if 'saved_squads' not in st.session_state:
-        st.session_state.saved_squads = []
+    if 'saved_squads' not in st.session_state: st.session_state.saved_squads = []
 
     st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">📁 File Inputs</h2>', unsafe_allow_html=True)
     hist_file = st.sidebar.file_uploader("1. Upload Historical Data", type=['csv', 'xlsx'])
@@ -312,13 +309,13 @@ def main():
         with st.spinner("🧠 Analyzing players and building your squad..."):
             df_pvs = strategist.calculate_pvs(df_merged, st.session_state.team_rank_weight, st.session_state.kpi_weights)
             st.session_state.df_full_eval = strategist.calculate_mrb(df_pvs, st.session_state.mrb_params_per_pos)
-            squad_df, summary = strategist.select_squad(st.session_state.df_full_eval, st.session_state.squad_size, st.session_state.formation_key)
+            # FIX: Swapped arguments to match the function definition
+            squad_df, summary = strategist.select_squad(st.session_state.df_full_eval, st.session_state.formation_key, st.session_state.squad_size)
             st.session_state.squad_df_result, st.session_state.squad_summary_result = squad_df, summary
 
     if 'squad_df_result' in st.session_state:
         st.markdown('<hr><h2 class="section-header">🏆 Final Results</h2>', unsafe_allow_html=True)
         
-        # Reusing display logic from historical app
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
         
         with tab1:
@@ -331,15 +328,16 @@ def main():
                 st.metric("Squad Size", f"{summary.get('total_players', 0)} (Target: {st.session_state.squad_size})")
                 st.metric("Total Squad PVS", f"{summary.get('total_squad_pvs', 0):.2f}")
                 
-                # Save Squad UI
                 st.markdown("---")
                 st.markdown("#### 💾 Save Current Squad")
-                squad_name = st.text_input("Enter a name for this squad:")
+                squad_name = st.text_input("Enter a name for this squad:", key="squad_name_input")
                 if st.button("Save Squad"):
                     if squad_name and not any(s['name'] == squad_name for s in st.session_state.saved_squads):
                         st.session_state.saved_squads.append({'name': squad_name, 'summary': summary, 'squad_df': st.session_state.squad_df_result})
                         st.success(f"Squad '{squad_name}' saved!")
-                    else: st.warning("Please enter a unique name.")
+                        st.session_state.squad_name_input = "" # Clear input
+                    elif not squad_name: st.warning("Please enter a name.")
+                    else: st.warning(f"A squad named '{squad_name}' already exists.")
         
         with tab2:
             st.info("Search, sort, and analyze all evaluated players.")
@@ -347,12 +345,5 @@ def main():
             
         if st.session_state.saved_squads:
             st.markdown('<hr><h2 class="section-header">💾 My Saved Squads</h2>', unsafe_allow_html=True)
-            for i, saved in enumerate(st.session_state.saved_squads):
-                with st.expander(f"**{saved['name']}** | Cost: €{saved['summary']['total_cost']:.0f} | PVS: {saved['summary']['total_squad_pvs']:.2f}"):
-                    st.dataframe(saved['squad_df'].rename(columns={'simplified_position': 'Pos', 'pvs_in_squad': 'PVS', 'mrb_actual_cost': 'Bid', 'is_starter': 'Starter'}), use_container_width=True, hide_index=True)
-                    if st.button("Delete", key=f"delete_{i}", type="primary"):
-                        st.session_state.saved_squads.pop(i)
-                        st.rerun()
-
-if __name__ == "__main__":
-    main()
+            for i, saved in enumerate(reversed(st.session_state.saved_squads)):
+                original_index = len(st.session_state.saved
