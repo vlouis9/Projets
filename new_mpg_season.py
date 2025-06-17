@@ -33,10 +33,10 @@ PREDEFINED_PROFILES = {
     "Custom": "custom",
     "Balanced Value": {
         "kpi_weights": {
-            'GK': {'estimated_avg': 0.70, 'estimated_regularity': 0.25, 'estimated_ goals': 0.0},
-            'DEF': {'estimated_avg': 0.25, 'estimated_regularity': 0.25, 'estimated_ goals': 0.0},
-            'MID': {'estimated_avg': 0.20, 'estimated_regularity': 0.15, 'estimated_ goals': 0.15},
-            'FWD': {'estimated_avg': 0.15, 'estimated_regularity': 0.10, 'estimated_ goals': 0.25}
+            'GK': {'estimated_avg': 0.70, 'estimated_regularity': 0.25, 'estimated_ goals': 0.0, 'estimated_potential' : 0.05},
+            'DEF': {'estimated_avg': 0.50, 'estimated_regularity': 0.30, 'estimated_ goals': 0.0, 'estimated_potential' : 0.20},
+            'MID': {'estimated_avg': 0.30, 'estimated_regularity': 0.15, 'estimated_ goals': 0.35, 'estimated_potential' : 0.20},
+            'FWD': {'estimated_avg': 0.20, 'estimated_regularity': 0.10, 'estimated_ goals': 0.50, 'estimated_potential' : 0.20}
         },
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 0.3}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.4},
@@ -45,10 +45,10 @@ PREDEFINED_PROFILES = {
     },
     "Aggressive Bids (Pay for PVS)": {
         "kpi_weights": {
-            'GK': {'estimated_avg': 0.35, 'estimated_regularity': 0.20, 'estimated_ goals': 0.0},
-            'DEF': {'estimated_avg': 0.30, 'estimated_regularity': 0.30, 'estimated_ goals': 0.0},
-            'MID': {'estimated_avg': 0.25, 'estimated_regularity': 0.15, 'estimated_ goals': 0.15},
-            'FWD': {'estimated_avg': 0.25, 'estimated_regularity': 0.10, 'estimated_ goals': 0.20}
+            'GK': {'estimated_avg': 0.35, 'estimated_regularity': 0.20, 'estimated_ goals': 0.0, 'estimated_potential' : 0.05},
+            'DEF': {'estimated_avg': 0.30, 'estimated_regularity': 0.30, 'estimated_ goals': 0.0, 'estimated_potential' : 0.05},
+            'MID': {'estimated_avg': 0.25, 'estimated_regularity': 0.15, 'estimated_ goals': 0.15, 'estimated_potential' : 0.05},
+            'FWD': {'estimated_avg': 0.25, 'estimated_regularity': 0.10, 'estimated_ goals': 0.20, 'estimated_potential' : 0.05}
         },
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 1.1}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.9},
@@ -57,10 +57,10 @@ PREDEFINED_PROFILES = {
     },
     "Focus on Recent Form": {
         "kpi_weights": {
-            'GK': {'estimated_avg': 0.1, 'estimated_regularity': 0.3, 'estimated_ goals': 0.0},
-            'DEF': {'estimated_avg': 0.1, 'estimated_regularity': 0.4, 'estimated_ goals': 0.0},
-            'MID': {'estimated_avg': 0.1, 'estimated_regularity': 0.15, 'estimated_ goals': 0.1},
-            'FWD': {'estimated_avg': 0.1, 'estimated_regularity': 0.1, 'estimated_ goals': 0.1}
+            'GK': {'estimated_avg': 0.1, 'estimated_regularity': 0.3, 'estimated_ goals': 0.0, 'estimated_potential' : 0.05},
+            'DEF': {'estimated_avg': 0.1, 'estimated_regularity': 0.4, 'estimated_ goals': 0.0, 'estimated_potential' : 0.05},
+            'MID': {'estimated_avg': 0.1, 'estimated_regularity': 0.15, 'estimated_ goals': 0.1, 'estimated_potential' : 0.05},
+            'FWD': {'estimated_avg': 0.1, 'estimated_regularity': 0.1, 'estimated_ goals': 0.1, 'estimated_potential' : 0.05}
         },
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 0.6}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.5},
@@ -69,10 +69,10 @@ PREDEFINED_PROFILES = {
     },
     "Focus on Season Consistency": {
         "kpi_weights": {
-            'GK': {'estimated_avg': 0.75, 'estimated_regularity': 0.25, 'estimated_ goals': 0.0},
-            'DEF': {'estimated_avg': 0.75, 'estimated_regularity': 0.15, 'estimated_ goals': 0.10},
-            'MID': {'estimated_avg': 0.6, 'estimated_regularity': 0.1, 'estimated_ goals': 0.3},
-            'FWD': {'estimated_avg': 0.5, 'estimated_regularity': 0.1, 'estimated_ goals': 0.4}
+            'GK': {'estimated_avg': 0.75, 'estimated_regularity': 0.25, 'estimated_ goals': 0.0, 'estimated_potential' : 0.00},
+            'DEF': {'estimated_avg': 0.75, 'estimated_regularity': 0.15, 'estimated_ goals': 0.10, 'estimated_potential' : 0.00},
+            'MID': {'estimated_avg': 0.6, 'estimated_regularity': 0.1, 'estimated_ goals': 0.3, 'estimated_potential' : 0.00},
+            'FWD': {'estimated_avg': 0.5, 'estimated_regularity': 0.1, 'estimated_ goals': 0.4, 'estimated_potential' : 0.00}
         },
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 0.9}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.8},
@@ -167,10 +167,10 @@ class MPGAuctionStrategist:
         return [col['name'] for col in sorted(gw_cols_data, key=lambda x: x['number'])]
 
     @staticmethod
-    def calculate_kpis(df: pd.DataFrame, n_recent: int) -> pd.DataFrame:
+    def calculate_kpis(df: pd.DataFrame) -> pd.DataFrame:
         rdf = df.copy()
         all_gws = MPGAuctionStrategist.get_gameweek_columns(df.columns)
-        rdf[['estimated_avg_rating']] = 0.0
+        rdf[['estimated_avg_rating','estimated_potential_rating']] = 0.0
         rdf[['estimated_ goals',
              'estimated_regularity_pct', 'total_season_gws_considered']] = 0
         for idx, row in rdf.iterrows():
@@ -180,6 +180,7 @@ class MPGAuctionStrategist:
                 if played and r is not None:
                     s_ratings_p.append(r); s_goals_t += g; s_played += 1
             rdf.at[idx, 'estimated_avg_rating'] = np.mean(s_ratings_p) if s_ratings_p else 0.0
+            rdf.at[idx, 'estimated_potential_rating'] = np.mean(sorted(s_ratings_p, reverse=True)[:5]) if s_ratings_p else 0.0
             rdf.at[idx, 'estimated_ goals'] = s_goals_t
             rdf.at[idx, 'total_season_gws_considered'] = len(all_gws)
             rdf.at[idx, 'estimated_regularity_pct'] = (s_played / len(all_gws) * 100) if len(all_gws) > 0 else 0.0
@@ -191,6 +192,7 @@ class MPGAuctionStrategist:
     def normalize_kpis(df: pd.DataFrame) -> pd.DataFrame:
         rdf = df.copy()
         rdf['norm_estimated_avg'] = np.clip(rdf['estimated_avg_rating'] * 10, 0, 100)
+        rdf['norm_estimated_potential'] = np.clip(rdf['estimated_potential_rating'] * 10, 0, 100)
         if '%Titu' in rdf.columns:
              rdf['norm_regularity_file'] = pd.to_numeric(rdf['%Titu'], errors='coerce').fillna(0).clip(0, 100)
         else:
@@ -213,6 +215,7 @@ class MPGAuctionStrategist:
             if not mask.any(): continue
             pvs_sum = pd.Series(0.0, index=rdf.loc[mask].index)
             pvs_sum += rdf.loc[mask, 'norm_estimated_avg'].fillna(0) * w.get('estimated_avg', 0)
+            pvs_sum += rdf.loc[mask, 'norm_estimated_potential'].fillna(0) * w.get('estimated_potential', 0)
             pvs_sum += rdf.loc[mask, 'norm_estimated_regularity'].fillna(0) * w.get('estimated_regularity', 0)
             if 'norm_regularity_file' in rdf.columns:
                  pvs_sum += rdf.loc[mask, 'norm_regularity_file'].fillna(0) * w.get('regularity_file', 0)
@@ -418,8 +421,9 @@ def main():
     uploaded_file = st.sidebar.file_uploader("📁 Upload MPG Ratings File (CSV/Excel)", type=['csv', 'xlsx', 'xls'], help="Joueur, Poste, Club, Cote, %Titu, Indispo?, Gameweeks (D1..D34).")
     uploaded_file_new = st.sidebar.file_uploader("📁 Upload MPG Players Database (CSV/Excel)", type=['csv', 'xlsx', 'xls'], help="Joueur, Poste, Club, Cote")
     st.sidebar.markdown("---")
-    st.sidebar.markdown("#### 🌎 Global Data & Form Parameters")
+    st.sidebar.markdown("#### 🌎 Global Parameters")
     #Teams tier list weighting
+    
     
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 👥 Squad Building Parameters")
@@ -448,6 +452,7 @@ def main():
             default_pos_w_structure = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos_key]; current_pos_w_vals = active_kpi_weights.get(pos_key, default_pos_w_structure)
             weights_ui[pos_key] = {
                 'estimated_avg': st.slider(f"Season Avg Rating", 0.0, 1.0, float(current_pos_w_vals.get('estimated_avg', 0.0)), 0.01, key=f"{pos_key}_wSA_v5_opt_main"),
+                'estimated_potential': st.slider(f"Potential Rating", 0.0, 1.0, float(current_pos_w_vals.get('estimated_potential', 0.0)), 0.01, key=f"{pos_key}_wSA_v5_opt_main"),
                 'estimated_ goals': st.slider(f"Season Goals", 0.0, 1.0, float(current_pos_w_vals.get('estimated_ goals', 0.0)) if pos_key in ['DEF', 'MID', 'FWD'] else 0.0, 0.01, key=f"{pos_key}_wSG_v5_opt_main", disabled=pos_key not in ['DEF','MID', 'FWD']),
                 'estimated_regularity': st.slider(f"Calculated Regularity", 0.0, 1.0, float(current_pos_w_vals.get('estimated_regularity', 0.0)), 0.01, key=f"{pos_key}_wCR_v5_opt_main", help="Based on starts identified in gameweek data."),
             }
@@ -482,12 +487,12 @@ def main():
 
         def display_squad_dataframe(df_to_display):
             sdf = df_to_display.copy()
-            squad_cols_display = ['Joueur', 'Club', 'simplified_position', 'pvs_in_squad', 'Cote', 'mrb_actual_cost', 'estimated_avg_rating', 'estimated_ goals', 'estimated_regularity_pct', 'recent_goals', 'estimated_avg_rating', 'value_per_cost', 'is_starter']
+            squad_cols_display = ['Joueur', 'Club', 'simplified_position', 'pvs_in_squad', 'Cote', 'mrb_actual_cost', 'estimated_avg_rating', 'estimated_potential', 'estimated_ goals', 'estimated_regularity_pct', 'value_per_cost', 'is_starter']
             squad_cols_exist_display = [col for col in squad_cols_display if col in sdf.columns]
             sdf_display = sdf[squad_cols_exist_display].rename(columns={
                 'Joueur': 'Player', 'simplified_position': 'Pos', 'pvs_in_squad': 'PVS', 'Cote': 'Cote',
-                'mrb_actual_cost': 'Suggested Bid', 'estimated_avg_rating': 'Average', 'estimated_ goals': 'Goals',
-                'estimated_regularity_pct': '% played', 'recent_goals': 'Rec.G', 'estimated_avg_rating': 'Rec.AvgR',
+                'mrb_actual_cost': 'Suggested Bid', 'estimated_avg_rating': 'Average', 'estimated_potential': 'Potential', 'estimated_ goals': 'Goals',
+                'estimated_regularity_pct': '% played',
                 'value_per_cost': 'Val/MRB', 'is_starter': 'Starter'
             })
             for col in ['PVS', 'Average', '% played', 'Rec.AvgR', 'Val/MRB']:
@@ -542,16 +547,15 @@ def main():
             st.markdown('<hr><h2 class="section-header">📋 Full Player Database & Values</h2>', unsafe_allow_html=True)
             if 'df_for_display_final' in st.session_state and st.session_state['df_for_display_final'] is not None:
                 df_full = st.session_state['df_for_display_final'].copy()
-                all_stats_cols_display = ['Joueur', 'Club', 'simplified_position', 'pvs', 'Cote', 'mrb', 'Indispo ?', 'estimated_avg_rating', 'estimated_ goals', 'estimated_regularity_pct', 'recent_goals', 'estimated_avg_rating', 'value_per_cost', 'games_started_season', 'recent_games_played_count']
+                all_stats_cols_display = ['Joueur', 'Club', 'simplified_position', 'pvs', 'Cote', 'mrb','estimated_avg_rating', 'estimated_potential', 'estimated_ goals', 'estimated_regularity_pct', 'value_per_cost']
                 df_full = df_full[[col for col in all_stats_cols_display if col in df_full.columns]]
                 df_full.rename(columns={
                     'Joueur': 'Player', 'simplified_position': 'Pos', 'pvs': 'PVS', 'Cote': 'Cote',
-                    'mrb': 'Suggested Bid', 'Indispo ?': 'Unavail.', 'estimated_avg_rating': 'Average',
-                    'estimated_ goals': 'Goals', 'estimated_regularity_pct': '% Played', 'recent_goals': 'Rec.G',
-                    'estimated_avg_rating': 'Rec.AvgR', 'value_per_cost': 'Val/MRB',
-                    'games_started_season': 'Sea.Start', 'recent_games_played_count': 'Rec.Plyd'
+                    'mrb': 'Suggested Bid', 'Indispo ?': 'Unavail.', 'estimated_avg_rating': 'Average', 'estimated_potential': 'Potential',
+                    'estimated_ goals': 'Goals', 'estimated_regularity_pct': '% Played',
+                    'value_per_cost': 'Val/MRB'
                 }, inplace=True)
-                for col in ['PVS', 'Average', '% Played', 'Rec.AvgR', 'Val/MRB']:
+                for col in ['PVS', 'Average', '% Played', 'Val/MRB']:
                     if col in df_full.columns: df_full[col] = pd.to_numeric(df_full[col], errors='coerce').fillna(0.0).round(2)
                 search_all = st.text_input("🔍 Search All Players:", key="search_all_v5_opt_main")
                 if search_all: df_full = df_full[df_full.apply(lambda r: r.astype(str).str.contains(search_all, case=False, na=False).any(), axis=1)]
