@@ -7,7 +7,7 @@ from io import BytesIO
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v4.0",
+    page_title="MPG Hybrid Strategist v4.1",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -19,9 +19,9 @@ st.markdown("""
     .section-header {font-size: 1.4rem; font-weight: bold; color: #006847; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #006847; padding-bottom: 0.3rem;}
     .stButton>button {background-color: #004080; color: white; font-weight: bold; border-radius: 0.3rem; padding: 0.4rem 0.8rem; border: none; width: 100%;}
     .stButton>button:hover {background-color: #003060; color: white;}
-    .stExpander {border: 1px solid #e0e0e0; border-radius: 0.3rem; margin-bottom: 0.5rem;}
 </style>
 """, unsafe_allow_html=True)
+
 
 # --- KPI & Profile Definitions ---
 KPI_PERFORMANCE = "PerformanceEstimation"
@@ -209,10 +209,10 @@ def calculate_historical_kpis(df_hist, returning_ids):
     gw_cols = [col for col in df.columns if str(col).startswith('D')]
     kpi_data = []
     for _, row in df.iterrows():
-        ratings_and_goals = [(extract_rating(row.get(gw)), str(row.get(gw, '')).count('*')) for gw in gw_cols]
-        valid_ratings = [r[0] for r in ratings_and_goals if r[0] is not None]
+        ratings_with_goals = [(extract_rating(row.get(gw)), str(row.get(gw, '')).count('*')) for gw in gw_cols]
+        valid_ratings = [r[0] for r in ratings_with_goals if r[0] is not None]
         if valid_ratings:
-            goals = sum(r[1] for r in ratings_and_goals if r[0] is not None)
+            goals = sum(r[1] for r in ratings_with_goals if r[0] is not None)
             kpi_data.append({
                 'player_id': row['player_id'],
                 KPI_PERFORMANCE: np.mean(valid_ratings),
@@ -228,7 +228,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
     return kpi_df
 
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v4.0</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v4.1</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     # --- Session State Initialization ---
@@ -288,7 +288,8 @@ def main():
     st.sidebar.markdown("<hr>", unsafe_allow_html=True)
     st.sidebar.markdown("### 3. PVS & Squad Parameters")
     
-    def apply_profile(profile_name):
+    def apply_profile():
+        profile_name = st.session_state.profile_selector
         st.session_state.current_profile_name = profile_name
         if profile_name != "Custom":
             profile = PREDEFINED_PROFILES[profile_name]
@@ -296,15 +297,21 @@ def main():
             st.session_state.kpi_weights = profile["kpi_weights"]
             st.session_state.mrb_params_per_pos = profile["mrb_params_per_pos"]
 
-    selected_profile = st.sidebar.selectbox("Select Profile", options=list(PREDEFINED_PROFILES.keys()), key="profile_selector", on_change=apply_profile, args=(st.session_state.profile_selector,))
+    st.sidebar.selectbox("Select Profile", options=list(PREDEFINED_PROFILES.keys()), key="profile_selector", on_change=apply_profile)
     
     trw_ui = st.sidebar.slider("Team Ranking KPI Weight", 0.0, 1.0, st.session_state.team_rank_weight, 0.05)
-    if trw_ui != st.session_state.team_rank_weight: st.session_state.current_profile_name = "Custom"; st.session_state.team_rank_weight = trw_ui
+    if trw_ui != st.session_state.team_rank_weight:
+        st.session_state.current_profile_name = "Custom"
+        st.session_state.team_rank_weight = trw_ui
     
+    # Placeholder for custom weight expanders - you can add the detailed sliders here if needed
     with st.sidebar.expander("Customize Player KPI Weights"):
-        # UI for kpi_weights...
-        pass
-    
+        st.info("Customize weights below. This will set the profile to 'Custom'.")
+        # Add sliders for st.session_state.kpi_weights here
+    with st.sidebar.expander("Customize MRB Parameters"):
+        st.info("Customize MRB bonus factors below. This will set the profile to 'Custom'.")
+        # Add sliders for st.session_state.mrb_params_per_pos here
+
     st.session_state.formation_key = st.sidebar.selectbox("Formation", list(strategist.formations.keys()))
     st.session_state.squad_size = st.sidebar.number_input("Squad Size", min_value=18, max_value=30, value=DEFAULT_SQUAD_SIZE)
 
@@ -317,7 +324,6 @@ def main():
         club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1)
         
-        # FIX: The merge needs to be done with the original df_new to ensure all columns are present
         df_merged = pd.merge(df_new, all_kpis_df, on='player_id', how='left')
         df_merged.dropna(subset=[f"norm_{kpi}" for kpi in PLAYER_KPI_COLUMNS], inplace=True)
         df_merged[KPI_TEAM_RANK] = df_merged['Club'].map(club_to_score).fillna(50)
@@ -328,7 +334,6 @@ def main():
             squad_df, summary = strategist.select_squad(st.session_state.df_full_eval, st.session_state.formation_key, st.session_state.squad_size)
             st.session_state.squad_df_result, st.session_state.squad_summary_result = squad_df, summary
 
-    # --- Display Results ---
     if 'squad_df_result' in st.session_state:
         st.markdown('<hr><h2 class="section-header">🏆 Final Results</h2>', unsafe_allow_html=True)
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
