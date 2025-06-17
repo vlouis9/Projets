@@ -7,7 +7,7 @@ from io import BytesIO
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v4.1",
+    page_title="MPG Hybrid Strategist v5.0",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -19,6 +19,7 @@ st.markdown("""
     .section-header {font-size: 1.4rem; font-weight: bold; color: #006847; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #006847; padding-bottom: 0.3rem;}
     .stButton>button {background-color: #004080; color: white; font-weight: bold; border-radius: 0.3rem; padding: 0.4rem 0.8rem; border: none; width: 100%;}
     .stButton>button:hover {background-color: #003060; color: white;}
+    .stExpander {border: 1px solid #e0e0e0; border-radius: 0.3rem; margin-bottom: 0.5rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -47,19 +48,6 @@ PREDEFINED_PROFILES = {
         "mrb_params_per_pos": {
             'GK': {'max_proportional_bonus_at_pvs100': 0.3}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.4},
             'MID': {'max_proportional_bonus_at_pvs100': 0.6}, 'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
-        }
-    },
-    "Focus on High Potential": {
-        "team_rank_weight": 0.15,
-        "kpi_weights": {
-            'GK':  {KPI_PERFORMANCE: 0.20, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.30, KPI_GOALS: 0.00},
-            'DEF': {KPI_PERFORMANCE: 0.20, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.20, KPI_GOALS: 0.10},
-            'MID': {KPI_PERFORMANCE: 0.15, KPI_POTENTIAL: 0.50, KPI_REGULARITY: 0.15, KPI_GOALS: 0.20},
-            'FWD': {KPI_PERFORMANCE: 0.15, KPI_POTENTIAL: 0.45, KPI_REGULARITY: 0.10, KPI_GOALS: 0.30}
-        },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.5}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.6},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.8}, 'FWD': {'max_proportional_bonus_at_pvs100': 1.0}
         }
     }
 }
@@ -228,7 +216,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
     return kpi_df
 
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v4.1</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v5.0</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     # --- Session State Initialization ---
@@ -237,6 +225,8 @@ def main():
         st.session_state.kpi_weights = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"]
         st.session_state.mrb_params_per_pos = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"]
         st.session_state.team_rank_weight = PREDEFINED_PROFILES["Balanced Value"]["team_rank_weight"]
+    if 'saved_squads' not in st.session_state:
+        st.session_state.saved_squads = []
 
     st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">📁 File Inputs</h2>', unsafe_allow_html=True)
     hist_file = st.sidebar.file_uploader("1. Upload Historical Data", type=['csv', 'xlsx'])
@@ -290,30 +280,21 @@ def main():
     
     def apply_profile():
         profile_name = st.session_state.profile_selector
-        st.session_state.current_profile_name = profile_name
-        if profile_name != "Custom":
+        if profile_name != "Custom" and profile_name in PREDEFINED_PROFILES:
             profile = PREDEFINED_PROFILES[profile_name]
             st.session_state.team_rank_weight = profile["team_rank_weight"]
             st.session_state.kpi_weights = profile["kpi_weights"]
             st.session_state.mrb_params_per_pos = profile["mrb_params_per_pos"]
+        st.session_state.current_profile_name = profile_name
 
     st.sidebar.selectbox("Select Profile", options=list(PREDEFINED_PROFILES.keys()), key="profile_selector", on_change=apply_profile)
     
-    trw_ui = st.sidebar.slider("Team Ranking KPI Weight", 0.0, 1.0, st.session_state.team_rank_weight, 0.05)
+    trw_ui = st.sidebar.slider("Team Ranking KPI Weight", 0.0, 1.0, st.session_state.team_rank_weight, 0.05, key="trw_slider")
     if trw_ui != st.session_state.team_rank_weight:
-        st.session_state.current_profile_name = "Custom"
-        st.session_state.team_rank_weight = trw_ui
+        st.session_state.current_profile_name = "Custom"; st.session_state.team_rank_weight = trw_ui
     
-    # Placeholder for custom weight expanders - you can add the detailed sliders here if needed
-    with st.sidebar.expander("Customize Player KPI Weights"):
-        st.info("Customize weights below. This will set the profile to 'Custom'.")
-        # Add sliders for st.session_state.kpi_weights here
-    with st.sidebar.expander("Customize MRB Parameters"):
-        st.info("Customize MRB bonus factors below. This will set the profile to 'Custom'.")
-        # Add sliders for st.session_state.mrb_params_per_pos here
-
-    st.session_state.formation_key = st.sidebar.selectbox("Formation", list(strategist.formations.keys()))
-    st.session_state.squad_size = st.sidebar.number_input("Squad Size", min_value=18, max_value=30, value=DEFAULT_SQUAD_SIZE)
+    st.session_state.formation_key = st.sidebar.selectbox("Formation", list(strategist.formations.keys()), key="formation_selector")
+    st.session_state.squad_size = st.sidebar.number_input("Squad Size", min_value=18, max_value=30, value=DEFAULT_SQUAD_SIZE, key="squad_size_selector")
 
     if st.sidebar.button("🚀 Generate Optimal Squad", type="primary"):
         df_new_kpis = st.session_state.new_player_kpis_df.copy()
@@ -331,20 +312,47 @@ def main():
         with st.spinner("🧠 Analyzing players and building your squad..."):
             df_pvs = strategist.calculate_pvs(df_merged, st.session_state.team_rank_weight, st.session_state.kpi_weights)
             st.session_state.df_full_eval = strategist.calculate_mrb(df_pvs, st.session_state.mrb_params_per_pos)
-            squad_df, summary = strategist.select_squad(st.session_state.df_full_eval, st.session_state.formation_key, st.session_state.squad_size)
+            squad_df, summary = strategist.select_squad(st.session_state.df_full_eval, st.session_state.squad_size, st.session_state.formation_key)
             st.session_state.squad_df_result, st.session_state.squad_summary_result = squad_df, summary
 
     if 'squad_df_result' in st.session_state:
         st.markdown('<hr><h2 class="section-header">🏆 Final Results</h2>', unsafe_allow_html=True)
+        
+        # Reusing display logic from historical app
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
         
         with tab1:
-            st.dataframe(st.session_state.squad_df_result.rename(columns={'simplified_position': 'Pos', 'pvs_in_squad': 'PVS', 'mrb_actual_cost': 'Bid', 'is_starter': 'Starter'}), use_container_width=True, hide_index=True)
-            st.json(st.session_state.squad_summary_result)
-
+            col_main, col_summary = st.columns([3, 1])
+            with col_main:
+                st.dataframe(st.session_state.squad_df_result.rename(columns={'simplified_position': 'Pos', 'pvs_in_squad': 'PVS', 'mrb_actual_cost': 'Bid', 'is_starter': 'Starter'}), use_container_width=True, hide_index=True)
+            with col_summary:
+                summary = st.session_state.squad_summary_result
+                st.metric("Budget Spent (MRB)", f"€ {summary.get('total_cost', 0):.0f}", help=f"Remaining: € {summary.get('remaining_budget', 0):.0f}")
+                st.metric("Squad Size", f"{summary.get('total_players', 0)} (Target: {st.session_state.squad_size})")
+                st.metric("Total Squad PVS", f"{summary.get('total_squad_pvs', 0):.2f}")
+                
+                # Save Squad UI
+                st.markdown("---")
+                st.markdown("#### 💾 Save Current Squad")
+                squad_name = st.text_input("Enter a name for this squad:")
+                if st.button("Save Squad"):
+                    if squad_name and not any(s['name'] == squad_name for s in st.session_state.saved_squads):
+                        st.session_state.saved_squads.append({'name': squad_name, 'summary': summary, 'squad_df': st.session_state.squad_df_result})
+                        st.success(f"Squad '{squad_name}' saved!")
+                    else: st.warning("Please enter a unique name.")
+        
         with tab2:
             st.info("Search, sort, and analyze all evaluated players.")
             st.dataframe(st.session_state.df_full_eval.sort_values(by='pvs', ascending=False), use_container_width=True, height=600)
+            
+        if st.session_state.saved_squads:
+            st.markdown('<hr><h2 class="section-header">💾 My Saved Squads</h2>', unsafe_allow_html=True)
+            for i, saved in enumerate(st.session_state.saved_squads):
+                with st.expander(f"**{saved['name']}** | Cost: €{saved['summary']['total_cost']:.0f} | PVS: {saved['summary']['total_squad_pvs']:.2f}"):
+                    st.dataframe(saved['squad_df'].rename(columns={'simplified_position': 'Pos', 'pvs_in_squad': 'PVS', 'mrb_actual_cost': 'Bid', 'is_starter': 'Starter'}), use_container_width=True, hide_index=True)
+                    if st.button("Delete", key=f"delete_{i}", type="primary"):
+                        st.session_state.saved_squads.pop(i)
+                        st.rerun()
 
 if __name__ == "__main__":
     main()
