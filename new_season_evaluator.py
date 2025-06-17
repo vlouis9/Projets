@@ -346,4 +346,12 @@ def main():
         if st.session_state.saved_squads:
             st.markdown('<hr><h2 class="section-header">💾 My Saved Squads</h2>', unsafe_allow_html=True)
             for i, saved in enumerate(reversed(st.session_state.saved_squads)):
-                original_index = len(st.session_state.saved
+                original_index = len(st.session_state.saved_squads) - 1 - i
+                with st.expander(f"**{saved['name']}** | Cost: €{saved['summary']['total_cost']:.0f} | PVS: {saved['summary']['total_squad_pvs']:.2f}"):
+                    st.dataframe(saved['squad_df'].rename(columns={'simplified_position': 'Pos', 'pvs_in_squad': 'PVS', 'mrb_actual_cost': 'Bid', 'is_starter': 'Starter'}), use_container_width=True, hide_index=True)
+                    if st.button("Delete", key=f"delete_{original_index}", type="primary"):
+                        st.session_state.saved_squads.pop(original_index)
+                        st.rerun()
+
+if __name__ == "__main__":
+    main()
