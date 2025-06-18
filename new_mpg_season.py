@@ -105,12 +105,12 @@ def load_and_preprocess_data(uploaded_file_obj):
 def load_and_preprocess_new_data(uploaded_file_new_obj):
     if uploaded_file_new_obj is None: return None
     try:
-        df_input = pd.read_excel(uploaded_file_new_obj) if uploaded_file_new_obj.name.endswith(('.xlsx', '.xls')) else pd.read_csv(uploaded_file_new_obj)
-        df_processed = df_input.copy()
-        df_processed['simplified_position'] = df_processed['Poste'].apply(MPGAuctionStrategist.simplify_position)
-        df_processed['player_id'] = df_processed.apply(MPGAuctionStrategist.create_player_id, axis=1)
-        df_processed['Cote'] = pd.to_numeric(df_processed['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
-        return df_processed
+        df_input_new = pd.read_excel(uploaded_file_new_obj) if uploaded_file_new_obj.name.endswith(('.xlsx', '.xls')) else pd.read_csv(uploaded_file_new_obj)
+        df_processed_new = df_input_new.copy()
+        df_processed_new['simplified_position'] = df_processed_new['Poste'].apply(MPGAuctionStrategist.simplify_position)
+        df_processed_new['player_id'] = df_processed_new.apply(MPGAuctionStrategist.create_player_id, axis=1)
+        df_processed_new['Cote'] = pd.to_numeric(df_processed_new['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
+        return df_processed_new
     except Exception as e:
         st.error(f"Error reading or initially processing file: {e}")
         return None
@@ -165,7 +165,7 @@ class MPGAuctionStrategist:
     def get_gameweek_columns(df_columns: List[str]) -> List[str]:
         gw_cols_data = [{'name': col, 'number': int(match.group(1))} for col in df_columns if (match := re.fullmatch(r'D(\d+)', col))]
         return [col['name'] for col in sorted(gw_cols_data, key=lambda x: x['number'])]
-
+    
     @staticmethod
     def calculate_kpis(df: pd.DataFrame) -> pd.DataFrame:
         rdf = df.copy()
@@ -217,6 +217,7 @@ class MPGAuctionStrategist:
             pvs_sum += rdf.loc[mask, 'norm_estimated_avg'].fillna(0) * w.get('estimated_avg', 0)
             pvs_sum += rdf.loc[mask, 'norm_estimated_potential'].fillna(0) * w.get('estimated_potential', 0)
             pvs_sum += rdf.loc[mask, 'norm_estimated_regularity'].fillna(0) * w.get('estimated_regularity', 0)
+            pvs_sum += rdf.loc[mask, 'norm_team_ranking'].fillna(0) * w.get('team_ranking', 0)
             if 'norm_regularity_file' in rdf.columns:
                  pvs_sum += rdf.loc[mask, 'norm_regularity_file'].fillna(0) * w.get('regularity_file', 0)
             if pos in ['DEF', 'MID', 'FWD']:
@@ -423,7 +424,7 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 🌎 Global Parameters")
     #Teams tier list weighting
-    
+    'team_ranking': st.slider(f"Team ranking", 0.0, 1.0, float(current_pos_w_vals.get('team_ranking', 0.0)), 0.01, key=f"{pos_key}_wSC_v5_opt_main")
     
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 👥 Squad Building Parameters")
@@ -464,6 +465,24 @@ def main():
             default_pos_mrb_structure = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos_key]; current_pos_mrb_vals = active_mrb_params.get(pos_key, default_pos_mrb_structure)
             mrb_params_ui[pos_key] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus Factor (at PVS 100)", 0.0, 1.0, float(current_pos_mrb_vals.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos_key}_mrbMPB_v5_opt_main", help="Bonus factor if PVS=100 (e.g., 0.5 = 50% bonus implies MRB up to 1.5x Cote). Overall MRB is capped at 2x Cote.")}
         if mrb_params_ui != active_mrb_params: st.session_state.current_profile_name = "Custom"; st.session_state.mrb_params_per_pos = mrb_params_ui
+
+    #Definition team ranking
+    if 'team_tiers' not in st.session_state: st.session_state.team_tiers = {t: [] for t in ["Winner", "European", "Average", "Relegation"]}
+
+    st.markdown('<h2 class="section-header">1. Team Ranking Setup</h2>', unsafe_allow_html=True)
+    all_clubs = sorted(df_processed_new['Club'].unique())
+    tier_names = ["Winner", "European", "Average", "Relegation"]
+    tier_cols = st.columns(len(tier_names))
+    
+    assigned_clubs = {club for tier_list in st.session_state.team_tiers.values() for club in tier_list}
+    for i, tier in enumerate(tier_names):
+        with tier_cols[i]:
+            current_selection = [c for c in st.session_state.team_tiers.get(tier, []) if c in all_clubs]
+            options_for_this_tier = sorted(list((set(all_clubs) - assigned_clubs) | set(current_selection)))
+            st.session_state.team_tiers[tier] = st.multiselect(f"**{tier} Tier**", options=options_for_this_tier, default=current_selection, key=f"tier_{tier}")
+    
+    tier_map = {100: "Winner", 75: "European", 50: "Average", 25: "Relegation"}
+        club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
 
     if uploaded_file:
         df_processed_calc = load_and_preprocess_data(uploaded_file)
@@ -582,14 +601,15 @@ def main():
                     if st.button("Delete this squad", key=f"delete_squad_{original_index}", type="primary"):
                         st.session_state.saved_squads.pop(original_index)
                         st.rerun()
-    else:
-        st.info("👈 Upload your MPG ratings file to begin.")
-        example_data = {
-            'Joueur': ['Player A', 'Player B'], 'Poste': ['A', 'M'], 'Club': ['Club X', 'Club Y'],
-            'Indispo ?': ['', 'TRUE'], 'Cote': [45, 30], '%Titu': [90, 75],
-            'D34': ['7.5*', '6.5'], 'D33': ['(6.0)**', '0'], 'D32': ['', '5.5*']
-        }
-        st.dataframe(pd.DataFrame(example_data), use_container_width=True, hide_index=True)
+
+        else:
+            st.info("👈 Upload your MPG ratings file to begin.")
+            example_data = {
+                'Joueur': ['Player A', 'Player B'], 'Poste': ['A', 'M'], 'Club': ['Club X', 'Club Y'],
+                'Indispo ?': ['', 'TRUE'], 'Cote': [45, 30], '%Titu': [90, 75],
+                'D34': ['7.5*', '6.5'], 'D33': ['(6.0)**', '0'], 'D32': ['', '5.5*']
+            }
+            st.dataframe(pd.DataFrame(example_data), use_container_width=True, hide_index=True)
 
 if __name__ == "__main__":
     main()
