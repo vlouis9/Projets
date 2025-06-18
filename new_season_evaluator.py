@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple, Set
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v7.0",
+    page_title="MPG Hybrid Strategist v8.0",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -207,7 +207,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
     return kpi_df
 
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v7.0</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v8.0</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     if 'current_profile_name' not in st.session_state:
