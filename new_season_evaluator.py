@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple, Set
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v11.0",
+    page_title="MPG Hybrid Strategist v12.0",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -103,37 +103,33 @@ class MPGAuctionStrategist:
         return rdf
 
     def select_squad(self, df_evaluated_players: pd.DataFrame, formation_key: str, target_squad_size: int) -> Tuple[pd.DataFrame, Dict]:
-        # --- NEW ROBUST SQUAD SELECTION ALGORITHM ---
         squad_df = pd.DataFrame()
         available_players = df_evaluated_players.sort_values(by='pvs', ascending=False).copy()
         
-        # Step 1: Define positional targets based on formation and squad size
         pos_targets = self.squad_minimums.copy()
         flex_spots = target_squad_size - sum(pos_targets.values())
         if flex_spots > 0:
-            formation_ratios = {pos: count / sum(c for p, c in self.formations[formation_key].items() if p != 'GK') for pos, count in self.formations[formation_key].items() if pos != 'GK'}
-            for i in range(flex_spots):
-                # Add to the position with the highest ratio that isn't yet "overloaded"
-                best_pos_to_add = max(formation_ratios, key=formation_ratios.get)
-                pos_targets[best_pos_to_add] += 1
+            non_gk_starters = sum(c for p, c in self.formations[formation_key].items() if p != 'GK')
+            if non_gk_starters > 0:
+                formation_ratios = {pos: count / non_gk_starters for pos, count in self.formations[formation_key].items() if pos != 'GK'}
+                for _ in range(flex_spots):
+                    best_pos_to_add = max(formation_ratios, key=formation_ratios.get)
+                    pos_targets[best_pos_to_add] += 1
         
-        # Step 2: Fill the squad to meet these targets
         for pos, target_count in pos_targets.items():
             players_for_pos = available_players[available_players['simplified_position'] == pos].head(target_count)
             squad_df = pd.concat([squad_df, players_for_pos])
             available_players = available_players.drop(players_for_pos.index)
         
-        # Step 3: Assign starters from the selected squad
         squad_df['is_starter'] = False
         for pos, count in self.formations[formation_key].items():
             starters_for_pos = squad_df[squad_df['simplified_position'] == pos].sort_values(by='pvs', ascending=False).head(count)
             squad_df.loc[starters_for_pos.index, 'is_starter'] = True
 
-        # Step 4: Budget optimization
         current_mrb = squad_df['mrb'].sum()
         while current_mrb > self.budget:
             non_starters = squad_df[~squad_df['is_starter']].copy()
-            if non_starters.empty: break # Can't downgrade if all are starters
+            if non_starters.empty: break
             
             worst_player = non_starters.sort_values(by='pvs').iloc[0]
             replacement = available_players[(available_players['simplified_position'] == worst_player['simplified_position']) & (available_players['mrb'] < worst_player['mrb'])].head(1)
@@ -185,7 +181,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
     return kpi_df
 
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v11.0</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v12.0</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     if 'current_profile_name' not in st.session_state:
@@ -261,15 +257,20 @@ def main():
     st.session_state.squad_size = st.sidebar.number_input("Squad Size", min_value=18, max_value=30, value=DEFAULT_SQUAD_SIZE, key="squad_size_selector")
 
     if st.sidebar.button("🚀 Generate Optimal Squad", type="primary"):
+        # --- ROBUST DATA PREPARATION ---
         df_new_kpis_from_editor = st.session_state.new_player_kpis_df.copy()
         for kpi in PLAYER_KPI_COLUMNS: df_new_kpis_from_editor[f"norm_{kpi}"] = df_new_kpis_from_editor[kpi]
         
-        all_kpis_df = pd.concat([df_returning_kpis, df_new_kpis_from_editor], ignore_index=True)
+        # Create a clean KPI dataframe with ONLY player_id and KPI columns
+        kpi_cols_to_keep = ['player_id'] + PLAYER_KPI_COLUMNS + [f'norm_{kpi}' for kpi in PLAYER_KPI_COLUMNS]
+        df_new_kpis_clean = df_new_kpis_from_editor[kpi_cols_to_keep]
+        all_kpis_df = pd.concat([df_returning_kpis, df_new_kpis_clean], ignore_index=True)
 
         tier_map = {100: "Winner", 75: "European", 50: "Average", 25: "Relegation"}
         club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1)
         
+        # Merge the clean KPI data with the master player list (df_new)
         df_merged = pd.merge(df_new, all_kpis_df, on='player_id', how='left').dropna(subset=[f"norm_{kpi}" for kpi in PLAYER_KPI_COLUMNS])
         df_merged[KPI_TEAM_RANK] = df_merged['Club'].map(club_to_score).fillna(50)
 
@@ -282,6 +283,7 @@ def main():
     if 'squad_df_result' in st.session_state and not st.session_state.squad_df_result.empty:
         st.markdown('<hr><h2 class="section-header">🏆 Final Results</h2>', unsafe_allow_html=True)
         
+        # --- CLEANED UP DISPLAY LOGIC ---
         cols_to_display_map = {'Joueur': 'Player', 'Club': 'Club', 'simplified_position': 'Pos', 'Cote': 'Cost', 'mrb': 'Bid', 'pvs': 'PVS', 'is_starter': 'Starter', KPI_PERFORMANCE: 'Perf', KPI_POTENTIAL: 'Pot', KPI_REGULARITY: 'Reg', KPI_GOALS: 'Goals'}
         
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
@@ -290,7 +292,9 @@ def main():
             col_main, col_summary = st.columns([3, 1])
             with col_main:
                 squad_display_df = st.session_state.squad_df_result.rename(columns=cols_to_display_map)
-                st.dataframe(squad_display_df[list(cols_to_display_map.values())], use_container_width=True, hide_index=True, column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
+                # Ensure all display columns exist before trying to show them
+                final_squad_cols = [col for col in cols_to_display_map.values() if col in squad_display_df.columns]
+                st.dataframe(squad_display_df[final_squad_cols], use_container_width=True, hide_index=True, column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
             with col_summary:
                 summary = st.session_state.squad_summary_result
                 st.metric("Budget Spent (MRB)", f"€ {summary.get('total_cost', 0):.0f}", help=f"Remaining: € {summary.get('remaining_budget', 0):.0f}")
@@ -312,7 +316,8 @@ def main():
         with tab2:
             st.info("Search, sort, and analyze all evaluated players.")
             full_display_df = st.session_state.df_full_eval.rename(columns=cols_to_display_map)
-            st.dataframe(full_display_df[list(cols_to_display_map.values())].sort_values(by='PVS', ascending=False), use_container_width=True, height=600, column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
+            final_full_cols = [col for col in cols_to_display_map.values() if col in full_display_df.columns]
+            st.dataframe(full_display_df[final_full_cols].sort_values(by='PVS', ascending=False), use_container_width=True, height=600, column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
             
         if st.session_state.saved_squads:
             st.markdown('<hr><h2 class="section-header">💾 My Saved Squads</h2>', unsafe_allow_html=True)
@@ -320,7 +325,8 @@ def main():
                 original_index = len(st.session_state.saved_squads) - 1 - i
                 with st.expander(f"**{saved['name']}** | Cost: €{saved['summary']['total_cost']:.0f} | PVS: {saved['summary']['total_squad_pvs']:.2f}"):
                     saved_display_df = saved['squad_df'].rename(columns=cols_to_display_map)
-                    st.dataframe(saved_display_df[list(cols_to_display_map.values())], use_container_width=True, hide_index=True)
+                    final_saved_cols = [col for col in cols_to_display_map.values() if col in saved_display_df.columns]
+                    st.dataframe(saved_display_df[final_saved_cols], use_container_width=True, hide_index=True)
                     if st.button("Delete", key=f"delete_{original_index}", type="primary"):
                         st.session_state.saved_squads.pop(original_index)
                         st.rerun()
