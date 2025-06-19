@@ -214,11 +214,11 @@ def display_squad_formation(squad_df, formation_key):
     squad_df = squad_df.copy()
     squad_df = squad_df[squad_df['is_starter']]
     for pos, n in formations[formation_key]:
-        players = squad_df[squad_df['simplified_position']==pos].sort_values('PVS', ascending=False).head(n)
+        players = squad_df[squad_df['simplified_position']==pos].sort_values('pvs_in_squad', ascending=False).head(n)
         cols = st.columns(n)
         for i, (_, p) in enumerate(players.iterrows()):
             cols[i].markdown(
-                f"<div style='text-align:center;'><b>{p['Player']}</b><br><span style='font-size:0.85em;'>{p['Club']}</span><br><span style='color:#004080;'>PVS: {p['PVS']:.1f}</span></div>",
+                f"<div style='text-align:center;'><b>{p['Joueur']}</b><br><span style='font-size:0.85em;'>{p['Club']}</span><br><span style='color:#004080;'>PVS: {p['pvs_in_squad']:.1f}</span></div>",
                 unsafe_allow_html=True
             )
 
