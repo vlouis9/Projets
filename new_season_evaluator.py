@@ -4,7 +4,7 @@ import numpy as np
 import re 
 from typing import Dict, List, Tuple, Optional
 
---- Page Setup ---
+#--- Page Setup ---
 
 st.set_page_config(page_title="🚀 MPG Auction Helper", layout="wide") st.markdown("""
 
@@ -13,11 +13,11 @@ st.set_page_config(page_title="🚀 MPG Auction Helper", layout="wide") st.markd
     .subheader {font-size:1.2rem; color:#006847; margin-top:1rem; margin-bottom:0.5rem;}
 </style>""", unsafe_allow_html=True)
 
---- Predefined Profiles (from season_with_data.txt) ---
+#--- Predefined Profiles (from season_with_data.txt) ---
 
 PROFILES = { 'Balanced Value': { 'n_recent_games': 5, 'min_recent_played': 1, 'kpi_weights': { 'GK':{'recent_avg':0.05,'season_avg':0.70,'regularity':0.25,'recent_goals':0,'season_goals':0}, 'DEF':{'recent_avg':0.25,'season_avg':0.25,'regularity':0.25,'recent_goals':0,'season_goals':0}, 'MID':{'recent_avg':0.20,'season_avg':0.20,'regularity':0.15,'recent_goals':0.15,'season_goals':0.15}, 'FWD':{'recent_avg':0.15,'season_avg':0.15,'regularity':0.10,'recent_goals':0.25,'season_goals':0.25} }, 'mrb_params': { 'GK':0.3,'DEF':0.4,'MID':0.6,'FWD':1.0 } }, 'Attack Focus': { 'n_recent_games': 5,'min_recent_played':1, 'kpi_weights': { 'GK':{'recent_avg':0,'season_avg':0.5,'regularity':0.5,'recent_goals':0,'season_goals':0}, 'DEF':{'recent_avg':0,'season_avg':0.6,'regularity':0.4,'recent_goals':0,'season_goals':0}, 'MID':{'recent_avg':0.1,'season_avg':0.2,'regularity':0.1,'recent_goals':0.3,'season_goals':0.3}, 'FWD':{'recent_avg':0.1,'season_avg':0.2,'regularity':0.1,'recent_goals':0.3,'season_goals':0.3} }, 'mrb_params': { 'GK':0.2,'DEF':0.3,'MID':0.7,'FWD':1.2 } }, 'Defensive Focus': { 'n_recent_games': 5,'min_recent_played':1, 'kpi_weights': { 'GK':{'recent_avg':0.1,'season_avg':0.6,'regularity':0.3,'recent_goals':0,'season_goals':0}, 'DEF':{'recent_avg':0.3,'season_avg':0.3,'regularity':0.2,'recent_goals':0,'season_goals':0}, 'MID':{'recent_avg':0.1,'season_avg':0.2,'regularity':0.2,'recent_goals':0.2,'season_goals':0.2}, 'FWD':{'recent_avg':0,'season_avg':0.2,'regularity':0.1,'recent_goals':0.3,'season_goals':0.3} }, 'mrb_params': { 'GK':0.4,'DEF':0.6,'MID':0.5,'FWD':0.8 } }, 'Custom': None }
 
---- Helper class with complete methods ---
+#--- Helper class with complete methods ---
 
 class MPG: @staticmethod def simplify_position(pos:str)->str: if pd.isna(pos): return 'UNKNOWN' p=pos.strip().upper() return ('GK' if p=='G' else 'DEF' if p in ['D','DC','DL','DF'] else 'MID' if p in ['M','MD','MO','MC'] else 'FWD' if p in ['A','AT','FW'] else 'UNKNOWN')
 
@@ -107,7 +107,7 @@ def select_squad(df,pformation:Dict[str,int],minima:Dict[str,int],budget:int)->T
     summary={'total_cost':spent,'remaining_budget':budget-spent,'total_pvs':squad_df['pvs'].sum()}
     return squad_df,summary
 
---- App ---
+#--- App ---
 
 def main(): st.markdown('<div class="header">🚀 MPG Auction Helper</div>', unsafe_allow_html=True) uploaded=st.sidebar.file_uploader("Upload season data (CSV/XLSX)", type=['csv','xls','xlsx']) prof=st.sidebar.selectbox("Profile", list(PROFILES.keys())) if prof!='Custom': params=PROFILES[prof] else: st.sidebar.markdown("Select Custom parameters... (not shown)") return formation=st.sidebar.selectbox("Formation", ['4-4-2','4-3-3','3-5-2','3-4-3','4-5-1','5-3-2','5-4-1']) minima={'GK':2,'DEF':6,'MID':6,'FWD':4} squad_size=st.sidebar.number_input("Squad Size", min_value=sum(minima.values()), value=20) budget=st.sidebar.number_input("Budget", value=500)
 
