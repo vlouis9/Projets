@@ -477,7 +477,7 @@ def main():
         if 'team_tiers' not in st.session_state: st.session_state.team_tiers = {t: [] for t in ["Winner", "European", "Average", "Relegation"]}
     
         st.markdown('<h2 class="section-header">1. Team Ranking Setup</h2>', unsafe_allow_html=True)
-        all_clubs = sorted(df_processed_new['Club'].unique())
+        all_clubs = sorted(df_processed_calc_new['Club'].unique())
         tier_names = ["Winner", "European", "Average", "Relegation"]
         tier_cols = st.columns(len(tier_names))
         
