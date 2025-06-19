@@ -548,7 +548,7 @@ def main():
             )
             squad_disp_show = squad_disp[['Player','Club','Pos','PVS','Bid','Perf','Pot','Reg','Goals','TeamRank','Starter','Ratings per GW','Goals per GW']]
             st.dataframe(squad_disp_show, use_container_width=True, hide_index=True)
-            display_squad_formation(squad_disp, formation_key_ui)
+            display_squad_formation(squad_df, formation_key_ui)
             st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
             st.metric("Budget Spent", f"€ {squad_summary.get('total_cost',0):.0f}", help=f"Remaining: € {squad_summary.get('remaining_budget',0):.0f}")
             st.metric("Squad Size", f"{squad_summary.get('total_players',0)} (Target: {target_squad_size_ui})")
