@@ -2,195 +2,223 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
-from typing import Dict, List, Tuple
 
-# --- Configuration ---
-st.set_page_config(page_title="MPG Auction Helper - New Season", layout="wide")
+# --- Config ---
+st.set_page_config(page_title="MPG Auction Helper – New Season", layout="wide")
 st.title("🚀 MPG Auction Helper (New Season)")
 
+# --- Constants ---
 DEFAULT_BUDGET = 500
-MINIMA = {'GK': 2, 'DEF': 6, 'MID': 6, 'FWD': 4}
+DEFAULT_SQUAD_SIZE = 20
+MINIMA = {'GK':2, 'DEF':6, 'MID':6, 'FWD':4}
 FORMATIONS = {
-    '4-4-2': {'GK': 1, 'DEF': 4, 'MID': 4, 'FWD': 2},
-    '4-3-3': {'GK': 1, 'DEF': 4, 'MID': 3, 'FWD': 3},
-    '3-5-2': {'GK': 1, 'DEF': 3, 'MID': 5, 'FWD': 2},
-    '3-4-3': {'GK': 1, 'DEF': 3, 'MID': 4, 'FWD': 3},
-    '4-5-1': {'GK': 1, 'DEF': 4, 'MID': 5, 'FWD': 1},
-    '5-3-2': {'GK': 1, 'DEF': 5, 'MID': 3, 'FWD': 2},
-    '5-4-1': {'GK': 1, 'DEF': 5, 'MID': 4, 'FWD': 1}
+    '4-4-2':{'GK':1,'DEF':4,'MID':4,'FWD':2},
+    '4-3-3':{'GK':1,'DEF':4,'MID':3,'FWD':3},
+    '3-5-2':{'GK':1,'DEF':3,'MID':5,'FWD':2},
+    '3-4-3':{'GK':1,'DEF':3,'MID':4,'FWD':3},
+    '4-5-1':{'GK':1,'DEF':4,'MID':5,'FWD':1},
+    '5-3-2':{'GK':1,'DEF':5,'MID':3,'FWD':2},
+    '5-4-1':{'GK':1,'DEF':5,'MID':4,'FWD':1}
 }
+# KPI weights + MRB bonuses per profile
 PROFILES = {
     'Balanced Value': {
-        'n_recent_games': 5,
-        'min_recent_played': 1,
-        'kpi_weights': {
-            'GK': {'recent_avg': 0.05, 'season_avg': 0.70, 'regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'DEF': {'recent_avg': 0.25, 'season_avg': 0.25, 'regularity': 0.25, 'recent_goals': 0.0, 'season_goals': 0.0},
-            'MID': {'recent_avg': 0.20, 'season_avg': 0.20, 'regularity': 0.15, 'recent_goals': 0.15, 'season_goals': 0.15},
-            'FWD': {'recent_avg': 0.15, 'season_avg': 0.15, 'regularity': 0.10, 'recent_goals': 0.25, 'season_goals': 0.25}
-        },
-        'mrb_params': {'GK': 0.3, 'DEF': 0.4, 'MID': 0.6, 'FWD': 1.0}
+        'weights': {'est_perf':0.20,'est_potential':0.20,'est_regularity':0.20,'est_goals':0.20,'team_rank':0.20},
+        'mrb_bonus':{'GK':0.30,'DEF':0.40,'MID':0.60,'FWD':1.00}
+    },
+    'Attack Focus': {
+        'weights': {'est_perf':0.10,'est_potential':0.30,'est_regularity':0.10,'est_goals':0.30,'team_rank':0.20},
+        'mrb_bonus':{'GK':0.20,'DEF':0.30,'MID':0.70,'FWD':1.20}
+    },
+    'Defensive Focus': {
+        'weights': {'est_perf':0.30,'est_potential':0.10,'est_regularity':0.30,'est_goals':0.10,'team_rank':0.20},
+        'mrb_bonus':{'GK':0.40,'DEF':0.60,'MID':0.50,'FWD':0.80}
     },
     'Custom': None
 }
 
-# --- Utility Functions ---
-def simplify_position(pos):
-    if pd.isna(pos): return 'UNKNOWN'
-    p = pos.strip().upper()
-    if p == 'G': return 'GK'
-    if p in ['D', 'DC', 'DL', 'DF']: return 'DEF'
-    if p in ['M', 'MD', 'MO', 'MC']: return 'MID'
-    if p in ['A', 'AT', 'FW']: return 'FWD'
+# --- Helpers ---
+def simp_pos(p):
+    if pd.isna(p): return 'UNKNOWN'
+    u = p.strip().upper()
+    if u=='G': return 'GK'
+    if u in ('D','DC','DL','DF'): return 'DEF'
+    if u in ('M','MD','MO','MC'): return 'MID'
+    if u in ('A','AT','FW'): return 'FWD'
     return 'UNKNOWN'
 
-def create_player_id(r):
-    return f"{r['Joueur'].strip()}_{simplify_position(r['Poste'])}_{r['Club'].strip()}"
+def make_id(r):
+    return f"{r['Joueur'].strip()}_{simp_pos(r['Poste'])}_{r['Club'].strip()}"
 
-def extract_rating(val):
-    if pd.isna(val) or val in ['0', '']:
-        return None, 0
+def extract(val):
+    if pd.isna(val) or val in ('','0'): return None,0
     s = str(val).strip()
     goals = s.count('*')
-    clean = re.sub(r"[()*]", "", s)
+    clean = re.sub(r"[()*]","",s)
     try: return float(clean), goals
-    except: return None, 0
+    except: return None,0
 
-# --- Load and process data ---
-def load_data(f):
-    df = pd.read_excel(f) if f.name.endswith(('xls', 'xlsx')) else pd.read_csv(f)
-    df['simplified_position'] = df['Poste'].apply(simplify_position)
-    df['player_id'] = df.apply(create_player_id, axis=1)
-    df['Cote'] = pd.to_numeric(df['Cote'], errors='coerce').fillna(1).astype(int)
+# --- Load & Prep ---
+def load(f):
+    df = pd.read_excel(f) if f.name.endswith(('xls','xlsx')) else pd.read_csv(f)
+    df['simplified_position'] = df['Poste'].apply(simp_pos)
+    df['player_id'] = df.apply(make_id,axis=1)
+    df['Cote'] = pd.to_numeric(df['Cote'],errors='coerce').fillna(1).astype(int)
     df['Club'] = df['Club'].astype(str)
     return df
 
-def compute_kpis(df, cols):
-    result = []
-    for _, r in df.iterrows():
-        ratings, goals, played = [], 0, 0
+def hist_kpis(df,cols):
+    out=[]
+    for _,r in df.iterrows():
+        rs,gl,pl=[],0,0
         for c in cols:
-            rt, g = extract_rating(r[c])
-            if rt is not None:
-                ratings.append(rt)
-                goals += g
-                played += 1
-        avg = np.mean(ratings) if ratings else 0
-        pot = np.mean(sorted(ratings, reverse=True)[:5]) if ratings else 0
-        reg = played / len(cols) * 100 if cols else 0
-        result.append({'player_id': r['player_id'], 'est_perf': avg * 10, 'est_potential': pot * 10, 'est_regularity': reg, 'est_goals': goals})
-    return pd.DataFrame(result)
+            v,g = extract(r[c])
+            if v is not None:
+                rs.append(v); gl+=g; pl+=1
+        avg = np.mean(rs) if rs else 0
+        pot = np.mean(sorted(rs,reverse=True)[:5]) if rs else 0
+        reg = pl/len(cols)*100 if cols else 0
+        out.append({'player_id':r['player_id'],'est_perf':avg*10,'est_potential':pot*10,'est_regularity':reg,'est_goals':gl})
+    return pd.DataFrame(out)
 
-def evaluate_players(df, weights, mrb_bonus):
-    df['pvs'] = df.apply(lambda r: sum(r[k]*weights[r['simplified_position']][k] for k in weights[r['simplified_position']]), axis=1)
-    df['mrb'] = df.apply(lambda r: int(round(min(max(r['Cote'], r['Cote'] * (1 + mrb_bonus[r['simplified_position']] * r['pvs'] / 100)), 2 * r['Cote']))), axis=1)
-    df['value_per_cost'] = df['pvs'] / df['mrb']
+def compute_pvs(df,weights):
+    df['pvs']=df.apply(lambda r: sum(r[k]*weights[k] for k in weights),axis=1)
     return df
 
-def select_squad(df, formation, minima, budget):
-    squad, rem = [], df.copy()
-    for pos, n in minima.items():
-        sel = rem[rem['simplified_position'] == pos].nlargest(n, 'pvs')
-        squad.append(sel)
-        rem = rem.drop(sel.index)
-    for pos, n in formation.items():
-        have = pd.concat(squad)[lambda x: x['simplified_position'] == pos]
-        needed = max(0, n - len(have))
-        sel = rem[rem['simplified_position'] == pos].nlargest(needed, 'pvs')
-        squad.append(sel)
-        rem = rem.drop(sel.index)
-    total = pd.concat(squad)
-    while total['mrb'].sum() > budget:
-        worst = total.nsmallest(1, 'value_per_cost')
-        total = total.drop(worst.index)
-        subs = df.drop(total.index)
-        candidate = subs[subs['mrb'] <= budget - total['mrb'].sum()].nlargest(1, 'pvs')
-        if not candidate.empty:
-            total = pd.concat([total, candidate])
-        else:
-            break
-    return total, {'total_cost': total['mrb'].sum(), 'remaining_budget': budget - total['mrb'].sum(), 'total_pvs': total['pvs'].sum()}
+def compute_mrb(df,bonus):
+    def f(r):
+        b=bonus[r['simplified_position']]*r['pvs']/100
+        val=r['Cote']*(1+b)
+        return int(round(min(max(val,r['Cote']),2*r['Cote'])))
+    df['mrb']=df.apply(f,axis=1)
+    df['value_per_cost']=df['pvs']/df['mrb']
+    return df
 
-# --- Sidebar UI ---
-st.sidebar.header("📁 Upload Data")
-hist_file = st.sidebar.file_uploader("Last Season", type=["csv", "xls", "xlsx"])
-new_file = st.sidebar.file_uploader("New Season", type=["csv", "xls", "xlsx"])
-profile_key = st.sidebar.selectbox("Profile", list(PROFILES.keys()))
-formation_key = st.sidebar.selectbox("Formation", list(FORMATIONS.keys()))
-budget = st.sidebar.number_input("Budget", value=DEFAULT_BUDGET)
+def select_squad(df,formation,minima,size,budget):
+    rem=df.copy(); squad=[]
+    # minima
+    for pos,n in minima.items():
+        sel=rem[rem['simplified_position']==pos].nlargest(n,'pvs')
+        squad.append(sel); rem=rem.drop(sel.index)
+    # formation starters
+    curr=pd.concat(squad)
+    for pos,n in formation.items():
+        have=len(curr[curr['simplified_position']==pos])
+        add=max(0,n-have)
+        sel=rem[rem['simplified_position']==pos].nlargest(add,'pvs')
+        squad.append(sel); rem=rem.drop(sel.index)
+        curr=pd.concat(squad)
+    # bench to size
+    if len(curr)<size:
+        sel=rem.nlargest(size-len(curr),'pvs')
+        squad.append(sel); curr=pd.concat(squad)
+    # budget loop
+    while curr['mrb'].sum()>budget:
+        drop=curr.nsmallest(1,'value_per_cost')
+        curr=curr.drop(drop.index)
+        cand=df.drop(curr.index)
+        pick=cand[cand['mrb']<=budget-curr['mrb'].sum()].nlargest(1,'pvs')
+        if pick.empty: break
+        curr=pd.concat([curr,pick])
+    return curr, {
+        'total_cost':int(curr['mrb'].sum()),
+        'remaining_budget':int(budget-curr['mrb'].sum()),
+        'total_pvs':float(curr['pvs'].sum())
+    }
 
-# --- Main Logic ---
-if hist_file and new_file:
-    df_hist = load_data(hist_file)
-    df_new = load_data(new_file)
-    df_hist_ids = set(df_hist['player_id'])
-    df_new_ids = set(df_new['player_id'])
-    known = df_new_ids & df_hist_ids
-    new_only = df_new_ids - df_hist_ids
 
-    # KPI Computation
-    rating_cols = [c for c in df_hist.columns if re.fullmatch(r'D\\d+', c)]
-    df_hist_kpis = compute_kpis(df_hist[df_hist['player_id'].isin(known)], rating_cols)
-    max_vals = df_hist_kpis[['est_perf', 'est_potential', 'est_regularity', 'est_goals']].max()
+# --- Sidebar Inputs ---
+st.sidebar.header("📁 Upload Files")
+hist = st.sidebar.file_uploader("Last Season File",type=['csv','xls','xlsx'])
+new = st.sidebar.file_uploader("New Season File",type=['csv','xls','xlsx'])
+profile = st.sidebar.selectbox("Profile",list(PROFILES.keys()))
+formation = st.sidebar.selectbox("Formation",list(FORMATIONS.keys()))
+budget = st.sidebar.number_input("Budget (€)",value=DEFAULT_BUDGET)
+size   = st.sidebar.number_input("Squad Size",min_value=sum(MINIMA.values()),value=DEFAULT_SQUAD_SIZE)
 
-    # Manual Sliders for new players
+# Club tiers
+st.sidebar.header("🏆 Club Tiers")
+tiers = {'Winner':100,'European':75,'Average':50,'Relegation':25}
+tier_map={}
+if new:
+    df2 = load(new)
+    for c in sorted(df2['Club'].unique()):
+        tier_map[c] = tiers[st.sidebar.selectbox(c,list(tiers.keys()),index=2)]
+else:
+    tier_map={}
+
+# --- Main Flow ---
+if hist and new:
+    df_hist = load(hist)
+    df_new  = load(new)
+    ids_hist = set(df_hist['player_id'])
+    ids_new  = set(df_new['player_id'])
+    known = ids_hist & ids_new
+    newonly = ids_new - ids_hist
+
+    # hist KPIs
+    cols = [c for c in df_hist.columns if re.fullmatch(r'D\\d+',c)]
+    df_hk = hist_kpis(df_hist[df_hist['player_id'].isin(known)],cols)
+    maxs = df_hk[['est_perf','est_potential','est_regularity','est_goals']].max()
+
+    # manual new
     st.subheader("✍️ Manual Input for New Players")
-    manual = []
-    for _, r in df_new[df_new['player_id'].isin(new_only)].iterrows():
+    manual=[]
+    for _,r in df_new[df_new['player_id'].isin(newonly)].iterrows():
         st.markdown(f"**{r['Joueur']} ({r['simplified_position']}, {r['Club']})**")
-        perf = st.slider(f"Performance %", 0, 100, 50, 25, key=f"perf_{r['player_id']}")
-        pot = st.slider(f"Potential %", 0, 100, 50, 25, key=f"pot_{r['player_id']}")
-        reg = st.slider(f"Regularity %", 0, 100, 50, 25, key=f"reg_{r['player_id']}")
-        goals = st.slider(f"Goals %", 0, 100, 0, 25, key=f"goals_{r['player_id']}")
-        manual.append({**r[['player_id', 'Joueur', 'simplified_position', 'Club', 'Cote']].to_dict(),
-                       'est_perf': perf / 100 * max_vals['est_perf'],
-                       'est_potential': pot / 100 * max_vals['est_potential'],
-                       'est_regularity': reg / 100 * max_vals['est_regularity'],
-                       'est_goals': goals / 100 * max_vals['est_goals']})
+        p = st.slider(f"Perf %",0,100,50,25,key=f"p_{r['player_id']}")
+        u = st.slider(f"Pot  %",0,100,50,25,key=f"u_{r['player_id']}")
+        g = st.slider(f"Reg  %",0,100,50,25,key=f"g_{r['player_id']}")
+        q = st.slider(f"Goals%",0,100,0,25,  key=f"q_{r['player_id']}")
+        manual.append({
+            'player_id':r['player_id'],'Joueur':r['Joueur'],
+            'simplified_position':r['simplified_position'],'Club':r['Club'],'Cote':r['Cote'],
+            'est_perf':p/100*maxs['est_perf'],
+            'est_potential':u/100*maxs['est_potential'],
+            'est_regularity':g/100*maxs['est_regularity'],
+            'est_goals':q/100*maxs['est_goals']
+        })
     df_manual = pd.DataFrame(manual)
 
-    # Merge known and new
-    df_known = df_new[df_new['player_id'].isin(known)][['player_id', 'Joueur', 'simplified_position', 'Club', 'Cote']]
-    df_known = df_known.merge(df_hist_kpis, on='player_id')
-    df_eval = pd.concat([df_known, df_manual], ignore_index=True)
+    # merge known
+    df_known = df_new[df_new['player_id'].isin(known)][['player_id','Joueur','simplified_position','Club','Cote']]
+    df_known = df_known.merge(df_hk,on='player_id')
+    df_eval  = pd.concat([df_known,df_manual],ignore_index=True)
+    df_eval['team_rank'] = df_eval['Club'].map(tier_map).fillna(50)
 
-    # Club tier assignment
-    st.sidebar.header("🏆 Club Tiers")
-    clubs = sorted(df_new['Club'].unique())
-    tier_map = {}
-    tiers = {'Winner': 100, 'European': 75, 'Average': 50, 'Relegation': 25}
-    for club in clubs:
-        tier_map[club] = tiers[st.sidebar.selectbox(club, list(tiers.keys()), index=2)]
-    df_eval['team_rank'] = df_eval['Club'].map(tier_map)
-
-    # Profile weights
-    if profile_key == 'Custom':
-        st.subheader("🎛️ Custom Weights")
-        prof = {'kpi_weights': {}, 'mrb_params': {}, 'n_recent_games': 5, 'min_recent_played': 1}
-        for pos in ['GK', 'DEF', 'MID', 'FWD']:
-            st.markdown(f"**{pos} KPI Weights**")
-            prof['kpi_weights'][pos] = {
-                'recent_avg': st.slider(f"{pos} Recent Avg", 0.0, 1.0, 0.2, 0.05),
-                'season_avg': st.slider(f"{pos} Season Avg", 0.0, 1.0, 0.2, 0.05),
-                'regularity': st.slider(f"{pos} Regularity", 0.0, 1.0, 0.2, 0.05),
-                'recent_goals': st.slider(f"{pos} Recent Goals", 0.0, 1.0, 0.1, 0.05),
-                'season_goals': st.slider(f"{pos} Season Goals", 0.0, 1.0, 0.1, 0.05)
-            }
-            prof['mrb_params'][pos] = st.slider(f"{pos} MRB Bonus", 0.0, 2.0, 1.0, 0.1)
+    # profile selection
+    if profile=='Custom':
+        st.subheader("🎛️ Custom Profile")
+        weights,bonus = {},{}
+        for k in ('est_perf','est_potential','est_regularity','est_goals','team_rank'):
+            weights[k] = st.slider(f"{k}",0.0,1.0,0.2,0.05)
+        for pos in MINIMA:
+            bonus[pos] = st.slider(f"Bonus {pos}",0.0,2.0,1.0,0.1)
     else:
-        prof = PROFILES[profile_key]
+        prof = PROFILES[profile]
+        weights=prof['weights']; bonus=prof['mrb_bonus']
 
-    df_eval = evaluate_players(df_eval, prof['kpi_weights'], prof['mrb_params'])
+    df_eval = compute_pvs(df_eval,weights)
+    df_eval = compute_mrb(df_eval,bonus)
 
+    # show eval
     st.subheader("📊 Evaluated Players")
     st.dataframe(df_eval)
 
-    squad, summary = select_squad(df_eval, FORMATIONS[formation_key], MINIMA, budget)
+    # save/load
+    if st.button("💾 Save Eval"):
+        st.download_button("Download JSON",data=df_eval.to_json(orient='records'),
+                           file_name='eval.json')
+    up = st.file_uploader("Load Eval JSON",type=['json'])
+    if up:
+        df_eval = pd.read_json(up)
 
-    st.subheader("🏆 Suggested Squad")
+    # select squad
+    squad,summary = select_squad(df_eval,FORMATIONS[formation],MINIMA,size,budget)
+    st.subheader("🏆 Final Squad")
     st.dataframe(squad)
-
     st.subheader("📈 Summary")
     st.json(summary)
+
 else:
-    st.info("Upload both last season and new season files to proceed.")
+    st.info("Upload both Last Season and New Season files to proceed.")
