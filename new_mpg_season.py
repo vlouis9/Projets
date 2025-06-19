@@ -468,7 +468,7 @@ def main():
 
     if uploaded_file and uploaded_file_new:
         df_processed_calc = load_and_preprocess_data(uploaded_file)
-        df_processed_calc_new = load_and_preprocess_new_data(uploaded_file_new_obj)
+        df_processed_calc_new = load_and_preprocess_new_data(uploaded_file_new)
         if df_processed_calc is not None and not df_processed_calc.empty and df_processed_calc_new is not None and not df_processed_calc_new.empty:
             with st.spinner("🧠 Calculating player evaluations..."):
                 try:
