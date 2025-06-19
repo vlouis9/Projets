@@ -20,7 +20,6 @@ FORMATIONS = {
     '5-3-2':{'GK':1,'DEF':5,'MID':3,'FWD':2},
     '5-4-1':{'GK':1,'DEF':5,'MID':4,'FWD':1}
 }
-# KPI weights + MRB bonuses per profile
 PROFILES = {
     'Balanced Value': {
         'weights': {'est_perf':0.20,'est_potential':0.20,'est_regularity':0.20,'est_goals':0.20,'team_rank':0.20},
@@ -36,6 +35,7 @@ PROFILES = {
     },
     'Custom': None
 }
+TIERS = {'Winner':100,'European':75,'Average':50,'Relegation':25}
 
 # --- Helpers ---
 def simp_pos(p):
@@ -58,9 +58,11 @@ def extract(val):
     try: return float(clean), goals
     except: return None,0
 
-# --- Load & Prep ---
 def load(f):
-    df = pd.read_excel(f) if f.name.endswith(('xls','xlsx')) else pd.read_csv(f)
+    if f.name.endswith(('xls','xlsx')):
+        df = pd.read_excel(f)
+    else:
+        df = pd.read_csv(f)
     df['simplified_position'] = df['Poste'].apply(simp_pos)
     df['player_id'] = df.apply(make_id,axis=1)
     df['Cote'] = pd.to_numeric(df['Cote'],errors='coerce').fillna(1).astype(int)
@@ -126,7 +128,6 @@ def select_squad(df,formation,minima,size,budget):
         'total_pvs':float(curr['pvs'].sum())
     }
 
-
 # --- Sidebar Inputs ---
 st.sidebar.header("📁 Upload Files")
 hist = st.sidebar.file_uploader("Last Season File",type=['csv','xls','xlsx'])
@@ -138,12 +139,12 @@ size   = st.sidebar.number_input("Squad Size",min_value=sum(MINIMA.values()),val
 
 # Club tiers
 st.sidebar.header("🏆 Club Tiers")
-tiers = {'Winner':100,'European':75,'Average':50,'Relegation':25}
 tier_map={}
 if new:
     df2 = load(new)
-    for c in sorted(df2['Club'].unique()):
-        tier_map[c] = tiers[st.sidebar.selectbox(c,list(tiers.keys()),index=2)]
+    clubs = sorted(df2['Club'].unique())
+    for c in clubs:
+        tier_map[c] = TIERS[st.sidebar.selectbox(c,list(TIERS.keys()),index=2)]
 else:
     tier_map={}
 
@@ -157,19 +158,20 @@ if hist and new:
     newonly = ids_new - ids_hist
 
     # hist KPIs
-    cols = [c for c in df_hist.columns if re.fullmatch(r'D\\d+',c)]
+    cols = [c for c in df_hist.columns if re.fullmatch(r'D\d+',c)]
     df_hk = hist_kpis(df_hist[df_hist['player_id'].isin(known)],cols)
     maxs = df_hk[['est_perf','est_potential','est_regularity','est_goals']].max()
 
     # manual new
     st.subheader("✍️ Manual Input for New Players")
     manual=[]
+    percent_options = [0, 25, 50, 75, 100]
     for _,r in df_new[df_new['player_id'].isin(newonly)].iterrows():
         st.markdown(f"**{r['Joueur']} ({r['simplified_position']}, {r['Club']})**")
-        p = st.slider(f"Perf %",0,100,50,25,key=f"p_{r['player_id']}")
-        u = st.slider(f"Pot  %",0,100,50,25,key=f"u_{r['player_id']}")
-        g = st.slider(f"Reg  %",0,100,50,25,key=f"g_{r['player_id']}")
-        q = st.slider(f"Goals%",0,100,0,25,  key=f"q_{r['player_id']}")
+        p = st.select_slider(f"Perf % for {r['Joueur']}", options=percent_options, value=50, key=f"p_{r['player_id']}")
+        u = st.select_slider(f"Pot  % for {r['Joueur']}", options=percent_options, value=50, key=f"u_{r['player_id']}")
+        g = st.select_slider(f"Reg  % for {r['Joueur']}", options=percent_options, value=50, key=f"g_{r['player_id']}")
+        q = st.select_slider(f"Goals % for {r['Joueur']}", options=percent_options, value=0, key=f"q_{r['player_id']}")
         manual.append({
             'player_id':r['player_id'],'Joueur':r['Joueur'],
             'simplified_position':r['simplified_position'],'Club':r['Club'],'Cote':r['Cote'],
