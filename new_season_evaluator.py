@@ -1,8 +1,8 @@
 import streamlit as st 
 import pandas as pd 
 import numpy as np 
-import re from typing 
-import Dict, List, Tuple, Optional
+import re 
+from typing import Dict, List, Tuple, Optional
 
 --- Page Setup ---
 
