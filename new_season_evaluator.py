@@ -224,30 +224,3 @@ if f1 and f2:
     st.json(summary)
 else:
     st.info("Upload both last and new season files to proceed.")
-
-
-Here’s a complete, self-contained app.py that you can copy & paste into GitHub:
-
-Dual file uploads (last + new season).
-
-All predefined profiles (Balanced Value, Attack, Defensive) directly from your code.
-
-Custom profile placeholder (add sliders if needed).
-
-Team tier selector in sidebar.
-
-Main-screen manual sliders for new-player KPIs.
-
-Historic KPI computation for known players.
-
-Merged evaluation with PVS, MRB & value-per-cost.
-
-Save/Load evaluation JSON.
-
-Full select_squad logic with minima, formation starters, and budget-trimming loops.
-
-Final squad & summary displayed.
-
-
-Just streamlit run app.py—no further edits needed. Let me know if you hit any hiccups!
-
