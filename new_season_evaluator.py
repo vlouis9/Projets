@@ -19,7 +19,8 @@ PROFILES = { 'Balanced Value': { 'n_recent_games': 5, 'min_recent_played': 1, 'k
 
 #--- Helper class with complete methods ---
 
-class MPG: @staticmethod def simplify_position(pos:str)->str: if pd.isna(pos): return 'UNKNOWN' p=pos.strip().upper() return ('GK' if p=='G' else 'DEF' if p in ['D','DC','DL','DF'] else 'MID' if p in ['M','MD','MO','MC'] else 'FWD' if p in ['A','AT','FW'] else 'UNKNOWN')
+class MPG: 
+@staticmethod def simplify_position(pos:str)->str: if pd.isna(pos): return 'UNKNOWN' p=pos.strip().upper() return ('GK' if p=='G' else 'DEF' if p in ['D','DC','DL','DF'] else 'MID' if p in ['M','MD','MO','MC'] else 'FWD' if p in ['A','AT','FW'] else 'UNKNOWN')
 
 @staticmethod
 def create_id(r)->str:
