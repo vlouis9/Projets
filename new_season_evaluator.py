@@ -425,7 +425,7 @@ class SquadBuilder:
             'total_squad_pvs': float(final_squad_df['pvs_in_squad'].sum()),
             'total_starters_pvs': float(final_squad_df[final_squad_df['is_starter']]['pvs_in_squad'].sum())
         }
-    return final_squad_df, summary
+        return final_squad_df, summary
 
 # ---- MAIN APP ----
 def main():
