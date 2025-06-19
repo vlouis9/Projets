@@ -482,7 +482,7 @@ def main():
             st.session_state.team_tiers[tier] = st.multiselect(f"**{tier} Tier**", options=options_for_this_tier, default=current_selection, key=f"tier_{tier}")
     
     tier_map = {100: "Winner", 75: "European", 50: "Average", 25: "Relegation"}
-        club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
+    club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
 
     if uploaded_file:
         df_processed_calc = load_and_preprocess_data(uploaded_file)
