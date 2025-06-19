@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import re
+import io
+import json
 from typing import Dict, List, Tuple, Optional, Set
 
 # ---- PAGE CONFIG ----
@@ -19,8 +21,6 @@ st.markdown("""
     .section-header {font-size: 1.4rem; font-weight: bold; color: #006847; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #006847; padding-bottom: 0.3rem;}
     .stButton>button {background-color: #004080; color: white; font-weight: bold; border-radius: 0.3rem; padding: 0.4rem 0.8rem; border: none; width: 100%;}
     .stButton>button:hover {background-color: #003060; color: white;}
-    .zoom-table {margin: 0px; padding: 0px;}
-    .club-selector-table td, .club-selector-table th {padding: 0.2rem 0.5rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -54,6 +54,7 @@ PREDEFINED_PROFILES = {
     }
 }
 
+# ----- Data helpers -----
 def simplify_position(position: str) -> str:
     if pd.isna(position) or str(position).strip() == '':
         return 'UNKNOWN'
@@ -147,6 +148,22 @@ def calculate_mrb(df: pd.DataFrame, mrb_params_per_pos: Dict[str, Dict[str, floa
     rdf['value_per_cost'] = rdf['pvs'] / safe_mrb
     rdf['value_per_cost'].fillna(0, inplace=True)
     return rdf
+
+def build_gw_strings(row, hist_df):
+    if not row.get('is_historical', False):
+        return "", ""
+    hist_row = hist_df[hist_df['player_id'] == row['player_id']]
+    if hist_row.empty:
+        return "", ""
+    hist_row = hist_row.iloc[0]
+    gw_cols = get_gameweek_columns(hist_row.index)
+    ratings = []
+    goals = []
+    for gw in gw_cols:
+        r, g = extract_rating_goals(hist_row[gw])
+        ratings.append(str(r) if r is not None else "")
+        goals.append(str(g))
+    return "|".join(ratings), "|".join(goals)
 
 class SquadBuilder:
     def __init__(self):
@@ -271,10 +288,29 @@ class SquadBuilder:
         }
         return final_squad_df, summary
 
+# ---- Save/Load Functions ----
+def save_dict_to_download_button(data_dict, label, fname):
+    bio = io.BytesIO()
+    bio.write(json.dumps(data_dict, indent=2).encode('utf-8'))
+    bio.seek(0)
+    st.download_button(label, data=bio, file_name=fname, mime='application/json')
+
+def load_dict_from_file(uploaded_file):
+    if uploaded_file is None:
+        return {}
+    try:
+        content = uploaded_file.read()
+        return json.loads(content.decode('utf-8'))
+    except Exception as e:
+        st.error(f"Could not load file: {e}")
+        return {}
+
+# ---- MAIN APP ----
+
 def main():
     st.markdown('<h1 class="main-header">🌟 MPG Auction Strategist - New Season Mode</h1>', unsafe_allow_html=True)
     squad_builder = SquadBuilder()
-
+    # --- SIDEBAR: File Inputs and Squad Params ---
     st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">⚙️ Data Files</h2>', unsafe_allow_html=True)
     hist_file = st.sidebar.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
     new_file = st.sidebar.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
@@ -340,14 +376,32 @@ def main():
         df_new['is_historical'] = df_new['player_id'].isin(hist_pids)
         df_hist_kpis = calculate_historical_kpis(df_hist)
         all_clubs = sorted(df_new['Club'].unique())
+
+        # ---- CLUB TIER UI (expander, with save/load) ----
         with st.expander("🏅 Assign Club Tiers", expanded=False):
             st.write("Assign a tier to each club below:")
             club_tiers = st.session_state.get("club_tiers", {club: "Average" for club in all_clubs})
+            # Save/Load
+            col1, col2 = st.columns([1,1])
+            with col1:
+                save_dict_to_download_button(club_tiers, "💾 Download Club Tiers", "club_tiers.json")
+            with col2:
+                club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
+                if club_upload:
+                    loaded_tiers = load_dict_from_file(club_upload)
+                    # Defensive: only update if clubs match
+                    if set(loaded_tiers.keys()) == set(all_clubs):
+                        club_tiers = loaded_tiers
+                        st.success("Club tiers loaded!")
+                    else:
+                        st.warning("Club list does not match current clubs. Tiers not loaded.")
             cols = st.columns([3, 2, 2, 2, 2])
             for i, club in enumerate(all_clubs):
                 tier = cols[i % 5].selectbox(club, CLUB_TIERS_LABELS, index=CLUB_TIERS_LABELS.index(club_tiers.get(club,"Average")), key=f"clubtier_{club}")
                 club_tiers[club] = tier
             st.session_state["club_tiers"] = club_tiers
+
+        # ---- Merge all player base info ----
         merged_rows = []
         for idx, row in df_new.iterrows():
             base = row.to_dict()
@@ -359,6 +413,8 @@ def main():
                     base[col] = float(hist_row.iloc[0][col]) if not hist_row.empty else 0.0
             merged_rows.append(base)
         df_all = pd.DataFrame(merged_rows)
+
+        # ---- NEW PLAYERS UI (expander, with save/load) ----
         with st.expander("🆕 Assign Scores to New Players", expanded=False):
             new_players = df_all[~df_all['is_historical']]
             if "new_player_scores" not in st.session_state:
@@ -367,6 +423,16 @@ def main():
             max_pot  = df_all[df_all['is_historical']]['estimated_potential'].max() if (df_all['is_historical'].any()) else 1.0
             max_reg  = df_all[df_all['is_historical']]['estimated_regularity'].max() if (df_all['is_historical'].any()) else 1.0
             max_goals= df_all[df_all['is_historical']]['estimated_goals'].max() if (df_all['is_historical'].any()) else 1.0
+            # Save/Load
+            col1, col2 = st.columns([1,1])
+            with col1:
+                save_dict_to_download_button(st.session_state["new_player_scores"], "💾 Download New Player Scores", "new_player_scores.json")
+            with col2:
+                np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
+                if np_upload:
+                    loaded_scores = load_dict_from_file(np_upload)
+                    st.session_state["new_player_scores"].update(loaded_scores)
+                    st.success("New player scores loaded!")
             if not new_players.empty:
                 st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
                 grid_cols = st.columns([2,1,1,1,1,1])
@@ -407,18 +473,21 @@ def main():
                         df_all.loc[df_all['player_id']==pid, kpi] = (score_pct/100) * maxval
             else:
                 st.info("No new players to rate.")
+
+        # ---- Normalization, PVS, MRB ----
         df_all = normalize_kpis(df_all, max_perf, max_pot, max_reg, max_goals)
         df_all = calculate_pvs(df_all, st.session_state["kpi_weights"])
         df_all = calculate_mrb(df_all, st.session_state["mrb_params"])
+
+        # ---- ADD GAMEWEEK STRINGS ----
+        df_all['Ratings per GW'], df_all['Goals per GW'] = zip(
+            *df_all.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
+        )
+
+        # ---- SQUAD SUGGESTION ----
         st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
         squad_df, squad_summary = squad_builder.select_squad(df_all, formation_key_ui, target_squad_size_ui)
         if not squad_df.empty:
-            def player_zoom_button(player_row):
-                pid = player_row['player_id']
-                label = f"{player_row['Joueur']}"
-                if st.button(label, key=f"squadzoom_{pid}"):
-                    st.session_state["zoom_pid"] = pid
-                return
             squad_disp = squad_df.copy()
             squad_disp = squad_disp.rename(columns={
                 "Joueur": "Player", "simplified_position":"Pos", "pvs_in_squad":"PVS", "Cote":"Cote",
@@ -426,14 +495,12 @@ def main():
                 "estimated_regularity":"Reg", "estimated_goals":"Goals", "team_ranking":"TeamRank"
             })
             squad_disp['Starter'] = squad_disp['is_starter'].map({True:"Yes",False:"No"})
-            st.write("**Click a player name to see season details below.**")
-            for i, row in squad_disp.iterrows():
-                cols = st.columns([2,1,1,1,1,1,1,1,1,1,1])
-                with cols[0]:
-                    if st.button(f"{row['Player']}", key=f"squadzoom_{row['player_id']}"):
-                        st.session_state["zoom_pid"] = row["player_id"]
-                for ci, col in enumerate(["Club","Pos","PVS","Bid","Perf","Pot","Reg","Goals","TeamRank","Starter"], 1):
-                    cols[ci].write(row[col])
+            # Add GW strings
+            squad_disp['Ratings per GW'], squad_disp['Goals per GW'] = zip(
+                *squad_disp.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
+            )
+            squad_disp_show = squad_disp[['Player','Club','Pos','PVS','Bid','Perf','Pot','Reg','Goals','TeamRank','Starter','Ratings per GW','Goals per GW']]
+            st.dataframe(squad_disp_show, use_container_width=True, hide_index=True)
             st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
             st.metric("Budget Spent", f"€ {squad_summary.get('total_cost',0):.0f}", help=f"Remaining: € {squad_summary.get('remaining_budget',0):.0f}")
             st.metric("Squad Size", f"{squad_summary.get('total_players',0)} (Target: {target_squad_size_ui})")
@@ -444,7 +511,7 @@ def main():
                 c = squad_summary.get('position_counts',{}).get(pos,0)
                 minr = squad_builder.squad_minimums.get(pos,0)
                 st.markdown(f"• **{pos}:** {c} (Min: {minr})")
-            st.download_button(label="📥 Download Squad (CSV)", data=squad_disp.to_csv(index=False).encode('utf-8'), file_name="mpg_suggested_squad.csv", mime="text/csv")
+            st.download_button(label="📥 Download Squad (CSV)", data=squad_disp_show.to_csv(index=False).encode('utf-8'), file_name="mpg_suggested_squad.csv", mime="text/csv")
         else:
             st.warning("Could not build a valid squad. Check your data and settings.")
 
@@ -454,36 +521,10 @@ def main():
             "mrb":"Suggested Bid", "estimated_performance":"Perf","estimated_potential":"Pot",
             "estimated_regularity":"Reg", "estimated_goals":"Goals", "team_ranking":"TeamRank"
         })
-        st.write("**Click a player name to see season details below.**")
-        for i, row in disp_df.iterrows():
-            cols = st.columns([2,1,1,1,1,1,1,1,1,1])
-            with cols[0]:
-                if st.button(f"{row['Player']}", key=f"dbzoom_{row['player_id']}"):
-                    st.session_state["zoom_pid"] = row["player_id"]
-            for ci, col in enumerate(["Club","Pos","PVS","Suggested Bid","Perf","Pot","Reg","Goals","TeamRank"], 1):
-                cols[ci].write(row[col])
-        st.download_button(label="📥 Download Player Database (CSV)", data=disp_df.to_csv(index=False).encode('utf-8'), file_name="mpg_full_player_database.csv", mime="text/csv")
+        disp_df_show = disp_df[['Player','Club','Pos','PVS','Suggested Bid','Perf','Pot','Reg','Goals','TeamRank','Ratings per GW','Goals per GW']]
+        st.dataframe(disp_df_show, use_container_width=True, hide_index=True)
+        st.download_button(label="📥 Download Player Database (CSV)", data=disp_df_show.to_csv(index=False).encode('utf-8'), file_name="mpg_full_player_database.csv", mime="text/csv")
 
-        if st.session_state.get("zoom_pid"):
-            pid = st.session_state["zoom_pid"]
-            player_row = df_all[df_all['player_id']==pid]
-            if not player_row.empty:
-                player_row = player_row.iloc[0]
-                st.markdown(f"### 🔍 Player Season Zoom: {player_row['Joueur']} ({player_row['simplified_position']} - {player_row['Club']})")
-                if player_row['is_historical']:
-                    hist_row = df_hist[df_hist['player_id']==pid].iloc[0]
-                    gw_cols = get_gameweek_columns(hist_row.index)
-                    zoom_table = pd.DataFrame({
-                        "Gameweek": gw_cols,
-                        "Rating": [extract_rating_goals(hist_row[g])[0] for g in gw_cols],
-                        "Goals": [extract_rating_goals(hist_row[g])[1] for g in gw_cols],
-                        "Raw": [hist_row[g] for g in gw_cols]
-                    })
-                    st.dataframe(zoom_table, use_container_width=True, hide_index=True)
-                else:
-                    st.info("No historical data: new player.")
-                if st.button("Close Zoom"):
-                    st.session_state["zoom_pid"] = None
     else:
         st.info("Upload BOTH last season and new season player files to start. Example columns: Joueur, Poste, Club, Cote, D1..D34")
         example_hist = pd.DataFrame({'Joueur':['PlayerA','PlayerB'], 'Poste':['A','M'], 'Club':['Club X','Club Y'], 'Cote':[45,30], 'D34':['7.5*','6.5'], 'D33':['(6.0)**','0'], 'D32':['','5.5*']})
