@@ -542,11 +542,22 @@ def display_enhanced_formation(squad_df, formation_key):
 # ---- MAIN APP ----
 def main():
     st.markdown('<h1 class="main-header">🌟 MPG Auction Strategist - New Season Mode</h1>', unsafe_allow_html=True)
-    squad_builder = SquadBuilder()
     
-    # Initialize session state for tabs
-    if "current_tab" not in st.session_state:
+    # Initialize session state variables
+    if 'club_tiers' not in st.session_state:
+        st.session_state.club_tiers = {}
+    if 'new_player_scores' not in st.session_state:
+        st.session_state.new_player_scores = {}
+    if 'current_tab' not in st.session_state:
         st.session_state.current_tab = "Squad Builder"
+    if 'profile_name' not in st.session_state:
+        st.session_state.profile_name = "Balanced Value"
+    if 'kpi_weights' not in st.session_state:
+        st.session_state.kpi_weights = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"]
+    if 'mrb_params' not in st.session_state:
+        st.session_state.mrb_params = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"]
+    
+    squad_builder = SquadBuilder()
     
     # --- SIDEBAR: File Inputs and Squad Params ---
     with st.sidebar:
@@ -562,19 +573,17 @@ def main():
         
         st.markdown("#### 🎨 Settings Profile")
         profile_names = list(PREDEFINED_PROFILES.keys())
-        if "profile_name" not in st.session_state:
-            st.session_state["profile_name"] = "Balanced Value"
-        selected_profile_name_ui = st.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state["profile_name"]), key="profile_selector")
-        if selected_profile_name_ui != st.session_state["profile_name"]:
-            st.session_state["profile_name"] = selected_profile_name_ui
-        profile_vals = PREDEFINED_PROFILES.get(st.session_state["profile_name"], PREDEFINED_PROFILES["Balanced Value"])
+        selected_profile_name_ui = st.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state.profile_name), key="profile_selector")
+        if selected_profile_name_ui != st.session_state.profile_name:
+            st.session_state.profile_name = selected_profile_name_ui
+        profile_vals = PREDEFINED_PROFILES.get(st.session_state.profile_name, PREDEFINED_PROFILES["Balanced Value"])
         
-        with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state["profile_name"]=="Custom")):
+        with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
             weights_ui = {}
             for pos in ['GK', 'DEF', 'MID', 'FWD']:
                 st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
                 default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
-                current_w = profile_vals["kpi_weights"][pos] if st.session_state["profile_name"]!="Custom" else st.session_state.get("kpi_weights", {}).get(pos, default_w)
+                current_w = profile_vals["kpi_weights"][pos] if st.session_state.profile_name!="Custom" else st.session_state.kpi_weights.get(pos, default_w)
                 weights_ui[pos] = {
                     'estimated_performance': st.slider(f"Performance", 0.0, 1.0, float(current_w.get('estimated_performance', 0.0)), 0.01, key=f"{pos}_wPerf"),
                     'estimated_potential': st.slider(f"Potential", 0.0, 1.0, float(current_w.get('estimated_potential', 0.0)), 0.01, key=f"{pos}_wPot"),
@@ -582,16 +591,18 @@ def main():
                     'estimated_goals': st.slider(f"Goals", 0.0, 1.0, float(current_w.get('estimated_goals', 0.0)), 0.01, key=f"{pos}_wGoals"),
                     'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
                 }
-            st.session_state["kpi_weights"] = weights_ui if st.session_state["profile_name"]=="Custom" else profile_vals["kpi_weights"]
+            if st.session_state.profile_name=="Custom":
+                st.session_state.kpi_weights = weights_ui
         
-        with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state["profile_name"]=="Custom")):
+        with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
             mrb_params_ui = {}
             for pos in ['GK', 'DEF', 'MID', 'FWD']:
                 st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
                 default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
-                current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state["profile_name"]!="Custom" else st.session_state.get("mrb_params", {}).get(pos, default_mrb)
+                current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state.profile_name!="Custom" else st.session_state.mrb_params.get(pos, default_mrb)
                 mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
-            st.session_state["mrb_params"] = mrb_params_ui if st.session_state["profile_name"]=="Custom" else profile_vals["mrb_params_per_pos"]
+            if st.session_state.profile_name=="Custom":
+                st.session_state.mrb_params = mrb_params_ui
 
     # Tab Navigation
     tabs = ["Squad Builder", "Player Database", "Settings"]
@@ -626,7 +637,19 @@ def main():
         except Exception as e:
             st.error(f"Could not read new season file: {e}")
 
+    # Initialize club tiers and new player scores if files are uploaded
     if df_hist is not None and df_new is not None:
+        # Initialize club tiers
+        all_clubs = sorted(df_new['Club'].unique())
+        if not st.session_state.club_tiers:
+            st.session_state.club_tiers = {club: "Average" for club in all_clubs}
+        else:
+            # Add any new clubs that might be missing
+            for club in all_clubs:
+                if club not in st.session_state.club_tiers:
+                    st.session_state.club_tiers[club] = "Average"
+        
+        # Process historical data
         df_hist['simplified_position'] = df_hist['Poste'].apply(simplify_position)
         df_hist['player_id'] = df_hist.apply(create_player_id, axis=1)
         df_new['simplified_position'] = df_new['Poste'].apply(simplify_position)
@@ -636,25 +659,36 @@ def main():
         hist_pids = set(df_hist['player_id'])
         df_new['is_historical'] = df_new['player_id'].isin(hist_pids)
         df_hist_kpis = calculate_historical_kpis(df_hist)
-        all_clubs = sorted(df_new['Club'].unique())
-
+        
+        # Initialize new player scores
+        new_players = df_new[~df_new['is_historical']]
+        if not st.session_state.new_player_scores:
+            st.session_state.new_player_scores = {}
+        for idx, row in new_players.iterrows():
+            pid = row['player_id']
+            if pid not in st.session_state.new_player_scores:
+                st.session_state.new_player_scores[pid] = {
+                    "estimated_performance": 0,
+                    "estimated_potential": 0,
+                    "estimated_regularity": 0,
+                    "estimated_goals": 0,
+                }
+                
         # ---- TAB CONTENT ----
         if tab_selection == "Settings":
             st.markdown('<h2 class="section-header">⚙️ Configuration Settings</h2>', unsafe_allow_html=True)
             
             with st.container():
                 st.markdown("### 🏅 Assign Club Tiers")
-                if "club_tiers" not in st.session_state:
-                    st.session_state["club_tiers"] = {club: "Average" for club in all_clubs}
                 col1, col2 = st.columns([1,1])
                 with col1:
-                    save_dict_to_download_button(st.session_state["club_tiers"], "💾 Download Club Tiers", "club_tiers.json")
+                    save_dict_to_download_button(st.session_state.club_tiers, "💾 Download Club Tiers", "club_tiers.json")
                 with col2:
                     club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
                     if club_upload:
                         loaded_tiers = load_dict_from_file(club_upload)
                         if set(loaded_tiers.keys()) == set(all_clubs):
-                            st.session_state["club_tiers"] = loaded_tiers
+                            st.session_state.club_tiers = loaded_tiers
                             st.success("Club tiers loaded!")
                         else:
                             st.warning("Club list does not match current clubs. Tiers not loaded.")
@@ -664,69 +698,54 @@ def main():
                     tier = club_cols[i].selectbox(
                         club, 
                         CLUB_TIERS_LABELS, 
-                        index=CLUB_TIERS_LABELS.index(st.session_state["club_tiers"].get(club,"Average")), 
+                        index=CLUB_TIERS_LABELS.index(st.session_state.club_tiers.get(club,"Average")), 
                         key=f"clubtier_{club}"
                     )
-                    st.session_state["club_tiers"][club] = tier
+                    st.session_state.club_tiers[club] = tier
             
             with st.container():
                 st.markdown("### 🆕 New Player Ratings")
-                if "new_player_scores" not in st.session_state:
-                    st.session_state["new_player_scores"] = {}
-                new_players = df_new[~df_new['is_historical']]
-                max_perf = df_hist_kpis['estimated_performance'].max() if not df_hist_kpis.empty else 1.0
-                max_pot  = df_hist_kpis['estimated_potential'].max() if not df_hist_kpis.empty else 1.0
-                max_reg  = df_hist_kpis['estimated_regularity'].max() if not df_hist_kpis.empty else 1.0
-                max_goals= df_hist_kpis['estimated_goals'].max() if not df_hist_kpis.empty else 1.0
-                
                 col1, col2 = st.columns([1,1])
                 with col1:
-                    save_dict_to_download_button(st.session_state["new_player_scores"], "💾 Download New Player Scores", "new_player_scores.json")
+                    save_dict_to_download_button(st.session_state.new_player_scores, "💾 Download New Player Scores", "new_player_scores.json")
                 with col2:
                     np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
                     if np_upload:
                         loaded_scores = load_dict_from_file(np_upload)
-                        st.session_state["new_player_scores"].update(loaded_scores)
+                        st.session_state.new_player_scores.update(loaded_scores)
                         st.success("New player scores loaded!")
                 
                 if not new_players.empty:
                     st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
                     for i, nprow in new_players.iterrows():
                         pid = nprow['player_id']
-                        if pid not in st.session_state["new_player_scores"]:
-                            st.session_state["new_player_scores"][pid] = {
-                                "estimated_performance": 0,
-                                "estimated_potential": 0,
-                                "estimated_regularity": 0,
-                                "estimated_goals": 0,
-                            }
                         with st.expander(f"{nprow['Joueur']} ({nprow['simplified_position']} - {nprow['Club']})", expanded=False):
                             cols = st.columns(4)
                             for kpi, maxval, label in [
-                                ("estimated_performance", max_perf, "Performance"),
-                                ("estimated_potential", max_pot, "Potential"),
-                                ("estimated_regularity", max_reg, "Regularity"),
-                                ("estimated_goals", max_goals, "Goals")
+                                ("estimated_performance", df_hist_kpis['estimated_performance'].max(), "Performance"),
+                                ("estimated_potential", df_hist_kpis['estimated_potential'].max(), "Potential"),
+                                ("estimated_regularity", df_hist_kpis['estimated_regularity'].max(), "Regularity"),
+                                ("estimated_goals", df_hist_kpis['estimated_goals'].max(), "Goals")
                             ]:
                                 with cols[0] if kpi == "estimated_performance" else cols[1] if kpi == "estimated_potential" else cols[2] if kpi == "estimated_regularity" else cols[3]:
                                     sel = st.selectbox(
                                         label, 
                                         NEW_PLAYER_SCORE_OPTIONS,
-                                        index=NEW_PLAYER_SCORE_OPTIONS.index(st.session_state["new_player_scores"][pid][kpi]),
+                                        index=NEW_PLAYER_SCORE_OPTIONS.index(st.session_state.new_player_scores[pid][kpi]),
                                         key=f"{pid}_{kpi}"
                                     )
-                                    st.session_state["new_player_scores"][pid][kpi] = sel
+                                    st.session_state.new_player_scores[pid][kpi] = sel
                 else:
                     st.info("No new players to rate.")
         
-        # Process data for other tabs
-        if tab_selection != "Settings" or (df_hist is not None and df_new is not None):
+        # Prepare data for other tabs
+        if tab_selection != "Settings":
             # Merge all player base info
             merged_rows = []
             for idx, row in df_new.iterrows():
                 base = row.to_dict()
                 club = base['Club']
-                base['team_ranking'] = CLUB_TIERS[st.session_state["club_tiers"].get(club,"Average")]
+                base['team_ranking'] = CLUB_TIERS[st.session_state.club_tiers[club]]
                 if base['is_historical']:
                     hist_row = df_hist_kpis[df_hist_kpis['player_id']==base['player_id']]
                     for col in ['estimated_performance','estimated_potential','estimated_regularity','estimated_goals']:
@@ -734,27 +753,24 @@ def main():
                 else:
                     pid = base['player_id']
                     for kpi in ['estimated_performance','estimated_potential','estimated_regularity','estimated_goals']:
-                        if pid in st.session_state["new_player_scores"]:
-                            score_pct = st.session_state["new_player_scores"][pid][kpi]
-                            if kpi == "estimated_performance": maxval = df_hist_kpis['estimated_performance'].max() if not df_hist_kpis.empty else 1.0
-                            elif kpi == "estimated_potential": maxval = df_hist_kpis['estimated_potential'].max() if not df_hist_kpis.empty else 1.0
-                            elif kpi == "estimated_regularity": maxval = df_hist_kpis['estimated_regularity'].max() if not df_hist_kpis.empty else 1.0
-                            elif kpi == "estimated_goals": maxval = df_hist_kpis['estimated_goals'].max() if not df_hist_kpis.empty else 1.0
-                            base[col] = (score_pct/100) * maxval
-                        else:
-                            base[col] = 0.0
+                        score_pct = st.session_state.new_player_scores[pid][kpi]
+                        if kpi == "estimated_performance": maxval = df_hist_kpis['estimated_performance'].max()
+                        elif kpi == "estimated_potential": maxval = df_hist_kpis['estimated_potential'].max()
+                        elif kpi == "estimated_regularity": maxval = df_hist_kpis['estimated_regularity'].max()
+                        elif kpi == "estimated_goals": maxval = df_hist_kpis['estimated_goals'].max()
+                        base[kpi] = (score_pct/100) * maxval
                 merged_rows.append(base)
             df_all = pd.DataFrame(merged_rows)
 
             # Normalize and calculate metrics
-            max_perf = df_hist_kpis['estimated_performance'].max() if not df_hist_kpis.empty else 1.0
-            max_pot  = df_hist_kpis['estimated_potential'].max() if not df_hist_kpis.empty else 1.0
-            max_reg  = df_hist_kpis['estimated_regularity'].max() if not df_hist_kpis.empty else 1.0
-            max_goals= df_hist_kpis['estimated_goals'].max() if not df_hist_kpis.empty else 1.0
+            max_perf = df_hist_kpis['estimated_performance'].max()
+            max_pot  = df_hist_kpis['estimated_potential'].max()
+            max_reg  = df_hist_kpis['estimated_regularity'].max()
+            max_goals= df_hist_kpis['estimated_goals'].max()
             
             df_all = normalize_kpis(df_all, max_perf, max_pot, max_reg, max_goals)
-            df_all = calculate_pvs(df_all, st.session_state["kpi_weights"])
-            df_all = calculate_mrb(df_all, st.session_state["mrb_params"])
+            df_all = calculate_pvs(df_all, st.session_state.kpi_weights)
+            df_all = calculate_mrb(df_all, st.session_state.mrb_params)
             df_all['Ratings per GW'], df_all['Goals per GW'] = zip(
                 *df_all.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
             )
