@@ -51,6 +51,34 @@ PREDEFINED_PROFILES = {
             'MID': {'max_proportional_bonus_at_pvs100': 0.6},
             'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
         }
+    },
+    "Potential Focus": {
+        "kpi_weights": {
+            'GK': {'estimated_performance': 0.20, 'estimated_potential': 0.60, 'estimated_regularity': 0.20, 'estimated_goals': 0.0, 'team_ranking': 0.0},
+            'DEF': {'estimated_performance': 0.15, 'estimated_potential': 0.55, 'estimated_regularity': 0.15, 'estimated_goals': 0.05, 'team_ranking': 0.10},
+            'MID': {'estimated_performance': 0.10, 'estimated_potential': 0.55, 'estimated_regularity': 0.15, 'estimated_goals': 0.10, 'team_ranking': 0.10},
+            'FWD': {'estimated_performance': 0.05, 'estimated_potential': 0.50, 'estimated_regularity': 0.10, 'estimated_goals': 0.25, 'team_ranking': 0.10}
+        },
+        "mrb_params_per_pos": {
+            'GK': {'max_proportional_bonus_at_pvs100': 0.25},
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.35},
+            'MID': {'max_proportional_bonus_at_pvs100': 0.5},
+            'FWD': {'max_proportional_bonus_at_pvs100': 0.7}
+        }
+    },
+    "Goal Focus": {
+        "kpi_weights": {
+            'GK': {'estimated_performance': 0.50, 'estimated_potential': 0.30, 'estimated_regularity': 0.20, 'estimated_goals': 0.0, 'team_ranking': 0.0},
+            'DEF': {'estimated_performance': 0.20, 'estimated_potential': 0.10, 'estimated_regularity': 0.20, 'estimated_goals': 0.30, 'team_ranking': 0.20},
+            'MID': {'estimated_performance': 0.15, 'estimated_potential': 0.10, 'estimated_regularity': 0.15, 'estimated_goals': 0.40, 'team_ranking': 0.20},
+            'FWD': {'estimated_performance': 0.10, 'estimated_potential': 0.10, 'estimated_regularity': 0.10, 'estimated_goals': 0.60, 'team_ranking': 0.10}
+        },
+        "mrb_params_per_pos": {
+            'GK': {'max_proportional_bonus_at_pvs100': 0.2},
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.3},
+            'MID': {'max_proportional_bonus_at_pvs100': 0.4},
+            'FWD': {'max_proportional_bonus_at_pvs100': 0.9}
+        }
     }
 }
 
@@ -84,7 +112,9 @@ def extract_rating_goals(rating_str) -> Tuple[Optional[float], int]:
         return None, 0
 
 def get_gameweek_columns(df_columns: List[str]) -> List[str]:
-    return [col for col in df_columns if re.fullmatch(r'D\d+', col)]
+    gw_cols = [col for col in df_columns if re.fullmatch(r'D\d+', col)]
+    gw_cols_sorted = sorted(gw_cols, key=lambda x: int(x[1:]))  # D1, D2, ..., D34
+    return gw_cols_sorted
 
 def calculate_historical_kpis(df_hist: pd.DataFrame) -> pd.DataFrame:
     rdf = df_hist.copy()
@@ -120,15 +150,20 @@ def calculate_pvs(df: pd.DataFrame, weights: Dict[str, Dict[str, float]]) -> pd.
     rdf['pvs'] = 0.0
     for pos in ['GK', 'DEF', 'MID', 'FWD']:
         mask = rdf['simplified_position'] == pos
-        if not mask.any(): continue
+        if not mask.any():
+            continue
         w = weights[pos]
-        rdf.loc[mask, 'pvs'] = (
+        total_weight = sum(w.values())
+        if total_weight == 0:
+            total_weight = 1.0  # Avoid division by zero
+        pvs_raw = (
             rdf.loc[mask, 'norm_estimated_performance'] * w.get('estimated_performance', 0) +
             rdf.loc[mask, 'norm_estimated_potential'] * w.get('estimated_potential', 0) +
             rdf.loc[mask, 'norm_estimated_regularity'] * w.get('estimated_regularity', 0) +
             rdf.loc[mask, 'norm_estimated_goals'] * w.get('estimated_goals', 0) +
             rdf.loc[mask, 'norm_team_ranking'] * w.get('team_ranking', 0)
-        ).clip(0, 100)
+        )
+        rdf.loc[mask, 'pvs'] = (pvs_raw / total_weight).clip(0, 100)
     return rdf
 
 def calculate_mrb(df: pd.DataFrame, mrb_params_per_pos: Dict[str, Dict[str, float]]) -> pd.DataFrame:
@@ -164,6 +199,44 @@ def build_gw_strings(row, hist_df):
         ratings.append(str(r) if r is not None else "")
         goals.append(str(g))
     return "|".join(ratings), "|".join(goals)
+
+def display_squad_formation(squad_df, formation_key):
+    formations = {
+        "4-4-2": [("FWD", 2), ("MID", 4), ("DEF", 4), ("GK", 1)],
+        "4-3-3": [("FWD", 3), ("MID", 3), ("DEF", 4), ("GK", 1)],
+        "3-5-2": [("FWD", 2), ("MID", 5), ("DEF", 3), ("GK", 1)],
+        "3-4-3": [("FWD", 3), ("MID", 4), ("DEF", 3), ("GK", 1)],
+        "4-5-1": [("FWD", 1), ("MID", 5), ("DEF", 4), ("GK", 1)],
+        "5-3-2": [("FWD", 2), ("MID", 3), ("DEF", 5), ("GK", 1)],
+        "5-4-1": [("FWD", 1), ("MID", 4), ("DEF", 5), ("GK", 1)]
+    }
+    st.markdown("### **Visual Formation**")
+    squad_df = squad_df.copy()
+    squad_df = squad_df[squad_df['is_starter']]
+    for pos, n in formations[formation_key]:
+        players = squad_df[squad_df['simplified_position']==pos].sort_values('PVS', ascending=False).head(n)
+        cols = st.columns(n)
+        for i, (_, p) in enumerate(players.iterrows()):
+            cols[i].markdown(
+                f"<div style='text-align:center;'><b>{p['Player']}</b><br><span style='font-size:0.85em;'>{p['Club']}</span><br><span style='color:#004080;'>PVS: {p['PVS']:.1f}</span></div>",
+                unsafe_allow_html=True
+            )
+
+def save_dict_to_download_button(data_dict, label, fname):
+    bio = io.BytesIO()
+    bio.write(json.dumps(data_dict, indent=2).encode('utf-8'))
+    bio.seek(0)
+    st.download_button(label, data=bio, file_name=fname, mime='application/json')
+
+def load_dict_from_file(uploaded_file):
+    if uploaded_file is None:
+        return {}
+    try:
+        content = uploaded_file.read()
+        return json.loads(content.decode('utf-8'))
+    except Exception as e:
+        st.error(f"Could not load file: {e}")
+        return {}
 
 class SquadBuilder:
     def __init__(self):
@@ -288,25 +361,7 @@ class SquadBuilder:
         }
         return final_squad_df, summary
 
-# ---- Save/Load Functions ----
-def save_dict_to_download_button(data_dict, label, fname):
-    bio = io.BytesIO()
-    bio.write(json.dumps(data_dict, indent=2).encode('utf-8'))
-    bio.seek(0)
-    st.download_button(label, data=bio, file_name=fname, mime='application/json')
-
-def load_dict_from_file(uploaded_file):
-    if uploaded_file is None:
-        return {}
-    try:
-        content = uploaded_file.read()
-        return json.loads(content.decode('utf-8'))
-    except Exception as e:
-        st.error(f"Could not load file: {e}")
-        return {}
-
 # ---- MAIN APP ----
-
 def main():
     st.markdown('<h1 class="main-header">🌟 MPG Auction Strategist - New Season Mode</h1>', unsafe_allow_html=True)
     squad_builder = SquadBuilder()
@@ -347,7 +402,7 @@ def main():
             st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
             default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
             current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state["profile_name"]!="Custom" else st.session_state.get("mrb_params", {}).get(pos, default_mrb)
-            mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrbBonus")}
+            mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
         st.session_state["mrb_params"] = mrb_params_ui if st.session_state["profile_name"]=="Custom" else profile_vals["mrb_params_per_pos"]
 
     if "zoom_pid" not in st.session_state:
@@ -377,11 +432,10 @@ def main():
         df_hist_kpis = calculate_historical_kpis(df_hist)
         all_clubs = sorted(df_new['Club'].unique())
 
-        # ---- CLUB TIER UI (expander, with save/load) ----
+        # ---- CLUB TIER UI ----
         with st.expander("🏅 Assign Club Tiers", expanded=False):
             st.write("Assign a tier to each club below:")
             club_tiers = st.session_state.get("club_tiers", {club: "Average" for club in all_clubs})
-            # Save/Load
             col1, col2 = st.columns([1,1])
             with col1:
                 save_dict_to_download_button(club_tiers, "💾 Download Club Tiers", "club_tiers.json")
@@ -389,7 +443,6 @@ def main():
                 club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
                 if club_upload:
                     loaded_tiers = load_dict_from_file(club_upload)
-                    # Defensive: only update if clubs match
                     if set(loaded_tiers.keys()) == set(all_clubs):
                         club_tiers = loaded_tiers
                         st.success("Club tiers loaded!")
@@ -414,7 +467,7 @@ def main():
             merged_rows.append(base)
         df_all = pd.DataFrame(merged_rows)
 
-        # ---- NEW PLAYERS UI (expander, with save/load) ----
+        # ---- NEW PLAYERS UI ----
         with st.expander("🆕 Assign Scores to New Players", expanded=False):
             new_players = df_all[~df_all['is_historical']]
             if "new_player_scores" not in st.session_state:
@@ -423,7 +476,6 @@ def main():
             max_pot  = df_all[df_all['is_historical']]['estimated_potential'].max() if (df_all['is_historical'].any()) else 1.0
             max_reg  = df_all[df_all['is_historical']]['estimated_regularity'].max() if (df_all['is_historical'].any()) else 1.0
             max_goals= df_all[df_all['is_historical']]['estimated_goals'].max() if (df_all['is_historical'].any()) else 1.0
-            # Save/Load
             col1, col2 = st.columns([1,1])
             with col1:
                 save_dict_to_download_button(st.session_state["new_player_scores"], "💾 Download New Player Scores", "new_player_scores.json")
@@ -474,17 +526,13 @@ def main():
             else:
                 st.info("No new players to rate.")
 
-        # ---- Normalization, PVS, MRB ----
         df_all = normalize_kpis(df_all, max_perf, max_pot, max_reg, max_goals)
         df_all = calculate_pvs(df_all, st.session_state["kpi_weights"])
         df_all = calculate_mrb(df_all, st.session_state["mrb_params"])
-
-        # ---- ADD GAMEWEEK STRINGS ----
         df_all['Ratings per GW'], df_all['Goals per GW'] = zip(
             *df_all.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
         )
 
-        # ---- SQUAD SUGGESTION ----
         st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
         squad_df, squad_summary = squad_builder.select_squad(df_all, formation_key_ui, target_squad_size_ui)
         if not squad_df.empty:
@@ -495,12 +543,12 @@ def main():
                 "estimated_regularity":"Reg", "estimated_goals":"Goals", "team_ranking":"TeamRank"
             })
             squad_disp['Starter'] = squad_disp['is_starter'].map({True:"Yes",False:"No"})
-            # Add GW strings
             squad_disp['Ratings per GW'], squad_disp['Goals per GW'] = zip(
                 *squad_disp.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
             )
             squad_disp_show = squad_disp[['Player','Club','Pos','PVS','Bid','Perf','Pot','Reg','Goals','TeamRank','Starter','Ratings per GW','Goals per GW']]
             st.dataframe(squad_disp_show, use_container_width=True, hide_index=True)
+            display_squad_formation(squad_disp, formation_key_ui)
             st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
             st.metric("Budget Spent", f"€ {squad_summary.get('total_cost',0):.0f}", help=f"Remaining: € {squad_summary.get('remaining_budget',0):.0f}")
             st.metric("Squad Size", f"{squad_summary.get('total_players',0)} (Target: {target_squad_size_ui})")
