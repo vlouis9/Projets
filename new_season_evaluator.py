@@ -6,8 +6,8 @@ from typing import Dict, List, Tuple, Optional
 
 #--- Page Setup ---
 
-st.set_page_config(page_title="🚀 MPG Auction Helper", layout="wide") st.markdown("""
-
+st.set_page_config(page_title="🚀 MPG Auction Helper", layout="wide") 
+st.markdown("""
 <style>
     .header {text-align:center; font-size:2rem; color:#004080; margin-bottom:1rem;}
     .subheader {font-size:1.2rem; color:#006847; margin-top:1rem; margin-bottom:0.5rem;}
