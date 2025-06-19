@@ -253,179 +253,113 @@ class SquadBuilder:
         self.budget = 500
 
     def select_squad(self, df_evaluated_players: pd.DataFrame, formation_key: str, target_squad_size: int) -> Tuple[pd.DataFrame, Dict]:
-   		eligible_df = df_evaluated_players.drop_duplicates(subset=['player_id']).copy()
-   		eligible_df['mrb'] = eligible_df['mrb'].astype(int)
-   		current_squad = []
-
-    # Helper functions
-    def get_player_ids_set():
-        return {p['player_id'] for p in current_squad}
-    def get_pos_counts():
-        counts = {pos: 0 for pos in self.squad_minimums.keys()}
-        for p in current_squad:
-            counts[p['pos']] += 1
-        return counts
-
-    # 1. Select best starters (by formation), even if over budget for now
-    formation = self.formations[formation_key]
-    for pos, n in formation.items():
-        candidates = eligible_df[eligible_df['simplified_position'] == pos].sort_values('pvs', ascending=False)
-        selected = 0
-        for _, row in candidates.iterrows():
-            if row['player_id'] in get_player_ids_set(): continue
-            current_squad.append({
-                'player_id': row['player_id'],
-                'mrb': int(row['mrb']),
-                'pvs': float(row['pvs']),
-                'pos': row['simplified_position'],
-                'is_starter': True
-            })
-            selected += 1
-            if selected >= n:
+        eligible_df = df_evaluated_players.drop_duplicates(subset=['player_id']).copy()
+        eligible_df['mrb'] = eligible_df['mrb'].astype(int)
+        current_squad = []
+        def get_current_squad_player_ids_set() -> Set[str]:
+            return {p['player_id'] for p in current_squad}
+        def get_current_pos_counts_dict() -> Dict[str, int]:
+            counts = {pos_key: 0 for pos_key in self.squad_minimums.keys()}
+            for p_dict in current_squad:
+                counts[p_dict['pos']] = counts.get(p_dict['pos'], 0) + 1
+            return counts
+        def add_player_to_current_squad_list(player_row_data: pd.Series, is_starter_role: bool) -> bool:
+            player_id_to_add = player_row_data['player_id']
+            if player_id_to_add in get_current_squad_player_ids_set(): return False
+            if player_row_data['simplified_position'] == 'GK':
+                if get_current_pos_counts_dict().get('GK', 0) >= 2: return False
+            current_squad.append({'player_id': player_id_to_add, 'mrb': int(player_row_data['mrb']),'pvs': float(player_row_data['pvs']), 'pos': player_row_data['simplified_position'],'is_starter': is_starter_role})
+            return True
+        all_players_sorted_pvs = eligible_df.sort_values(by='pvs', ascending=False)
+        starters_map = self.formations[formation_key].copy()
+        for _, player_row in all_players_sorted_pvs.iterrows():
+            pos = player_row['simplified_position']
+            if player_row['player_id'] not in get_current_squad_player_ids_set() and starters_map.get(pos, 0) > 0:
+                if add_player_to_current_squad_list(player_row, True): starters_map[pos] -= 1
+        current_counts_ph_a2 = get_current_pos_counts_dict()
+        for pos, min_needed in self.squad_minimums.items():
+            while current_counts_ph_a2.get(pos, 0) < min_needed:
+                candidate_series = all_players_sorted_pvs[(all_players_sorted_pvs['simplified_position'] == pos) & (~all_players_sorted_pvs['player_id'].isin(get_current_squad_player_ids_set()))].head(1)
+                if candidate_series.empty: break
+                if add_player_to_current_squad_list(candidate_series.iloc[0], False): current_counts_ph_a2 = get_current_pos_counts_dict()
+                else: break
+        while len(current_squad) < target_squad_size:
+            current_counts_ph_a3 = get_current_pos_counts_dict(); most_needed_pos_details = []
+            for pos_key, num_starters in self.formations[formation_key].items():
+                desired_for_pos = num_starters + 1; deficit = desired_for_pos - current_counts_ph_a3.get(pos_key, 0)
+                most_needed_pos_details.append((pos_key, deficit, num_starters))
+            most_needed_pos_details.sort(key=lambda x: (x[1], x[2]), reverse=True); player_added_in_a3_pass = False
+            for pos_to_fill, deficit_val, _ in most_needed_pos_details:
+                if deficit_val <= 0 and len(current_squad) < target_squad_size : pass
+                elif deficit_val <=0: continue
+                if pos_to_fill == 'GK' and current_counts_ph_a3.get('GK', 0) >= 2: continue
+                candidate_series_a3 = all_players_sorted_pvs[(all_players_sorted_pvs['simplified_position'] == pos_to_fill) & (~all_players_sorted_pvs['player_id'].isin(get_current_squad_player_ids_set()))].head(1)
+                if not candidate_series_a3.empty:
+                    if add_player_to_current_squad_list(candidate_series_a3.iloc[0], False): player_added_in_a3_pass = True; break
+            if not player_added_in_a3_pass:
+                if len(current_squad) < target_squad_size:
+                    candidate_overall_a3 = all_players_sorted_pvs[~all_players_sorted_pvs['player_id'].isin(get_current_squad_player_ids_set())].head(1)
+                    if not candidate_overall_a3.empty:
+                        if not add_player_to_current_squad_list(candidate_overall_a3.iloc[0], False):
+                            all_players_sorted_pvs = all_players_sorted_pvs[all_players_sorted_pvs['player_id'] != candidate_overall_a3.iloc[0]['player_id']]
+                            if all_players_sorted_pvs.empty: break
+                            continue
+                    else: break
+                else: break
+            if len(current_squad) >= target_squad_size: break
+        current_total_mrb = sum(p['mrb'] for p in current_squad)
+        max_budget_iterations_b = target_squad_size * 2
+        iterations_b_count = 0
+        budget_conformance_tolerance = 1
+        while current_total_mrb > self.budget + budget_conformance_tolerance and iterations_b_count < max_budget_iterations_b:
+            iterations_b_count += 1; made_a_downgrade_in_pass = False; best_downgrade_action = None
+            candidates_for_replacement = sorted([p for p in current_squad if not p['is_starter']], key=lambda x: x['mrb'], reverse=True)
+            if not candidates_for_replacement and current_total_mrb > self.budget: candidates_for_replacement = sorted(current_squad, key=lambda x: x['pvs'])
+            for old_player_dict_b in candidates_for_replacement:
+                old_pid_b = old_player_dict_b['player_id']; old_pos_b = old_player_dict_b['pos']; old_mrb_b = old_player_dict_b['mrb']; old_pvs_b = old_player_dict_b['pvs']
+                potential_replacements_df = eligible_df[(eligible_df['simplified_position'] == old_pos_b) & (~eligible_df['player_id'].isin(get_current_squad_player_ids_set() - {old_pid_b})) & (eligible_df['mrb'] < old_mrb_b)]
+                if not potential_replacements_df.empty:
+                    for _, new_player_row_b in potential_replacements_df.iterrows():
+                        mrb_saved_b = old_mrb_b - new_player_row_b['mrb']; pvs_change_val_b = new_player_row_b['pvs'] - old_pvs_b
+                        current_swap_score_b = mrb_saved_b - (abs(pvs_change_val_b) * 0.5 if pvs_change_val_b < 0 else -pvs_change_val_b * 0.1)
+                        if best_downgrade_action is None or current_swap_score_b > best_downgrade_action[4]:
+                            best_downgrade_action = (old_pid_b, new_player_row_b['player_id'], mrb_saved_b, pvs_change_val_b, current_swap_score_b, new_player_row_b)
+            if best_downgrade_action:
+                old_id_exec, new_id_exec, mrb_s_exec, pvs_c_exec, _, new_player_data_exec = best_downgrade_action
+                original_starter_status_exec = next((p['is_starter'] for p in current_squad if p['player_id'] == old_id_exec), False)
+                current_squad = [p for p in current_squad if p['player_id'] != old_id_exec]
+                add_player_to_current_squad_list(new_player_data_exec, original_starter_status_exec)
+                current_total_mrb = sum(p['mrb'] for p in current_squad)
+                made_a_downgrade_in_pass = True
+            if not made_a_downgrade_in_pass:
+                if current_total_mrb > self.budget + budget_conformance_tolerance: st.warning(f"Budget Target Not Met: MRB {current_total_mrb} > Budget {self.budget}.")
                 break
-
-    # 2. Fill to minimums, prioritizing best value bench
-    pos_counts = get_pos_counts()
-    for pos, min_needed in self.squad_minimums.items():
-        n_starters = formation.get(pos, 0)
-        n_needed = max(0, min_needed - pos_counts.get(pos, 0))
-        candidates = eligible_df[
-            (eligible_df['simplified_position'] == pos) &
-            (~eligible_df['player_id'].isin(get_player_ids_set()))
-        ].copy()
-        candidates['value'] = candidates['pvs'] / (candidates['mrb'].replace(0, 1))
-        candidates = candidates.sort_values(['value', 'pvs'], ascending=[False, False])
-        for _, row in candidates.iterrows():
-            if n_needed <= 0: break
-            current_squad.append({
-                'player_id': row['player_id'],
-                'mrb': int(row['mrb']),
-                'pvs': float(row['pvs']),
-                'pos': row['simplified_position'],
-                'is_starter': False
-            })
-            n_needed -= 1
-
-    # 3. Fill up to target_squad_size with best overall value
-    while len(current_squad) < target_squad_size:
-        candidates = eligible_df[~eligible_df['player_id'].isin(get_player_ids_set())].copy()
-        if candidates.empty: break
-        candidates['value'] = candidates['pvs'] / (candidates['mrb'].replace(0, 1))
-        next_row = candidates.sort_values(['value', 'pvs'], ascending=[False, False]).iloc[0]
-        current_squad.append({
-            'player_id': next_row['player_id'],
-            'mrb': int(next_row['mrb']),
-            'pvs': float(next_row['pvs']),
-            'pos': next_row['simplified_position'],
-            'is_starter': False
-        })
-
-    # 4. If over budget, trim bench first, then downgrade starters only if needed, but always keep minimums!
-    def can_remove(player):
-        counts = get_pos_counts()
-        min_needed = self.squad_minimums.get(player['pos'], 0)
-        n_starters = formation.get(player['pos'], 0)
-        n_in_squad = counts[player['pos']]
-        n_starters_in_squad = sum(1 for p in current_squad if p['pos'] == player['pos'] and p['is_starter'])
-        # Never remove if doing so breaks minimums or required starters for formation
-        if player['is_starter']:
-            return n_starters_in_squad > n_starters
-        else:
-            return n_in_squad > min_needed
-
-    budget_tol = 1
-    max_iterations = len(current_squad) * 2
-    iterations = 0
-    while sum(p['mrb'] for p in current_squad) > self.budget + budget_tol and iterations < max_iterations:
-        iterations += 1
-        # 4a. Try to downgrade or remove most expensive bench player first
-        bench = [p for p in current_squad if not p['is_starter'] and can_remove(p)]
-        bench = sorted(bench, key=lambda x: (-x['mrb'], -x['pvs']))
-        downgraded = False
-        for old in bench:
-            possible_replacements = eligible_df[
-                (eligible_df['simplified_position'] == old['pos']) &
-                (~eligible_df['player_id'].isin(get_player_ids_set() - {old['player_id']})) &
-                (eligible_df['mrb'] < old['mrb'])
-            ].copy()
-            if not possible_replacements.empty:
-                possible_replacements['value'] = possible_replacements['pvs'] / (possible_replacements['mrb'].replace(0, 1))
-                new = possible_replacements.sort_values(['value', 'pvs'], ascending=[False, False]).iloc[0]
-                current_squad = [p for p in current_squad if p['player_id'] != old['player_id']]
-                current_squad.append({
-                    'player_id': new['player_id'],
-                    'mrb': int(new['mrb']),
-                    'pvs': float(new['pvs']),
-                    'pos': new['simplified_position'],
-                    'is_starter': False
-                })
-                downgraded = True
-                break
-            else:
-                # If no better value, try removing this bench player if squad size > minimum and > 11
-                if len(current_squad) > sum(self.squad_minimums.values()) and len(current_squad) > 11:
-                    current_squad = [p for p in current_squad if p['player_id'] != old['player_id']]
-                    downgraded = True
-                    break
-        if downgraded: continue
-        # 4b. If still over, reluctantly downgrade least valuable starter that can be swapped, but never break formation
-        starters = [p for p in current_squad if p['is_starter'] and can_remove(p)]
-        starters = sorted(starters, key=lambda x: (x['pvs'], x['mrb']))
-        for old in starters:
-            possible_replacements = eligible_df[
-                (eligible_df['simplified_position'] == old['pos']) &
-                (~eligible_df['player_id'].isin(get_player_ids_set() - {old['player_id']})) &
-                (eligible_df['mrb'] < old['mrb'])
-            ].copy()
-            if not possible_replacements.empty:
-                possible_replacements['value'] = possible_replacements['pvs'] / (possible_replacements['mrb'].replace(0, 1))
-                new = possible_replacements.sort_values(['value', 'pvs'], ascending=[False, False]).iloc[0]
-                current_squad = [p for p in current_squad if p['player_id'] != old['player_id']]
-                current_squad.append({
-                    'player_id': new['player_id'],
-                    'mrb': int(new['mrb']),
-                    'pvs': float(new['pvs']),
-                    'pos': new['simplified_position'],
-                    'is_starter': True
-                })
-                downgraded = True
-                break
-        if not downgraded:
-            # If nothing can be done, break to avoid infinite loop
-            break
-
-    # Finalize: set starters again in case bench/starting swaps happened
-    final_squad_player_ids = get_player_ids_set()
-    final_squad_df_base = eligible_df[eligible_df['player_id'].isin(final_squad_player_ids)].copy()
-    details_df_final = pd.DataFrame(current_squad)
-    details_df_final_renamed = details_df_final.rename(columns={'mrb': 'mrb_actual_cost', 'pvs': 'pvs_in_squad', 'is_starter': 'is_starter_from_selection'})
-    final_squad_df = pd.merge(final_squad_df_base, details_df_final_renamed[['player_id', 'mrb_actual_cost', 'pvs_in_squad', 'is_starter_from_selection']], on='player_id', how='left')
-    final_squad_df['mrb_actual_cost'] = final_squad_df['mrb_actual_cost'].fillna(0).astype(int)
-    final_squad_df['pvs_in_squad'] = final_squad_df['pvs_in_squad'].fillna(0.0)
-    # Recompute true starters by PVS, for formation
-    final_starter_ids_definitive = set()
-    temp_formation_needs_final = self.formations[formation_key].copy()
-    final_squad_df_sorted_for_final_starters = final_squad_df.sort_values(by='pvs_in_squad', ascending=False)
-    for _, player_row_final_pass in final_squad_df_sorted_for_final_starters.iterrows():
-        pos_final_pass = player_row_final_pass['simplified_position']
-        player_id_final_pass = player_row_final_pass['player_id']
-        if temp_formation_needs_final.get(pos_final_pass, 0) > 0:
-            if player_id_final_pass not in final_starter_ids_definitive:
-                final_starter_ids_definitive.add(player_id_final_pass)
-                temp_formation_needs_final[pos_final_pass] -= 1
-    final_squad_df['is_starter'] = final_squad_df['player_id'].isin(final_starter_ids_definitive)
-    if 'is_starter_from_selection' in final_squad_df.columns:
-        final_squad_df.drop(columns=['is_starter_from_selection'], inplace=True, errors='ignore')
-    final_total_mrb_actual = final_squad_df['mrb_actual_cost'].sum()
-    summary = {
-        'total_players': len(final_squad_df),
-        'total_cost': int(final_total_mrb_actual),
-        'remaining_budget': int(self.budget - final_total_mrb_actual),
-        'position_counts': final_squad_df['simplified_position'].value_counts().to_dict(),
-        'total_squad_pvs': float(final_squad_df['pvs_in_squad'].sum()),
-        'total_starters_pvs': float(final_squad_df[final_squad_df['is_starter']]['pvs_in_squad'].sum())
-    }
-return final_squad_df, summary
+        final_squad_player_ids = get_current_squad_player_ids_set()
+        final_squad_df_base = eligible_df[eligible_df['player_id'].isin(final_squad_player_ids)].copy()
+        details_df_final = pd.DataFrame(current_squad)
+        details_df_final_renamed = details_df_final.rename(columns={'mrb': 'mrb_actual_cost', 'pvs':'pvs_in_squad', 'is_starter':'is_starter_from_selection'})
+        final_squad_df = pd.merge(final_squad_df_base, details_df_final_renamed[['player_id', 'mrb_actual_cost', 'pvs_in_squad', 'is_starter_from_selection']], on='player_id', how='left')
+        final_squad_df['mrb_actual_cost'] = final_squad_df['mrb_actual_cost'].fillna(0).astype(int)
+        final_squad_df['pvs_in_squad'] = final_squad_df['pvs_in_squad'].fillna(0.0)
+        final_starter_ids_definitive = set()
+        temp_formation_needs_final = self.formations[formation_key].copy()
+        final_squad_df_sorted_for_final_starters = final_squad_df.sort_values(by='pvs_in_squad', ascending=False)
+        for _, player_row_final_pass in final_squad_df_sorted_for_final_starters.iterrows():
+            pos_final_pass = player_row_final_pass['simplified_position']; player_id_final_pass = player_row_final_pass['player_id']
+            if temp_formation_needs_final.get(pos_final_pass, 0) > 0:
+                if player_id_final_pass not in final_starter_ids_definitive : final_starter_ids_definitive.add(player_id_final_pass); temp_formation_needs_final[pos_final_pass] -=1
+        final_squad_df['is_starter'] = final_squad_df['player_id'].isin(final_starter_ids_definitive)
+        if 'is_starter_from_selection' in final_squad_df.columns: final_squad_df.drop(columns=['is_starter_from_selection'], inplace=True, errors='ignore')
+        final_total_mrb_actual = final_squad_df['mrb_actual_cost'].sum()
+        summary = {
+            'total_players': len(final_squad_df),
+            'total_cost': int(final_total_mrb_actual),
+            'remaining_budget': int(self.budget - final_total_mrb_actual),
+            'position_counts': final_squad_df['simplified_position'].value_counts().to_dict(),
+            'total_squad_pvs': float(final_squad_df['pvs_in_squad'].sum()),
+            'total_starters_pvs': float(final_squad_df[final_squad_df['is_starter']]['pvs_in_squad'].sum())
+        }
+        return final_squad_df, summary
 
 # ---- MAIN APP ----
 def main():
