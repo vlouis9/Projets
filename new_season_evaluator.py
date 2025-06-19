@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple, Set
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v12.0",
+    page_title="MPG Hybrid Strategist v13.0",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -77,6 +77,7 @@ class MPGAuctionStrategist:
     @staticmethod
     def calculate_pvs(df: pd.DataFrame, team_rank_weight: float, weights: Dict[str, Dict[str, float]]) -> pd.DataFrame:
         rdf = df.copy()
+        rdf['pvs_kpi'] = 0.0
         for pos in POSITIONS:
             mask = rdf['simplified_position'] == pos
             if not mask.any(): continue
@@ -84,8 +85,9 @@ class MPGAuctionStrategist:
             total_weight = sum(pos_weights.values())
             if total_weight > 0:
                 weighted_sum = sum(rdf.loc[mask, f"norm_{kpi}"] * w for kpi, w in pos_weights.items() if f"norm_{kpi}" in rdf.columns)
-                rdf.loc[mask, 'pvs_kpi'] = (weighted_sum / total_weight) * 100
-        rdf['pvs_kpi'].fillna(0, inplace=True)
+                # FIX: Removed erroneous * 100, PVS is now a proper weighted average
+                rdf.loc[mask, 'pvs_kpi'] = weighted_sum / total_weight
+        
         rdf['pvs'] = ((rdf['pvs_kpi'] * (1 - team_rank_weight)) + (rdf[KPI_TEAM_RANK] * team_rank_weight)).clip(0, 100)
         return rdf
 
@@ -106,39 +108,59 @@ class MPGAuctionStrategist:
         squad_df = pd.DataFrame()
         available_players = df_evaluated_players.sort_values(by='pvs', ascending=False).copy()
         
+        # Step 1: Define positional targets based on formation, minimums, and squad size
         pos_targets = self.squad_minimums.copy()
         flex_spots = target_squad_size - sum(pos_targets.values())
         if flex_spots > 0:
             non_gk_starters = sum(c for p, c in self.formations[formation_key].items() if p != 'GK')
             if non_gk_starters > 0:
                 formation_ratios = {pos: count / non_gk_starters for pos, count in self.formations[formation_key].items() if pos != 'GK'}
-                for _ in range(flex_spots):
-                    best_pos_to_add = max(formation_ratios, key=formation_ratios.get)
-                    pos_targets[best_pos_to_add] += 1
-        
+                # Distribute flex spots proportionally based on formation
+                for i in range(flex_spots):
+                    pos_to_add = max(formation_ratios, key=lambda p: formation_ratios[p] * (1 - pos_targets[p] / target_squad_size))
+                    pos_targets[pos_to_add] += 1
+
+        # Step 2: Initial squad selection to meet targets with highest PVS players
         for pos, target_count in pos_targets.items():
             players_for_pos = available_players[available_players['simplified_position'] == pos].head(target_count)
             squad_df = pd.concat([squad_df, players_for_pos])
             available_players = available_players.drop(players_for_pos.index)
         
+        # Step 3: Assign starters
         squad_df['is_starter'] = False
         for pos, count in self.formations[formation_key].items():
             starters_for_pos = squad_df[squad_df['simplified_position'] == pos].sort_values(by='pvs', ascending=False).head(count)
             squad_df.loc[starters_for_pos.index, 'is_starter'] = True
 
+        # Step 4: Robust Budget Optimization
         current_mrb = squad_df['mrb'].sum()
         while current_mrb > self.budget:
-            non_starters = squad_df[~squad_df['is_starter']].copy()
-            if non_starters.empty: break
+            best_swap = None
+            max_efficiency = -1
             
-            worst_player = non_starters.sort_values(by='pvs').iloc[0]
-            replacement = available_players[(available_players['simplified_position'] == worst_player['simplified_position']) & (available_players['mrb'] < worst_player['mrb'])].head(1)
-            if replacement.empty: break
+            # Find the most efficient downgrade possible across the whole team
+            for _, p_old in squad_df[~squad_df['is_starter']].iterrows():
+                replacements = available_players[(available_players['simplified_position'] == p_old['simplified_position']) & (available_players['mrb'] < p_old['mrb'])]
+                if replacements.empty: continue
+                p_new = replacements.iloc[0] # Best available replacement
+                
+                cost_saved = p_old['mrb'] - p_new['mrb']
+                pvs_lost = p_old['pvs'] - p_new['pvs']
+                efficiency = cost_saved / (pvs_lost + 0.1) # Add small epsilon to avoid division by zero
+                
+                if efficiency > max_efficiency:
+                    max_efficiency = efficiency
+                    best_swap = (p_old, p_new)
 
-            squad_df = squad_df.drop(worst_player.name)
-            squad_df = pd.concat([squad_df, replacement])
-            available_players = available_players.drop(replacement.index)
-            current_mrb = squad_df['mrb'].sum()
+            if best_swap:
+                p_old, p_new = best_swap
+                squad_df = squad_df.drop(p_old.name)
+                squad_df = pd.concat([squad_df, p_new.to_frame().T])
+                available_players = available_players.drop(p_new.name)
+                available_players = pd.concat([available_players, p_old.to_frame().T])
+                current_mrb = squad_df['mrb'].sum()
+            else:
+                break # No possible downgrade found, exit loop
 
         summary = {'total_players': len(squad_df), 'total_cost': int(squad_df['mrb'].sum()), 'remaining_budget': int(self.budget - squad_df['mrb'].sum()), 'position_counts': squad_df['simplified_position'].value_counts().to_dict(), 'total_squad_pvs': round(squad_df['pvs'].sum(), 2), 'total_starters_pvs': round(squad_df[squad_df['is_starter']]['pvs'].sum(), 2)}
         return squad_df, summary
@@ -181,7 +203,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
     return kpi_df
 
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v12.0</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v13.0</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     if 'current_profile_name' not in st.session_state:
@@ -257,11 +279,9 @@ def main():
     st.session_state.squad_size = st.sidebar.number_input("Squad Size", min_value=18, max_value=30, value=DEFAULT_SQUAD_SIZE, key="squad_size_selector")
 
     if st.sidebar.button("🚀 Generate Optimal Squad", type="primary"):
-        # --- ROBUST DATA PREPARATION ---
         df_new_kpis_from_editor = st.session_state.new_player_kpis_df.copy()
         for kpi in PLAYER_KPI_COLUMNS: df_new_kpis_from_editor[f"norm_{kpi}"] = df_new_kpis_from_editor[kpi]
         
-        # Create a clean KPI dataframe with ONLY player_id and KPI columns
         kpi_cols_to_keep = ['player_id'] + PLAYER_KPI_COLUMNS + [f'norm_{kpi}' for kpi in PLAYER_KPI_COLUMNS]
         df_new_kpis_clean = df_new_kpis_from_editor[kpi_cols_to_keep]
         all_kpis_df = pd.concat([df_returning_kpis, df_new_kpis_clean], ignore_index=True)
@@ -270,7 +290,6 @@ def main():
         club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1)
         
-        # Merge the clean KPI data with the master player list (df_new)
         df_merged = pd.merge(df_new, all_kpis_df, on='player_id', how='left').dropna(subset=[f"norm_{kpi}" for kpi in PLAYER_KPI_COLUMNS])
         df_merged[KPI_TEAM_RANK] = df_merged['Club'].map(club_to_score).fillna(50)
 
@@ -283,7 +302,6 @@ def main():
     if 'squad_df_result' in st.session_state and not st.session_state.squad_df_result.empty:
         st.markdown('<hr><h2 class="section-header">🏆 Final Results</h2>', unsafe_allow_html=True)
         
-        # --- CLEANED UP DISPLAY LOGIC ---
         cols_to_display_map = {'Joueur': 'Player', 'Club': 'Club', 'simplified_position': 'Pos', 'Cote': 'Cost', 'mrb': 'Bid', 'pvs': 'PVS', 'is_starter': 'Starter', KPI_PERFORMANCE: 'Perf', KPI_POTENTIAL: 'Pot', KPI_REGULARITY: 'Reg', KPI_GOALS: 'Goals'}
         
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
@@ -292,7 +310,6 @@ def main():
             col_main, col_summary = st.columns([3, 1])
             with col_main:
                 squad_display_df = st.session_state.squad_df_result.rename(columns=cols_to_display_map)
-                # Ensure all display columns exist before trying to show them
                 final_squad_cols = [col for col in cols_to_display_map.values() if col in squad_display_df.columns]
                 st.dataframe(squad_display_df[final_squad_cols], use_container_width=True, hide_index=True, column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
             with col_summary:
