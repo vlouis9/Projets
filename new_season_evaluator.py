@@ -19,11 +19,8 @@ st.markdown("""
     .section-header {font-size: 1.4rem; font-weight: bold; color: #006847; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #006847; padding-bottom: 0.3rem;}
     .stButton>button {background-color: #004080; color: white; font-weight: bold; border-radius: 0.3rem; padding: 0.4rem 0.8rem; border: none; width: 100%;}
     .stButton>button:hover {background-color: #003060; color: white;}
-    .stSlider [data-baseweb="slider"] {padding-bottom: 12px;}
-    .css-1d391kg {background-color: #f8f9fa; padding-top: 1rem;}
-    .stExpander {border: 1px solid #e0e0e0; border-radius: 0.3rem; margin-bottom: 0.5rem;}
-    .club-tier-selector {margin-bottom: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 0.3rem;}
-    .new-player-scorer {margin-bottom: 1rem; padding: 1rem; background-color: #f8f9fa; border-radius: 0.3rem;}
+    .zoom-table {margin: 0px; padding: 0px;}
+    .club-selector-table td, .club-selector-table th {padding: 0.2rem 0.5rem;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -54,38 +51,8 @@ PREDEFINED_PROFILES = {
             'MID': {'max_proportional_bonus_at_pvs100': 0.6},
             'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
         }
-    },
-    "High Potential": {
-        "kpi_weights": {
-            'GK': {'estimated_performance': 0.30, 'estimated_potential': 0.40, 'estimated_regularity': 0.20, 'estimated_goals': 0.0, 'team_ranking': 0.10},
-            'DEF': {'estimated_performance': 0.20, 'estimated_potential': 0.35, 'estimated_regularity': 0.20, 'estimated_goals': 0.10, 'team_ranking': 0.15},
-            'MID': {'estimated_performance': 0.20, 'estimated_potential': 0.35, 'estimated_regularity': 0.15, 'estimated_goals': 0.15, 'team_ranking': 0.15},
-            'FWD': {'estimated_performance': 0.15, 'estimated_potential': 0.35, 'estimated_regularity': 0.10, 'estimated_goals': 0.25, 'team_ranking': 0.15}
-        },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.4},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.5},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.7},
-            'FWD': {'max_proportional_bonus_at_pvs100': 0.9}
-        }
-    },
-    "Team Focus": {
-        "kpi_weights": {
-            'GK': {'estimated_performance': 0.30, 'estimated_potential': 0.20, 'estimated_regularity': 0.20, 'estimated_goals': 0.0, 'team_ranking': 0.30},
-            'DEF': {'estimated_performance': 0.25, 'estimated_potential': 0.15, 'estimated_regularity': 0.20, 'estimated_goals': 0.10, 'team_ranking': 0.30},
-            'MID': {'estimated_performance': 0.20, 'estimated_potential': 0.15, 'estimated_regularity': 0.15, 'estimated_goals': 0.20, 'team_ranking': 0.30},
-            'FWD': {'estimated_performance': 0.15, 'estimated_potential': 0.15, 'estimated_regularity': 0.10, 'estimated_goals': 0.30, 'team_ranking': 0.30}
-        },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.3},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.4},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.6},
-            'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
-        }
     }
 }
-
-# ---- DATA UTILS ----
 
 def simplify_position(position: str) -> str:
     if pd.isna(position) or str(position).strip() == '':
@@ -131,7 +98,6 @@ def calculate_historical_kpis(df_hist: pd.DataFrame) -> pd.DataFrame:
                 ratings.append(rating)
                 goals += game_goals
                 games_played += 1
-        # KPIs
         if ratings:
             rdf.at[idx, 'estimated_performance'] = np.mean(ratings)
             rdf.at[idx, 'estimated_potential'] = np.mean(sorted(ratings, reverse=True)[:5]) if len(ratings) >= 5 else np.mean(ratings)
@@ -145,7 +111,7 @@ def normalize_kpis(df_all: pd.DataFrame, max_perf, max_pot, max_reg, max_goals) 
     rdf['norm_estimated_potential']   = np.clip(rdf['estimated_potential'] / max_pot * 100 if max_pot>0 else 0, 0, 100)
     rdf['norm_estimated_regularity']  = np.clip(rdf['estimated_regularity'] / max_reg * 100 if max_reg>0 else 0, 0, 100)
     rdf['norm_estimated_goals']       = np.clip(rdf['estimated_goals'] / max_goals * 100 if max_goals>0 else 0, 0, 100)
-    rdf['norm_team_ranking']          = rdf['team_ranking'] # Already 0-100
+    rdf['norm_team_ranking']          = rdf['team_ranking']
     return rdf
 
 def calculate_pvs(df: pd.DataFrame, weights: Dict[str, Dict[str, float]]) -> pd.DataFrame:
@@ -182,7 +148,6 @@ def calculate_mrb(df: pd.DataFrame, mrb_params_per_pos: Dict[str, Dict[str, floa
     rdf['value_per_cost'].fillna(0, inplace=True)
     return rdf
 
-# ---- SQUAD LOGIC (reuse/trimmed from v5) ----
 class SquadBuilder:
     def __init__(self):
         self.formations = {
@@ -253,7 +218,6 @@ class SquadBuilder:
                 else: break
             if len(current_squad) >= target_squad_size: break
         current_total_mrb = sum(p['mrb'] for p in current_squad)
-        # Budget conformance: Try to downgrade if over budget
         max_budget_iterations_b = target_squad_size * 2
         iterations_b_count = 0
         budget_conformance_tolerance = 1
@@ -280,7 +244,6 @@ class SquadBuilder:
             if not made_a_downgrade_in_pass:
                 if current_total_mrb > self.budget + budget_conformance_tolerance: st.warning(f"Budget Target Not Met: MRB {current_total_mrb} > Budget {self.budget}.")
                 break
-        # Build final squad DataFrame
         final_squad_player_ids = get_current_squad_player_ids_set()
         final_squad_df_base = eligible_df[eligible_df['player_id'].isin(final_squad_player_ids)].copy()
         details_df_final = pd.DataFrame(current_squad)
@@ -288,7 +251,6 @@ class SquadBuilder:
         final_squad_df = pd.merge(final_squad_df_base, details_df_final_renamed[['player_id', 'mrb_actual_cost', 'pvs_in_squad', 'is_starter_from_selection']], on='player_id', how='left')
         final_squad_df['mrb_actual_cost'] = final_squad_df['mrb_actual_cost'].fillna(0).astype(int)
         final_squad_df['pvs_in_squad'] = final_squad_df['pvs_in_squad'].fillna(0.0)
-        # Identify starters
         final_starter_ids_definitive = set()
         temp_formation_needs_final = self.formations[formation_key].copy()
         final_squad_df_sorted_for_final_starters = final_squad_df.sort_values(by='pvs_in_squad', ascending=False)
@@ -309,22 +271,18 @@ class SquadBuilder:
         }
         return final_squad_df, summary
 
-# ---- MAIN APP ----
-
 def main():
     st.markdown('<h1 class="main-header">🌟 MPG Auction Strategist - New Season Mode</h1>', unsafe_allow_html=True)
     squad_builder = SquadBuilder()
-    # --- SIDEBAR: FILES ---
+
     st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">⚙️ Data Files</h2>', unsafe_allow_html=True)
     hist_file = st.sidebar.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
     new_file = st.sidebar.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
     st.sidebar.markdown("---")
-    # --- SIDEBAR: SQUAD PARAMETERS ---
     st.sidebar.markdown("#### 👥 Squad Building Parameters")
     formation_key_ui = st.sidebar.selectbox("Preferred Formation", options=list(squad_builder.formations.keys()), index=0)
     target_squad_size_ui = st.sidebar.number_input("Target Squad Size", min_value=sum(squad_builder.squad_minimums.values()), max_value=30, value=DEFAULT_SQUAD_SIZE)
     st.sidebar.markdown("---")
-    # --- SIDEBAR: PROFILE SETTINGS ---
     st.sidebar.markdown("#### 🎨 Settings Profile")
     profile_names = list(PREDEFINED_PROFILES.keys())
     if "profile_name" not in st.session_state:
@@ -333,7 +291,6 @@ def main():
     if selected_profile_name_ui != st.session_state["profile_name"]:
         st.session_state["profile_name"] = selected_profile_name_ui
     profile_vals = PREDEFINED_PROFILES.get(st.session_state["profile_name"], PREDEFINED_PROFILES["Balanced Value"])
-    # KPI weights UI
     with st.sidebar.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state["profile_name"]=="Custom")):
         weights_ui = {}
         for pos in ['GK', 'DEF', 'MID', 'FWD']:
@@ -348,7 +305,6 @@ def main():
                 'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
             }
         st.session_state["kpi_weights"] = weights_ui if st.session_state["profile_name"]=="Custom" else profile_vals["kpi_weights"]
-    # MRB Params UI
     with st.sidebar.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state["profile_name"]=="Custom")):
         mrb_params_ui = {}
         for pos in ['GK', 'DEF', 'MID', 'FWD']:
@@ -357,7 +313,10 @@ def main():
             current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state["profile_name"]!="Custom" else st.session_state.get("mrb_params", {}).get(pos, default_mrb)
             mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrbBonus")}
         st.session_state["mrb_params"] = mrb_params_ui if st.session_state["profile_name"]=="Custom" else profile_vals["mrb_params_per_pos"]
-    # ---- LOAD DATA ----
+
+    if "zoom_pid" not in st.session_state:
+        st.session_state["zoom_pid"] = None
+
     df_hist, df_new = None, None
     if hist_file:
         try:
@@ -369,27 +328,26 @@ def main():
             df_new = pd.read_excel(new_file) if new_file.name.endswith(('.xlsx','.xls')) else pd.read_csv(new_file)
         except Exception as e:
             st.error(f"Could not read new season file: {e}")
+
     if df_hist is not None and df_new is not None:
-        # Preprocess
         df_hist['simplified_position'] = df_hist['Poste'].apply(simplify_position)
         df_hist['player_id'] = df_hist.apply(create_player_id, axis=1)
         df_new['simplified_position'] = df_new['Poste'].apply(simplify_position)
         df_new['player_id'] = df_new.apply(create_player_id, axis=1)
         df_hist['Cote'] = pd.to_numeric(df_hist['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
-        # ---- Merge: Players for season = all in df_new ----
         hist_pids = set(df_hist['player_id'])
         df_new['is_historical'] = df_new['player_id'].isin(hist_pids)
-        # Assign KPIs: first, historical
         df_hist_kpis = calculate_historical_kpis(df_hist)
-        # For club assignment UI
         all_clubs = sorted(df_new['Club'].unique())
-        st.markdown('<h2 class="section-header">🏅 Assign Club Tier</h2>', unsafe_allow_html=True)
-        if "club_tiers" not in st.session_state or set(st.session_state.get("club_tiers", {}).keys()) != set(all_clubs):
-            st.session_state["club_tiers"] = {club: "Average" for club in all_clubs}
-        for club in all_clubs:
-            st.session_state["club_tiers"][club] = st.selectbox(f"Club: {club}", CLUB_TIERS_LABELS, index=CLUB_TIERS_LABELS.index(st.session_state["club_tiers"].get(club,"Average")), key=f"club_{club}")
-        # ---- Merge all player base info ----
+        with st.expander("🏅 Assign Club Tiers", expanded=False):
+            st.write("Assign a tier to each club below:")
+            club_tiers = st.session_state.get("club_tiers", {club: "Average" for club in all_clubs})
+            cols = st.columns([3, 2, 2, 2, 2])
+            for i, club in enumerate(all_clubs):
+                tier = cols[i % 5].selectbox(club, CLUB_TIERS_LABELS, index=CLUB_TIERS_LABELS.index(club_tiers.get(club,"Average")), key=f"clubtier_{club}")
+                club_tiers[club] = tier
+            st.session_state["club_tiers"] = club_tiers
         merged_rows = []
         for idx, row in df_new.iterrows():
             base = row.to_dict()
@@ -401,57 +359,66 @@ def main():
                     base[col] = float(hist_row.iloc[0][col]) if not hist_row.empty else 0.0
             merged_rows.append(base)
         df_all = pd.DataFrame(merged_rows)
-        # ---- New Players: Manual Scoring ----
-        st.markdown('<h2 class="section-header">🆕 Rate New Players</h2>', unsafe_allow_html=True)
-        new_players = df_all[~df_all['is_historical']]
-        if "new_player_scores" not in st.session_state:
-            st.session_state["new_player_scores"] = {}
-        # Use max values from historicals for normalization
-        max_perf = df_all[df_all['is_historical']]['estimated_performance'].max() if (df_all['is_historical'].any()) else 1.0
-        max_pot  = df_all[df_all['is_historical']]['estimated_potential'].max() if (df_all['is_historical'].any()) else 1.0
-        max_reg  = df_all[df_all['is_historical']]['estimated_regularity'].max() if (df_all['is_historical'].any()) else 1.0
-        max_goals= df_all[df_all['is_historical']]['estimated_goals'].max() if (df_all['is_historical'].any()) else 1.0
-        for i, nprow in new_players.iterrows():
-            pid = nprow['player_id']
-            if pid not in st.session_state["new_player_scores"]:
-                st.session_state["new_player_scores"][pid] = {
-                    "estimated_performance": 0,
-                    "estimated_potential": 0,
-                    "estimated_regularity": 0,
-                    "estimated_goals": 0,
-                }
-            with st.expander(f"{nprow['Joueur']} ({nprow['simplified_position']} - {nprow['Club']})", expanded=False):
-                for kpi, maxval, label in [
-                    ("estimated_performance", max_perf, "Estimated Performance"),
-                    ("estimated_potential", max_pot, "Estimated Potential"),
-                    ("estimated_regularity", max_reg, "Estimated Regularity"),
-                    ("estimated_goals", max_goals, "Estimated Goals"),
-                ]:
-                    sel = st.selectbox(
-                        f"{label} (of max historical)",
-                        options=NEW_PLAYER_SCORE_OPTIONS,
-                        index=NEW_PLAYER_SCORE_OPTIONS.index(st.session_state["new_player_scores"][pid][kpi]),
-                        key=f"{pid}_{kpi}")
-                    st.session_state["new_player_scores"][pid][kpi] = sel
-                # assign to df_all
-                for kpi, maxval in [
-                    ("estimated_performance", max_perf),
-                    ("estimated_potential", max_pot),
-                    ("estimated_regularity", max_reg),
-                    ("estimated_goals", max_goals)
-                ]:
-                    score_pct = st.session_state["new_player_scores"][pid][kpi]
-                    df_all.loc[df_all['player_id']==pid, kpi] = (score_pct/100) * maxval
-        # ---- Normalization ----
+        with st.expander("🆕 Assign Scores to New Players", expanded=False):
+            new_players = df_all[~df_all['is_historical']]
+            if "new_player_scores" not in st.session_state:
+                st.session_state["new_player_scores"] = {}
+            max_perf = df_all[df_all['is_historical']]['estimated_performance'].max() if (df_all['is_historical'].any()) else 1.0
+            max_pot  = df_all[df_all['is_historical']]['estimated_potential'].max() if (df_all['is_historical'].any()) else 1.0
+            max_reg  = df_all[df_all['is_historical']]['estimated_regularity'].max() if (df_all['is_historical'].any()) else 1.0
+            max_goals= df_all[df_all['is_historical']]['estimated_goals'].max() if (df_all['is_historical'].any()) else 1.0
+            if not new_players.empty:
+                st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
+                grid_cols = st.columns([2,1,1,1,1,1])
+                grid_cols[0].markdown("**Player**")
+                grid_cols[1].markdown("**Perf**")
+                grid_cols[2].markdown("**Pot**")
+                grid_cols[3].markdown("**Reg**")
+                grid_cols[4].markdown("**Goals**")
+                for i, nprow in new_players.iterrows():
+                    pid = nprow['player_id']
+                    if pid not in st.session_state["new_player_scores"]:
+                        st.session_state["new_player_scores"][pid] = {
+                            "estimated_performance": 0,
+                            "estimated_potential": 0,
+                            "estimated_regularity": 0,
+                            "estimated_goals": 0,
+                        }
+                    cols = st.columns([2,1,1,1,1])
+                    cols[0].markdown(f"{nprow['Joueur']} ({nprow['simplified_position']} - {nprow['Club']})")
+                    for ci, (kpi, maxval, label) in enumerate([
+                        ("estimated_performance", max_perf, "Perf"),
+                        ("estimated_potential", max_pot, "Pot"),
+                        ("estimated_regularity", max_reg, "Reg"),
+                        ("estimated_goals", max_goals, "Goals"),
+                    ], 1):
+                        sel = cols[ci].selectbox(
+                            "", NEW_PLAYER_SCORE_OPTIONS,
+                            index=NEW_PLAYER_SCORE_OPTIONS.index(st.session_state["new_player_scores"][pid][kpi]),
+                            key=f"{pid}_{kpi}")
+                        st.session_state["new_player_scores"][pid][kpi] = sel
+                    for kpi, maxval in [
+                        ("estimated_performance", max_perf),
+                        ("estimated_potential", max_pot),
+                        ("estimated_regularity", max_reg),
+                        ("estimated_goals", max_goals)
+                    ]:
+                        score_pct = st.session_state["new_player_scores"][pid][kpi]
+                        df_all.loc[df_all['player_id']==pid, kpi] = (score_pct/100) * maxval
+            else:
+                st.info("No new players to rate.")
         df_all = normalize_kpis(df_all, max_perf, max_pot, max_reg, max_goals)
-        # ---- PVS + MRB ----
         df_all = calculate_pvs(df_all, st.session_state["kpi_weights"])
         df_all = calculate_mrb(df_all, st.session_state["mrb_params"])
-        # ---- SQUAD SUGGESTION ----
         st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
         squad_df, squad_summary = squad_builder.select_squad(df_all, formation_key_ui, target_squad_size_ui)
         if not squad_df.empty:
-            # Display squad
+            def player_zoom_button(player_row):
+                pid = player_row['player_id']
+                label = f"{player_row['Joueur']}"
+                if st.button(label, key=f"squadzoom_{pid}"):
+                    st.session_state["zoom_pid"] = pid
+                return
             squad_disp = squad_df.copy()
             squad_disp = squad_disp.rename(columns={
                 "Joueur": "Player", "simplified_position":"Pos", "pvs_in_squad":"PVS", "Cote":"Cote",
@@ -459,9 +426,14 @@ def main():
                 "estimated_regularity":"Reg", "estimated_goals":"Goals", "team_ranking":"TeamRank"
             })
             squad_disp['Starter'] = squad_disp['is_starter'].map({True:"Yes",False:"No"})
-            squad_disp_show = squad_disp[['Player','Club','Pos','PVS','Bid','Perf','Pot','Reg','Goals','TeamRank','Starter']]
-            st.dataframe(squad_disp_show, use_container_width=True, hide_index=True)
-            # Summary
+            st.write("**Click a player name to see season details below.**")
+            for i, row in squad_disp.iterrows():
+                cols = st.columns([2,1,1,1,1,1,1,1,1,1,1])
+                with cols[0]:
+                    if st.button(f"{row['Player']}", key=f"squadzoom_{row['player_id']}"):
+                        st.session_state["zoom_pid"] = row["player_id"]
+                for ci, col in enumerate(["Club","Pos","PVS","Bid","Perf","Pot","Reg","Goals","TeamRank","Starter"], 1):
+                    cols[ci].write(row[col])
             st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
             st.metric("Budget Spent", f"€ {squad_summary.get('total_cost',0):.0f}", help=f"Remaining: € {squad_summary.get('remaining_budget',0):.0f}")
             st.metric("Squad Size", f"{squad_summary.get('total_players',0)} (Target: {target_squad_size_ui})")
@@ -472,20 +444,46 @@ def main():
                 c = squad_summary.get('position_counts',{}).get(pos,0)
                 minr = squad_builder.squad_minimums.get(pos,0)
                 st.markdown(f"• **{pos}:** {c} (Min: {minr})")
-            # Download
-            st.download_button(label="📥 Download Squad (CSV)", data=squad_disp_show.to_csv(index=False).encode('utf-8'), file_name="mpg_suggested_squad.csv", mime="text/csv")
+            st.download_button(label="📥 Download Squad (CSV)", data=squad_disp.to_csv(index=False).encode('utf-8'), file_name="mpg_suggested_squad.csv", mime="text/csv")
         else:
             st.warning("Could not build a valid squad. Check your data and settings.")
 
-        # ---- FULL PLAYER DB ----
         st.markdown('<h2 class="section-header">📋 Full Player Database</h2>', unsafe_allow_html=True)
         disp_df = df_all.rename(columns={
             "Joueur":"Player", "simplified_position":"Pos", "pvs":"PVS", "Cote":"Cote",
             "mrb":"Suggested Bid", "estimated_performance":"Perf","estimated_potential":"Pot",
             "estimated_regularity":"Reg", "estimated_goals":"Goals", "team_ranking":"TeamRank"
         })
-        st.dataframe(disp_df[['Player','Club','Pos','PVS','Suggested Bid','Perf','Pot','Reg','Goals','TeamRank']], use_container_width=True, hide_index=True)
+        st.write("**Click a player name to see season details below.**")
+        for i, row in disp_df.iterrows():
+            cols = st.columns([2,1,1,1,1,1,1,1,1,1])
+            with cols[0]:
+                if st.button(f"{row['Player']}", key=f"dbzoom_{row['player_id']}"):
+                    st.session_state["zoom_pid"] = row["player_id"]
+            for ci, col in enumerate(["Club","Pos","PVS","Suggested Bid","Perf","Pot","Reg","Goals","TeamRank"], 1):
+                cols[ci].write(row[col])
         st.download_button(label="📥 Download Player Database (CSV)", data=disp_df.to_csv(index=False).encode('utf-8'), file_name="mpg_full_player_database.csv", mime="text/csv")
+
+        if st.session_state.get("zoom_pid"):
+            pid = st.session_state["zoom_pid"]
+            player_row = df_all[df_all['player_id']==pid]
+            if not player_row.empty:
+                player_row = player_row.iloc[0]
+                st.markdown(f"### 🔍 Player Season Zoom: {player_row['Joueur']} ({player_row['simplified_position']} - {player_row['Club']})")
+                if player_row['is_historical']:
+                    hist_row = df_hist[df_hist['player_id']==pid].iloc[0]
+                    gw_cols = get_gameweek_columns(hist_row.index)
+                    zoom_table = pd.DataFrame({
+                        "Gameweek": gw_cols,
+                        "Rating": [extract_rating_goals(hist_row[g])[0] for g in gw_cols],
+                        "Goals": [extract_rating_goals(hist_row[g])[1] for g in gw_cols],
+                        "Raw": [hist_row[g] for g in gw_cols]
+                    })
+                    st.dataframe(zoom_table, use_container_width=True, hide_index=True)
+                else:
+                    st.info("No historical data: new player.")
+                if st.button("Close Zoom"):
+                    st.session_state["zoom_pid"] = None
     else:
         st.info("Upload BOTH last season and new season player files to start. Example columns: Joueur, Poste, Club, Cote, D1..D34")
         example_hist = pd.DataFrame({'Joueur':['PlayerA','PlayerB'], 'Poste':['A','M'], 'Club':['Club X','Club Y'], 'Cote':[45,30], 'D34':['7.5*','6.5'], 'D33':['(6.0)**','0'], 'D32':['','5.5*']})
