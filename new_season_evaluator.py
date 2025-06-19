@@ -1,6 +1,6 @@
 pip install matplotlib.pyplot 
 pip install io
-pip install re
+pip install re numpy pandas seaborn
 
 import streamlit as st
 import pandas as pd
