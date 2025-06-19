@@ -55,18 +55,6 @@ PREDEFINED_PROFILES = {
             'MID': {'max_proportional_bonus_at_pvs100': 1.1}, 'FWD': {'max_proportional_bonus_at_pvs100': 1.5}
         }
     },
-    "Focus on Recent Form": {
-        "kpi_weights": {
-            'GK': {'estimated_avg': 0.1, 'estimated_regularity': 0.3, 'estimated_ goals': 0.0, 'estimated_potential' : 0.05},
-            'DEF': {'estimated_avg': 0.1, 'estimated_regularity': 0.4, 'estimated_ goals': 0.0, 'estimated_potential' : 0.05},
-            'MID': {'estimated_avg': 0.1, 'estimated_regularity': 0.15, 'estimated_ goals': 0.1, 'estimated_potential' : 0.05},
-            'FWD': {'estimated_avg': 0.1, 'estimated_regularity': 0.1, 'estimated_ goals': 0.1, 'estimated_potential' : 0.05}
-        },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.6}, 'DEF': {'max_proportional_bonus_at_pvs100': 0.5},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.6}, 'FWD': {'max_proportional_bonus_at_pvs100': 0.9}
-        }
-    },
     "Focus on Season Consistency": {
         "kpi_weights": {
             'GK': {'estimated_avg': 0.75, 'estimated_regularity': 0.25, 'estimated_ goals': 0.0, 'estimated_potential' : 0.00},
@@ -250,18 +238,16 @@ class MPGAuctionStrategist:
 
     @staticmethod
     @st.cache_data
-    def get_evaluated_players_df(df_processed: pd.DataFrame, n_recent: int, kpi_weights: Dict[str, Dict[str, float]], mrb_params: Dict[str, Dict[str, float]]):
+    def get_evaluated_players_df(df_processed: pd.DataFrame, kpi_weights: Dict[str, Dict[str, float]], mrb_params: Dict[str, Dict[str, float]]):
         if df_processed is None or df_processed.empty: return pd.DataFrame()
-        df_kpis = MPGAuctionStrategist.calculate_kpis(df_processed, n_recent)
+        df_kpis = MPGAuctionStrategist.calculate_kpis(df_processed)
         df_norm_kpis = MPGAuctionStrategist.normalize_kpis(df_kpis)
         df_pvs = MPGAuctionStrategist.calculate_pvs(df_norm_kpis, kpi_weights)
         df_mrb = MPGAuctionStrategist.calculate_mrb(df_pvs, mrb_params)
         return df_mrb
 
-    def select_squad(self, df_evaluated_players: pd.DataFrame, formation_key: str, target_squad_size: int, min_recent_games_played_filter_value: int) -> Tuple[pd.DataFrame, Dict]:
+    def select_squad(self, df_evaluated_players: pd.DataFrame, formation_key: str, target_squad_size: int) -> Tuple[pd.DataFrame, Dict]:
         eligible_df_initial = df_evaluated_players.copy()
-        if min_recent_games_played_filter_value > 0:
-            eligible_df_initial = eligible_df_initial[eligible_df_initial['recent_games_played_count'] >= min_recent_games_played_filter_value]
         if eligible_df_initial.empty: return pd.DataFrame(), {}
         eligible_df = eligible_df_initial.drop_duplicates(subset=['player_id']).copy()
         eligible_df['mrb'] = eligible_df['mrb'].astype(int)
@@ -472,10 +458,10 @@ def main():
         if df_processed_calc is not None and not df_processed_calc.empty and df_processed_calc_new is not None and not df_processed_calc_new.empty:
             with st.spinner("🧠 Calculating player evaluations..."):
                 try:
-                    df_evaluated_players = MPGAuctionStrategist.get_evaluated_players_df(df_processed_calc, st.session_state.n_recent, st.session_state.kpi_weights, st.session_state.mrb_params_per_pos)
+                    df_evaluated_players = MPGAuctionStrategist.get_evaluated_players_df(df_processed_calc, st.session_state.kpi_weights, st.session_state.mrb_params_per_pos)
                     if not df_evaluated_players.empty:
                         with st.spinner("🎯 Selecting optimal squad..."):
-                            squad_df_result, squad_summary_result = strategist.select_squad(df_evaluated_players, st.session_state.formation_key, st.session_state.squad_size, st.session_state.min_recent_filter)
+                            squad_df_result, squad_summary_result = strategist.select_squad(df_evaluated_players, st.session_state.formation_key, st.session_state.squad_size)
                         st.session_state['df_for_display_final'] = df_evaluated_players
                         st.session_state['squad_df_result_final'] = squad_df_result
                         st.session_state['squad_summary_result_final'] = squad_summary_result
