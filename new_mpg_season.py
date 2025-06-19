@@ -181,6 +181,7 @@ class MPGAuctionStrategist:
         rdf = df.copy()
         rdf['norm_estimated_avg'] = np.clip(rdf['estimated_avg_rating'] * 10, 0, 100)
         rdf['norm_estimated_potential'] = np.clip(rdf['estimated_potential_rating'] * 10, 0, 100)
+        rdf['norm_team_ranking'] = club_to_score
         if '%Titu' in rdf.columns:
              rdf['norm_regularity_file'] = pd.to_numeric(rdf['%Titu'], errors='coerce').fillna(0).clip(0, 100)
         else:
@@ -410,7 +411,8 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 🌎 Global Parameters")
     #Teams tier list weighting
-    team_ranking: st.slider(f"Team ranking", 0.0, 1.0, float(current_pos_w_vals.get('team_ranking', 0.0)), 0.01, key=f"{pos_key}_wSC_v5_opt_main")
+    st.markdown(f'<h6>{pos_key}</h6>', unsafe_allow_html=True
+               team_ranking: st.slider(f"Team ranking", 0.0, 1.0, float(current_pos_w_vals.get('team_ranking', 0.0)), 0.01, key=f"{pos_key}_wSC_v5_opt_main")
     
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 👥 Squad Building Parameters")
