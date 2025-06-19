@@ -424,7 +424,7 @@ def main():
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 🌎 Global Parameters")
     #Teams tier list weighting
-    'team_ranking': st.slider(f"Team ranking", 0.0, 1.0, float(current_pos_w_vals.get('team_ranking', 0.0)), 0.01, key=f"{pos_key}_wSC_v5_opt_main")
+    team_ranking: st.slider(f"Team ranking", 0.0, 1.0, float(current_pos_w_vals.get('team_ranking', 0.0)), 0.01, key=f"{pos_key}_wSC_v5_opt_main")
     
     st.sidebar.markdown("---")
     st.sidebar.markdown("#### 👥 Squad Building Parameters")
