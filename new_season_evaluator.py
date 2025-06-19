@@ -6,7 +6,7 @@ from typing import Dict, List, Tuple, Set
 
 # --- Page Configuration & Styling ---
 st.set_page_config(
-    page_title="MPG Hybrid Strategist v10.0",
+    page_title="MPG Hybrid Strategist v11.0",
     page_icon="🏆",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -29,6 +29,7 @@ KPI_REGULARITY = "RegularityEstimation"
 KPI_GOALS = "GoalsEstimation"
 KPI_TEAM_RANK = "TeamRanking"
 PLAYER_KPI_COLUMNS = [KPI_PERFORMANCE, KPI_POTENTIAL, KPI_REGULARITY, KPI_GOALS]
+POSITIONS = ['GK', 'DEF', 'MID', 'FWD']
 
 DEFAULT_FORMATION = "4-4-2"
 DEFAULT_SQUAD_SIZE = 20
@@ -76,119 +77,75 @@ class MPGAuctionStrategist:
     @staticmethod
     def calculate_pvs(df: pd.DataFrame, team_rank_weight: float, weights: Dict[str, Dict[str, float]]) -> pd.DataFrame:
         rdf = df.copy()
-        player_pvs = pd.Series(0.0, index=rdf.index)
-        for pos, pos_weights in weights.items():
+        for pos in POSITIONS:
             mask = rdf['simplified_position'] == pos
             if not mask.any(): continue
-            pos_pvs_sum = pd.Series(0.0, index=rdf.loc[mask].index)
+            pos_weights = weights.get(pos, {})
             total_weight = sum(pos_weights.values())
-            for kpi_col_base in PLAYER_KPI_COLUMNS:
-                norm_kpi_col = f"norm_{kpi_col_base}"
-                weight = pos_weights.get(kpi_col_base, 0)
-                if norm_kpi_col in rdf.columns:
-                    pos_pvs_sum += rdf.loc[mask, norm_kpi_col].fillna(0) * weight
             if total_weight > 0:
-                player_pvs.loc[mask] = (pos_pvs_sum / total_weight * 100) if abs(total_weight - 1.0) > 1e-6 else pos_pvs_sum
-        player_pvs = player_pvs.clip(0, 100)
-        team_rank_score = rdf[KPI_TEAM_RANK].clip(0, 100)
-        rdf['pvs'] = ((player_pvs * (1 - team_rank_weight)) + (team_rank_score * team_rank_weight)).clip(0, 100)
+                weighted_sum = sum(rdf.loc[mask, f"norm_{kpi}"] * w for kpi, w in pos_weights.items() if f"norm_{kpi}" in rdf.columns)
+                rdf.loc[mask, 'pvs_kpi'] = (weighted_sum / total_weight) * 100
+        rdf['pvs_kpi'].fillna(0, inplace=True)
+        rdf['pvs'] = ((rdf['pvs_kpi'] * (1 - team_rank_weight)) + (rdf[KPI_TEAM_RANK] * team_rank_weight)).clip(0, 100)
         return rdf
 
     @staticmethod
     def calculate_mrb(df: pd.DataFrame, mrb_params_per_pos: Dict[str, Dict[str, float]]) -> pd.DataFrame:
         rdf = df.copy()
         rdf['mrb'] = rdf['Cote']
-        for pos_simplified, params in mrb_params_per_pos.items():
-            mask = rdf['simplified_position'] == pos_simplified
+        for pos, params in mrb_params_per_pos.items():
+            mask = rdf['simplified_position'] == pos
             if not mask.any(): continue
             max_prop_bonus = params.get('max_proportional_bonus_at_pvs100', 0.5)
-            def _calc_mrb_player(row):
-                cote, pvs_player = int(row['Cote']), float(row['pvs'])
-                bonus_factor = (pvs_player / 100.0) * max_prop_bonus
-                return int(round(max(float(cote), min(cote * (1 + bonus_factor), float(cote * 2)))))
-            rdf.loc[mask, 'mrb'] = rdf.loc[mask].apply(_calc_mrb_player, axis=1)
+            bonus_factor = (rdf.loc[mask, 'pvs'] / 100.0) * max_prop_bonus
+            rdf.loc[mask, 'mrb'] = np.round(np.maximum(rdf.loc[mask, 'Cote'], np.minimum(rdf.loc[mask, 'Cote'] * (1 + bonus_factor), rdf.loc[mask, 'Cote'] * 2)))
         rdf['mrb'] = rdf['mrb'].astype(int)
-        rdf['value_per_cost'] = rdf['pvs'] / rdf['mrb'].replace(0, 1).astype(float)
         return rdf
 
     def select_squad(self, df_evaluated_players: pd.DataFrame, formation_key: str, target_squad_size: int) -> Tuple[pd.DataFrame, Dict]:
-        eligible_df = df_evaluated_players.drop_duplicates(subset=['player_id']).copy()
-        eligible_df['mrb'] = eligible_df['mrb'].astype(int)
-        squad = []
-
-        def get_squad_ids(): return {p['player_id'] for p in squad}
-        def get_pos_counts():
-            counts = {pos: 0 for pos in self.squad_minimums}
-            for p in squad: counts[p['pos']] = counts.get(p['pos'], 0) + 1
-            return counts
-        def add_player(p_row, is_starter):
-            if p_row['player_id'] in get_squad_ids(): return False
-            if p_row['simplified_position'] == 'GK' and get_pos_counts().get('GK', 0) >= 2: return False
-            squad.append({'player_id': p_row['player_id'], 'mrb': int(p_row['mrb']), 'pvs': float(p_row['pvs']), 'pos': p_row['simplified_position'], 'is_starter': is_starter})
-            return True
-        def remove_player(p_id):
-            nonlocal squad
-            squad = [p for p in squad if p['player_id'] != p_id]
-
-        all_players_sorted_pvs = eligible_df.sort_values(by='pvs', ascending=False)
-        starters_map = self.formations[formation_key].copy()
-        for _, row in all_players_sorted_pvs.iterrows():
-            if starters_map.get(row['simplified_position'], 0) > 0 and add_player(row, True):
-                starters_map[row['simplified_position']] -= 1
-
-        for pos, min_needed in self.squad_minimums.items():
-            while get_pos_counts().get(pos, 0) < min_needed:
-                candidate = all_players_sorted_pvs[(all_players_sorted_pvs['simplified_position'] == pos) & (~all_players_sorted_pvs['player_id'].isin(get_squad_ids()))].head(1)
-                if candidate.empty or not add_player(candidate.iloc[0], False): break
+        # --- NEW ROBUST SQUAD SELECTION ALGORITHM ---
+        squad_df = pd.DataFrame()
+        available_players = df_evaluated_players.sort_values(by='pvs', ascending=False).copy()
         
-        # --- IMPROVED FORMATION-RELEVANT SQUAD FILLING ---
-        pos_counts = self.formations[formation_key]
-        priority_order = sorted([pos for pos in pos_counts if pos != 'GK'], key=lambda p: pos_counts[p], reverse=True)
+        # Step 1: Define positional targets based on formation and squad size
+        pos_targets = self.squad_minimums.copy()
+        flex_spots = target_squad_size - sum(pos_targets.values())
+        if flex_spots > 0:
+            formation_ratios = {pos: count / sum(c for p, c in self.formations[formation_key].items() if p != 'GK') for pos, count in self.formations[formation_key].items() if pos != 'GK'}
+            for i in range(flex_spots):
+                # Add to the position with the highest ratio that isn't yet "overloaded"
+                best_pos_to_add = max(formation_ratios, key=formation_ratios.get)
+                pos_targets[best_pos_to_add] += 1
         
-        while len(squad) < target_squad_size:
-            player_added = False
-            # 1. Try to add based on formation priority
-            for pos in priority_order:
-                candidate = all_players_sorted_pvs[(~all_players_sorted_pvs['player_id'].isin(get_squad_ids())) & (all_players_sorted_pvs['simplified_position'] == pos)].head(1)
-                if not candidate.empty and add_player(candidate.iloc[0], False):
-                    player_added = True
-                    break
-            if player_added: continue
+        # Step 2: Fill the squad to meet these targets
+        for pos, target_count in pos_targets.items():
+            players_for_pos = available_players[available_players['simplified_position'] == pos].head(target_count)
+            squad_df = pd.concat([squad_df, players_for_pos])
+            available_players = available_players.drop(players_for_pos.index)
+        
+        # Step 3: Assign starters from the selected squad
+        squad_df['is_starter'] = False
+        for pos, count in self.formations[formation_key].items():
+            starters_for_pos = squad_df[squad_df['simplified_position'] == pos].sort_values(by='pvs', ascending=False).head(count)
+            squad_df.loc[starters_for_pos.index, 'is_starter'] = True
 
-            # 2. If no priority players were added, add the best available non-GK player
-            best_available = all_players_sorted_pvs[(~all_players_sorted_pvs['player_id'].isin(get_squad_ids())) & (all_players_sorted_pvs['simplified_position'] != 'GK')].head(1)
-            if not best_available.empty and add_player(best_available.iloc[0], False):
-                continue
+        # Step 4: Budget optimization
+        current_mrb = squad_df['mrb'].sum()
+        while current_mrb > self.budget:
+            non_starters = squad_df[~squad_df['is_starter']].copy()
+            if non_starters.empty: break # Can't downgrade if all are starters
             
-            # 3. If no players could be added in this cycle, break to avoid infinite loop
-            break
+            worst_player = non_starters.sort_values(by='pvs').iloc[0]
+            replacement = available_players[(available_players['simplified_position'] == worst_player['simplified_position']) & (available_players['mrb'] < worst_player['mrb'])].head(1)
+            if replacement.empty: break
 
-        # --- BUDGET OPTIMIZATION ---
-        current_mrb = sum(p['mrb'] for p in squad)
-        for _ in range(target_squad_size * 2):
-            if current_mrb <= self.budget: break
-            best_downgrade = None
-            eligible_to_downgrade = sorted([p for p in squad if not p['is_starter']], key=lambda p: p['mrb'], reverse=True)
-            for p_old in eligible_to_downgrade:
-                replacements = eligible_df[(eligible_df['simplified_position'] == p_old['pos']) & (~eligible_df['player_id'].isin(get_squad_ids() - {p_old['player_id']})) & (eligible_df['mrb'] < p_old['mrb'])].sort_values('pvs', ascending=False)
-                if replacements.empty: continue
-                p_new = replacements.iloc[0]
-                score = (p_old['mrb'] - p_new['mrb']) - (p_old['pvs'] - p_new['pvs']) * 0.5
-                if best_downgrade is None or score > best_downgrade[2]:
-                    best_downgrade = (p_old, p_new.to_dict(), score)
-            if best_downgrade:
-                old, new_dict, _ = best_downgrade
-                remove_player(old['player_id'])
-                add_player(pd.Series(new_dict), old['is_starter'])
-                current_mrb = sum(p['mrb'] for p in squad)
-            else: break
-        
-        if not squad: return pd.DataFrame(), {}
-        final_df = eligible_df[eligible_df['player_id'].isin(get_squad_ids())].copy()
-        details_df = pd.DataFrame(squad).rename(columns={'mrb': 'mrb_actual_cost', 'pvs':'pvs_in_squad'})
-        final_df = pd.merge(final_df, details_df, on='player_id')
-        summary = {'total_players': len(final_df), 'total_cost': int(final_df['mrb_actual_cost'].sum()),'remaining_budget': int(self.budget - final_df['mrb_actual_cost'].sum()), 'position_counts': final_df['simplified_position'].value_counts().to_dict(),'total_squad_pvs': round(final_df['pvs_in_squad'].sum(), 2),'total_starters_pvs': round(final_df[final_df['is_starter']]['pvs_in_squad'].sum(), 2)}
-        return final_df, summary
+            squad_df = squad_df.drop(worst_player.name)
+            squad_df = pd.concat([squad_df, replacement])
+            available_players = available_players.drop(replacement.index)
+            current_mrb = squad_df['mrb'].sum()
+
+        summary = {'total_players': len(squad_df), 'total_cost': int(squad_df['mrb'].sum()), 'remaining_budget': int(self.budget - squad_df['mrb'].sum()), 'position_counts': squad_df['simplified_position'].value_counts().to_dict(), 'total_squad_pvs': round(squad_df['pvs'].sum(), 2), 'total_starters_pvs': round(squad_df[squad_df['is_starter']]['pvs'].sum(), 2)}
+        return squad_df, summary
 
 # --- Data Processing Functions ---
 @st.cache_data
@@ -219,7 +176,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
         valid_ratings = [r[0] for r in ratings_with_goals if r[0] is not None]
         if valid_ratings:
             goals = sum(r[1] for r in ratings_with_goals if r[0] is not None)
-            kpi_data.append({'player_id': row['player_id'], KPI_PERFORMANCE: np.mean(valid_ratings), KPI_POTENTIAL: np.mean(sorted(valid_ratings, reverse=True)[:5]), KPI_REGULARITY: (len(valid_ratings) / len(gw_cols) * 100) if gw_cols else 0, KPI_GOALS: goals})
+            kpi_data.append({'player_id': row['player_id'], KPI_PERFORMANCE: np.mean(valid_ratings), KPI_POTENTIAL: np.mean(sorted(valid_ratings, reverse=True)[:5]), KPI_REGULARITY: (len(valid_ratings) / len(gw_cols) * 100) if gw_cols else 0, KPI_GOALS: float(goals)})
     if not kpi_data: return pd.DataFrame()
     kpi_df = pd.DataFrame(kpi_data)
     for kpi in PLAYER_KPI_COLUMNS:
@@ -228,7 +185,7 @@ def calculate_historical_kpis(df_hist, returning_ids):
     return kpi_df
 
 def main():
-    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v10.0</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🏆 MPG Hybrid Strategist v11.0</h1>', unsafe_allow_html=True)
     strategist = MPGAuctionStrategist()
 
     if 'current_profile_name' not in st.session_state:
@@ -272,13 +229,12 @@ def main():
     else:
         if st.session_state.new_player_kpis_df.empty or set(st.session_state.new_player_kpis_df['player_id']) != set(df_new_players_info['player_id']):
             default_kpis = {}
-            for pos in ['GK', 'DEF', 'MID', 'FWD']:
+            for pos in POSITIONS:
                 default_kpis[pos] = {}
                 returning_players_in_pos_ids = df_new[(df_new['simplified_position'] == pos) & (df_new['player_id'].isin(returning_ids))]['player_id']
                 df_returning_pos = df_returning_kpis[df_returning_kpis['player_id'].isin(returning_players_in_pos_ids)]
                 for kpi in PLAYER_KPI_COLUMNS:
-                    norm_kpi = f"norm_{kpi}"
-                    default_kpis[pos][kpi] = df_returning_pos[norm_kpi].median() if not df_returning_pos.empty and df_returning_pos[norm_kpi].notna().any() else 50.0
+                    default_kpis[pos][kpi] = df_returning_pos[kpi].median() if not df_returning_pos.empty and df_returning_pos[kpi].notna().any() else 50.0
             new_player_data = [{'player_id': p['player_id'], 'Joueur': p['Joueur'], 'Club': p['Club'], 'Poste': p['Poste'], **{kpi: default_kpis.get(p['simplified_position'], {}).get(kpi, 50.0) for kpi in PLAYER_KPI_COLUMNS}} for _, p in df_new_players_info.iterrows()]
             st.session_state.new_player_kpis_df = pd.DataFrame(new_player_data)
         st.markdown(f"Define KPIs for **{len(df_new_players_info)}** new players using the table below (scores are 0-100).")
@@ -305,21 +261,15 @@ def main():
     st.session_state.squad_size = st.sidebar.number_input("Squad Size", min_value=18, max_value=30, value=DEFAULT_SQUAD_SIZE, key="squad_size_selector")
 
     if st.sidebar.button("🚀 Generate Optimal Squad", type="primary"):
-        # Consolidate returning player KPIs (from history) and new player KPIs (from editor)
         df_new_kpis_from_editor = st.session_state.new_player_kpis_df.copy()
         for kpi in PLAYER_KPI_COLUMNS: df_new_kpis_from_editor[f"norm_{kpi}"] = df_new_kpis_from_editor[kpi]
         
-        # Combine all player data, keeping both raw and normalized KPIs
-        all_kpis_df = pd.concat([
-            df_returning_kpis, 
-            df_new_kpis_from_editor
-        ], ignore_index=True)
+        all_kpis_df = pd.concat([df_returning_kpis, df_new_kpis_from_editor], ignore_index=True)
 
         tier_map = {100: "Winner", 75: "European", 50: "Average", 25: "Relegation"}
         club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1)
         
-        # Merge player info with their KPI data
         df_merged = pd.merge(df_new, all_kpis_df, on='player_id', how='left').dropna(subset=[f"norm_{kpi}" for kpi in PLAYER_KPI_COLUMNS])
         df_merged[KPI_TEAM_RANK] = df_merged['Club'].map(club_to_score).fillna(50)
 
@@ -332,21 +282,15 @@ def main():
     if 'squad_df_result' in st.session_state and not st.session_state.squad_df_result.empty:
         st.markdown('<hr><h2 class="section-header">🏆 Final Results</h2>', unsafe_allow_html=True)
         
-        # --- Display Logic adapted from historical app ---
-        cols_to_display = {
-            'Joueur': 'Player', 'Club': 'Club', 'simplified_position': 'Pos', 'Cote': 'Cost',
-            'mrb_actual_cost': 'Bid', 'pvs_in_squad': 'PVS', 'is_starter': 'Starter',
-            KPI_PERFORMANCE: 'Perf', KPI_POTENTIAL: 'Pot', KPI_REGULARITY: 'Reg', KPI_GOALS: 'Goals'
-        }
-        squad_display_df = st.session_state.squad_df_result.rename(columns=cols_to_display)
+        cols_to_display_map = {'Joueur': 'Player', 'Club': 'Club', 'simplified_position': 'Pos', 'Cote': 'Cost', 'mrb': 'Bid', 'pvs': 'PVS', 'is_starter': 'Starter', KPI_PERFORMANCE: 'Perf', KPI_POTENTIAL: 'Pot', KPI_REGULARITY: 'Reg', KPI_GOALS: 'Goals'}
         
         tab1, tab2 = st.tabs(["Optimal Squad", "Full Player Database"])
         
         with tab1:
             col_main, col_summary = st.columns([3, 1])
             with col_main:
-                st.dataframe(squad_display_df[list(cols_to_display.values())], use_container_width=True, hide_index=True,
-                    column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
+                squad_display_df = st.session_state.squad_df_result.rename(columns=cols_to_display_map)
+                st.dataframe(squad_display_df[list(cols_to_display_map.values())], use_container_width=True, hide_index=True, column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
             with col_summary:
                 summary = st.session_state.squad_summary_result
                 st.metric("Budget Spent (MRB)", f"€ {summary.get('total_cost', 0):.0f}", help=f"Remaining: € {summary.get('remaining_budget', 0):.0f}")
@@ -361,23 +305,22 @@ def main():
                     if squad_name and not any(s['name'] == squad_name for s in st.session_state.saved_squads):
                         st.session_state.saved_squads.append({'name': squad_name, 'summary': summary, 'squad_df': st.session_state.squad_df_result})
                         st.success(f"Squad '{squad_name}' saved!")
-                        st.session_state.squad_name_input = "" # Clear input
+                        st.session_state.squad_name_input = "" 
                     elif not squad_name: st.warning("Please enter a name.")
                     else: st.warning(f"A squad named '{squad_name}' already exists.")
         
         with tab2:
             st.info("Search, sort, and analyze all evaluated players.")
-            full_display_df = st.session_state.df_full_eval.rename(columns=cols_to_display)
-            st.dataframe(full_display_df[list(cols_to_display.values())].sort_values(by='PVS', ascending=False), use_container_width=True, height=600,
-                column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
+            full_display_df = st.session_state.df_full_eval.rename(columns=cols_to_display_map)
+            st.dataframe(full_display_df[list(cols_to_display_map.values())].sort_values(by='PVS', ascending=False), use_container_width=True, height=600, column_config={"PVS": st.column_config.ProgressColumn("PVS", min_value=0, max_value=100, format="%.1f")})
             
         if st.session_state.saved_squads:
             st.markdown('<hr><h2 class="section-header">💾 My Saved Squads</h2>', unsafe_allow_html=True)
             for i, saved in enumerate(reversed(st.session_state.saved_squads)):
                 original_index = len(st.session_state.saved_squads) - 1 - i
                 with st.expander(f"**{saved['name']}** | Cost: €{saved['summary']['total_cost']:.0f} | PVS: {saved['summary']['total_squad_pvs']:.2f}"):
-                    saved_display_df = saved['squad_df'].rename(columns=cols_to_display)
-                    st.dataframe(saved_display_df[list(cols_to_display.values())], use_container_width=True, hide_index=True)
+                    saved_display_df = saved['squad_df'].rename(columns=cols_to_display_map)
+                    st.dataframe(saved_display_df[list(cols_to_display_map.values())], use_container_width=True, hide_index=True)
                     if st.button("Delete", key=f"delete_{original_index}", type="primary"):
                         st.session_state.saved_squads.pop(original_index)
                         st.rerun()
