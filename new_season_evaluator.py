@@ -253,9 +253,9 @@ class SquadBuilder:
         self.budget = 500
 
     def select_squad(self, df_evaluated_players: pd.DataFrame, formation_key: str, target_squad_size: int) -> Tuple[pd.DataFrame, Dict]:
-    eligible_df = df_evaluated_players.drop_duplicates(subset=['player_id']).copy()
-    eligible_df['mrb'] = eligible_df['mrb'].astype(int)
-    current_squad = []
+   		eligible_df = df_evaluated_players.drop_duplicates(subset=['player_id']).copy()
+   		eligible_df['mrb'] = eligible_df['mrb'].astype(int)
+   		current_squad = []
 
     # Helper functions
     def get_player_ids_set():
