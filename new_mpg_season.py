@@ -466,27 +466,10 @@ def main():
             mrb_params_ui[pos_key] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus Factor (at PVS 100)", 0.0, 1.0, float(current_pos_mrb_vals.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos_key}_mrbMPB_v5_opt_main", help="Bonus factor if PVS=100 (e.g., 0.5 = 50% bonus implies MRB up to 1.5x Cote). Overall MRB is capped at 2x Cote.")}
         if mrb_params_ui != active_mrb_params: st.session_state.current_profile_name = "Custom"; st.session_state.mrb_params_per_pos = mrb_params_ui
 
-    #Definition team ranking
-    if 'team_tiers' not in st.session_state: st.session_state.team_tiers = {t: [] for t in ["Winner", "European", "Average", "Relegation"]}
-
-    st.markdown('<h2 class="section-header">1. Team Ranking Setup</h2>', unsafe_allow_html=True)
-    all_clubs = sorted(df_processed_new['Club'].unique())
-    tier_names = ["Winner", "European", "Average", "Relegation"]
-    tier_cols = st.columns(len(tier_names))
-    
-    assigned_clubs = {club for tier_list in st.session_state.team_tiers.values() for club in tier_list}
-    for i, tier in enumerate(tier_names):
-        with tier_cols[i]:
-            current_selection = [c for c in st.session_state.team_tiers.get(tier, []) if c in all_clubs]
-            options_for_this_tier = sorted(list((set(all_clubs) - assigned_clubs) | set(current_selection)))
-            st.session_state.team_tiers[tier] = st.multiselect(f"**{tier} Tier**", options=options_for_this_tier, default=current_selection, key=f"tier_{tier}")
-    
-    tier_map = {100: "Winner", 75: "European", 50: "Average", 25: "Relegation"}
-    club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
-
-    if uploaded_file:
+    if uploaded_file and uploaded_file_new:
         df_processed_calc = load_and_preprocess_data(uploaded_file)
-        if df_processed_calc is not None and not df_processed_calc.empty:
+        df_processed_calc_new = load_and_preprocess_new_data(uploaded_file_new_obj)
+        if df_processed_calc is not None and not df_processed_calc.empty and df_processed_calc_new is not None and not df_processed_calc_new.empty:
             with st.spinner("🧠 Calculating player evaluations..."):
                 try:
                     df_evaluated_players = MPGAuctionStrategist.get_evaluated_players_df(df_processed_calc, st.session_state.n_recent, st.session_state.kpi_weights, st.session_state.mrb_params_per_pos)
@@ -504,6 +487,24 @@ def main():
                 except Exception as e:
                     st.error(f"💥 Error during calculation pipeline: {str(e)}")
 
+        #Definition team ranking
+        if 'team_tiers' not in st.session_state: st.session_state.team_tiers = {t: [] for t in ["Winner", "European", "Average", "Relegation"]}
+    
+        st.markdown('<h2 class="section-header">1. Team Ranking Setup</h2>', unsafe_allow_html=True)
+        all_clubs = sorted(df_processed_new['Club'].unique())
+        tier_names = ["Winner", "European", "Average", "Relegation"]
+        tier_cols = st.columns(len(tier_names))
+        
+        assigned_clubs = {club for tier_list in st.session_state.team_tiers.values() for club in tier_list}
+        for i, tier in enumerate(tier_names):
+            with tier_cols[i]:
+                current_selection = [c for c in st.session_state.team_tiers.get(tier, []) if c in all_clubs]
+                options_for_this_tier = sorted(list((set(all_clubs) - assigned_clubs) | set(current_selection)))
+                st.session_state.team_tiers[tier] = st.multiselect(f"**{tier} Tier**", options=options_for_this_tier, default=current_selection, key=f"tier_{tier}")
+        
+        tier_map = {100: "Winner", 75: "European", 50: "Average", 25: "Relegation"}
+        club_to_score = {club: score for score, tier in tier_map.items() for club in st.session_state.team_tiers[tier]}
+        
         def display_squad_dataframe(df_to_display):
             sdf = df_to_display.copy()
             squad_cols_display = ['Joueur', 'Club', 'simplified_position', 'pvs_in_squad', 'Cote', 'mrb_actual_cost', 'estimated_avg_rating', 'estimated_potential', 'estimated_ goals', 'estimated_regularity_pct', 'value_per_cost', 'is_starter']
