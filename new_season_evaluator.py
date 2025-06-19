@@ -17,10 +17,163 @@ st.set_page_config(
 # ---- CUSTOM CSS ----
 st.markdown("""
 <style>
-    .main-header {font-size: 2.5rem; font-weight: bold; color: #004080; text-align: center; margin-bottom: 2rem; font-family: 'Roboto', sans-serif;}
-    .section-header {font-size: 1.4rem; font-weight: bold; color: #006847; margin-top: 1.5rem; margin-bottom: 1rem; border-bottom: 2px solid #006847; padding-bottom: 0.3rem;}
-    .stButton>button {background-color: #004080; color: white; font-weight: bold; border-radius: 0.3rem; padding: 0.4rem 0.8rem; border: none; width: 100%;}
-    .stButton>button:hover {background-color: #003060; color: white;}
+    :root {
+        --primary: #2563eb;
+        --secondary: #10b981;
+        --accent: #8b5cf6;
+        --background: #f8fafc;
+        --card: #ffffff;
+        --text: #0f172a;
+        --border: #e2e8f0;
+    }
+    
+    body {
+        background-color: var(--background);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .main-header {
+        font-size: 2.5rem; 
+        font-weight: 800; 
+        text-align: center; 
+        margin-bottom: 1.5rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 3px solid var(--secondary);
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    
+    .section-header {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: var(--primary);
+        margin-top: 1.5rem;
+        margin-bottom: 1rem;
+        padding-left: 0.5rem;
+        border-left: 4px solid var(--secondary);
+    }
+    
+    .stButton>button {
+        background: linear-gradient(135deg, var(--primary), var(--accent));
+        color: white !important;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        border: none;
+        width: 100%;
+        transition: all 0.3s ease;
+    }
+    
+    .stButton>button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+    }
+    
+    .card {
+        background-color: var(--card);
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin-bottom: 1.5rem;
+        border: 1px solid var(--border);
+    }
+    
+    .metric-card {
+        background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        text-align: center;
+        padding: 1rem;
+        border-radius: 12px;
+        border-left: 4px solid var(--primary);
+    }
+    
+    .position-tag {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+    
+    .GK-tag { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
+    .DEF-tag { background: linear-gradient(135deg, #dcfce7, #86efac); }
+    .MID-tag { background: linear-gradient(135deg, #fef3c7, #fcd34d); }
+    .FWD-tag { background: linear-gradient(135deg, #fee2e2, #fca5a5); }
+    
+    .starter-badge {
+        background-color: var(--secondary);
+        color: white;
+        border-radius: 4px;
+        padding: 0.15rem 0.5rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    
+    .progress-bar {
+        height: 8px;
+        border-radius: 4px;
+        background-color: #e2e8f0;
+        margin-top: 0.5rem;
+        overflow: hidden;
+    }
+    
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary), var(--accent));
+        border-radius: 4px;
+    }
+    
+    .tab-container {
+        display: flex;
+        border-bottom: 2px solid var(--border);
+        margin-bottom: 1.5rem;
+    }
+    
+    .tab {
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
+        font-weight: 600;
+        border-bottom: 3px solid transparent;
+        transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+        color: var(--primary);
+        border-bottom: 3px solid var(--primary);
+    }
+    
+    .player-card {
+        width: 120px;
+        padding: 1rem;
+        margin: 0 0.5rem;
+        border-radius: 8px;
+        text-align: center;
+        background: white;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid var(--border);
+        transition: all 0.3s ease;
+    }
+    
+    .player-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+    }
+    
+    .club-badge {
+        width: 24px;
+        height: 24px;
+        display: inline-block;
+        border-radius: 50%;
+        background-color: var(--primary);
+        color: white;
+        font-size: 0.7rem;
+        line-height: 24px;
+        margin-right: 0.5rem;
+    }
+    
+    .dataframe th {background-color: #f1f5f9 !important;}
+    .dataframe td {border-bottom: 1px solid #e2e8f0;}
 </style>
 """, unsafe_allow_html=True)
 
@@ -200,28 +353,6 @@ def build_gw_strings(row, hist_df):
         goals.append(str(g))
     return "|".join(ratings), "|".join(goals)
 
-def display_squad_formation(squad_df, formation_key):
-    formations = {
-        "4-4-2": [("FWD", 2), ("MID", 4), ("DEF", 4), ("GK", 1)],
-        "4-3-3": [("FWD", 3), ("MID", 3), ("DEF", 4), ("GK", 1)],
-        "3-5-2": [("FWD", 2), ("MID", 5), ("DEF", 3), ("GK", 1)],
-        "3-4-3": [("FWD", 3), ("MID", 4), ("DEF", 3), ("GK", 1)],
-        "4-5-1": [("FWD", 1), ("MID", 5), ("DEF", 4), ("GK", 1)],
-        "5-3-2": [("FWD", 2), ("MID", 3), ("DEF", 5), ("GK", 1)],
-        "5-4-1": [("FWD", 1), ("MID", 4), ("DEF", 5), ("GK", 1)]
-    }
-    st.markdown("### **Visual Formation**")
-    squad_df = squad_df.copy()
-    squad_df = squad_df[squad_df['is_starter']]
-    for pos, n in formations[formation_key]:
-        players = squad_df[squad_df['simplified_position']==pos].sort_values('pvs_in_squad', ascending=False).head(n)
-        cols = st.columns(n)
-        for i, (_, p) in enumerate(players.iterrows()):
-            cols[i].markdown(
-                f"<div style='text-align:center;'><b>{p['Joueur']}</b><br><span style='font-size:0.85em;'>{p['Club']}</span><br><span style='color:#004080;'>PVS: {p['pvs_in_squad']:.1f}</span></div>",
-                unsafe_allow_html=True
-            )
-
 def save_dict_to_download_button(data_dict, label, fname):
     bio = io.BytesIO()
     bio.write(json.dumps(data_dict, indent=2).encode('utf-8'))
@@ -361,52 +492,127 @@ class SquadBuilder:
         }
         return final_squad_df, summary
 
+# ---- ENHANCED FORMATION VISUALIZATION ----
+def display_enhanced_formation(squad_df, formation_key):
+    formations = {
+        "4-4-2": [("GK", 1), ("DEF", 4), ("MID", 4), ("FWD", 2)],
+        "4-3-3": [("GK", 1), ("DEF", 4), ("MID", 3), ("FWD", 3)],
+        "3-5-2": [("GK", 1), ("DEF", 3), ("MID", 5), ("FWD", 2)],
+        "3-4-3": [("GK", 1), ("DEF", 3), ("MID", 4), ("FWD", 3)],
+        "4-5-1": [("GK", 1), ("DEF", 4), ("MID", 5), ("FWD", 1)],
+        "5-3-2": [("GK", 1), ("DEF", 5), ("MID", 3), ("FWD", 2)],
+        "5-4-1": [("GK", 1), ("DEF", 5), ("MID", 4), ("FWD", 1)]
+    }
+    
+    squad_df = squad_df.copy().sort_values('pvs_in_squad', ascending=False)
+    
+    for position, count in formations[formation_key]:
+        players = squad_df[squad_df['simplified_position'] == position].head(count)
+        if players.empty:
+            continue
+            
+        st.markdown(f"<h4>{position} ({count})</h4>", unsafe_allow_html=True)
+        cols = st.columns(count)
+        
+        for i, (_, player) in enumerate(players.iterrows()):
+            with cols[i]:
+                starter = "🟢 STARTER" if player['is_starter'] else "🔵 BENCH"
+                st.markdown(f"""
+                <div class="player-card">
+                    <div style="font-weight: 700; margin-bottom: 0.5rem;">{player['Joueur']}</div>
+                    <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 0.5rem;">
+                        <span class="club-badge">{player['Club'][:2]}</span>
+                        <span>{player['Club']}</span>
+                    </div>
+                    <div class="{player['simplified_position']}-tag position-tag" style="margin-bottom: 0.5rem;">
+                        {player['simplified_position']}
+                    </div>
+                    <div style="font-weight: 600; color: #2563eb; margin-bottom: 0.25rem;">
+                        PVS: {player['pvs_in_squad']:.1f}
+                    </div>
+                    <div style="font-size: 0.85em; color: #64748b;">
+                        Bid: €{player['mrb_actual_cost']}
+                    </div>
+                    <div style="margin-top: 0.5rem; font-size: 0.75rem;" class="starter-badge">
+                        {starter}
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
 # ---- MAIN APP ----
 def main():
     st.markdown('<h1 class="main-header">🌟 MPG Auction Strategist - New Season Mode</h1>', unsafe_allow_html=True)
     squad_builder = SquadBuilder()
+    
+    # Initialize session state for tabs
+    if "current_tab" not in st.session_state:
+        st.session_state.current_tab = "Squad Builder"
+    
     # --- SIDEBAR: File Inputs and Squad Params ---
-    st.sidebar.markdown('<h2 class="section-header" style="margin-top:0;">⚙️ Data Files</h2>', unsafe_allow_html=True)
-    hist_file = st.sidebar.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
-    new_file = st.sidebar.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("#### 👥 Squad Building Parameters")
-    formation_key_ui = st.sidebar.selectbox("Preferred Formation", options=list(squad_builder.formations.keys()), index=0)
-    target_squad_size_ui = st.sidebar.number_input("Target Squad Size", min_value=sum(squad_builder.squad_minimums.values()), max_value=30, value=DEFAULT_SQUAD_SIZE)
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("#### 🎨 Settings Profile")
-    profile_names = list(PREDEFINED_PROFILES.keys())
-    if "profile_name" not in st.session_state:
-        st.session_state["profile_name"] = "Balanced Value"
-    selected_profile_name_ui = st.sidebar.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state["profile_name"]), key="profile_selector")
-    if selected_profile_name_ui != st.session_state["profile_name"]:
-        st.session_state["profile_name"] = selected_profile_name_ui
-    profile_vals = PREDEFINED_PROFILES.get(st.session_state["profile_name"], PREDEFINED_PROFILES["Balanced Value"])
-    with st.sidebar.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state["profile_name"]=="Custom")):
-        weights_ui = {}
-        for pos in ['GK', 'DEF', 'MID', 'FWD']:
-            st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
-            default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
-            current_w = profile_vals["kpi_weights"][pos] if st.session_state["profile_name"]!="Custom" else st.session_state.get("kpi_weights", {}).get(pos, default_w)
-            weights_ui[pos] = {
-                'estimated_performance': st.slider(f"Performance", 0.0, 1.0, float(current_w.get('estimated_performance', 0.0)), 0.01, key=f"{pos}_wPerf"),
-                'estimated_potential': st.slider(f"Potential", 0.0, 1.0, float(current_w.get('estimated_potential', 0.0)), 0.01, key=f"{pos}_wPot"),
-                'estimated_regularity': st.slider(f"Regularity", 0.0, 1.0, float(current_w.get('estimated_regularity', 0.0)), 0.01, key=f"{pos}_wReg"),
-                'estimated_goals': st.slider(f"Goals", 0.0, 1.0, float(current_w.get('estimated_goals', 0.0)), 0.01, key=f"{pos}_wGoals"),
-                'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
-            }
-        st.session_state["kpi_weights"] = weights_ui if st.session_state["profile_name"]=="Custom" else profile_vals["kpi_weights"]
-    with st.sidebar.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state["profile_name"]=="Custom")):
-        mrb_params_ui = {}
-        for pos in ['GK', 'DEF', 'MID', 'FWD']:
-            st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
-            default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
-            current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state["profile_name"]!="Custom" else st.session_state.get("mrb_params", {}).get(pos, default_mrb)
-            mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
-        st.session_state["mrb_params"] = mrb_params_ui if st.session_state["profile_name"]=="Custom" else profile_vals["mrb_params_per_pos"]
+    with st.sidebar:
+        st.markdown('<h2 class="section-header" style="margin-top:0;">⚙️ Data Files</h2>', unsafe_allow_html=True)
+        hist_file = st.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
+        new_file = st.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
+        st.markdown("---")
+        
+        st.markdown("#### 👥 Squad Building Parameters")
+        formation_key_ui = st.selectbox("Preferred Formation", options=list(squad_builder.formations.keys()), index=0)
+        target_squad_size_ui = st.number_input("Target Squad Size", min_value=sum(squad_builder.squad_minimums.values()), max_value=30, value=DEFAULT_SQUAD_SIZE)
+        st.markdown("---")
+        
+        st.markdown("#### 🎨 Settings Profile")
+        profile_names = list(PREDEFINED_PROFILES.keys())
+        if "profile_name" not in st.session_state:
+            st.session_state["profile_name"] = "Balanced Value"
+        selected_profile_name_ui = st.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state["profile_name"]), key="profile_selector")
+        if selected_profile_name_ui != st.session_state["profile_name"]:
+            st.session_state["profile_name"] = selected_profile_name_ui
+        profile_vals = PREDEFINED_PROFILES.get(st.session_state["profile_name"], PREDEFINED_PROFILES["Balanced Value"])
+        
+        with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state["profile_name"]=="Custom")):
+            weights_ui = {}
+            for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
+                default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
+                current_w = profile_vals["kpi_weights"][pos] if st.session_state["profile_name"]!="Custom" else st.session_state.get("kpi_weights", {}).get(pos, default_w)
+                weights_ui[pos] = {
+                    'estimated_performance': st.slider(f"Performance", 0.0, 1.0, float(current_w.get('estimated_performance', 0.0)), 0.01, key=f"{pos}_wPerf"),
+                    'estimated_potential': st.slider(f"Potential", 0.0, 1.0, float(current_w.get('estimated_potential', 0.0)), 0.01, key=f"{pos}_wPot"),
+                    'estimated_regularity': st.slider(f"Regularity", 0.0, 1.0, float(current_w.get('estimated_regularity', 0.0)), 0.01, key=f"{pos}_wReg"),
+                    'estimated_goals': st.slider(f"Goals", 0.0, 1.0, float(current_w.get('estimated_goals', 0.0)), 0.01, key=f"{pos}_wGoals"),
+                    'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
+                }
+            st.session_state["kpi_weights"] = weights_ui if st.session_state["profile_name"]=="Custom" else profile_vals["kpi_weights"]
+        
+        with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state["profile_name"]=="Custom")):
+            mrb_params_ui = {}
+            for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
+                default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
+                current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state["profile_name"]!="Custom" else st.session_state.get("mrb_params", {}).get(pos, default_mrb)
+                mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
+            st.session_state["mrb_params"] = mrb_params_ui if st.session_state["profile_name"]=="Custom" else profile_vals["mrb_params_per_pos"]
 
-    if "zoom_pid" not in st.session_state:
-        st.session_state["zoom_pid"] = None
+    # Tab Navigation
+    tabs = ["Squad Builder", "Player Database", "Settings"]
+    tab_html = f"""
+    <div class="tab-container">
+        {"".join([f'<div class="tab {"active" if tab == st.session_state.current_tab else ""}" onclick="setTab(\'{tab}\')">{tab}</div>' for tab in tabs])}
+    </div>
+    """
+    st.markdown(tab_html, unsafe_allow_html=True)
+    st.markdown("""
+    <script>
+        function setTab(tabName) {
+            Streamlit.setComponentValue(tabName);
+        }
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # Handle tab selection
+    if "tab_selector" in st.session_state:
+        st.session_state.current_tab = st.session_state.tab_selector
+    tab_selection = st.session_state.current_tab
 
     df_hist, df_new = None, None
     if hist_file:
@@ -432,147 +638,261 @@ def main():
         df_hist_kpis = calculate_historical_kpis(df_hist)
         all_clubs = sorted(df_new['Club'].unique())
 
-        # ---- CLUB TIER UI ----
-        with st.expander("🏅 Assign Club Tiers", expanded=False):
-            st.write("Assign a tier to each club below:")
-            club_tiers = st.session_state.get("club_tiers", {club: "Average" for club in all_clubs})
-            col1, col2 = st.columns([1,1])
-            with col1:
-                save_dict_to_download_button(club_tiers, "💾 Download Club Tiers", "club_tiers.json")
-            with col2:
-                club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
-                if club_upload:
-                    loaded_tiers = load_dict_from_file(club_upload)
-                    if set(loaded_tiers.keys()) == set(all_clubs):
-                        club_tiers = loaded_tiers
-                        st.success("Club tiers loaded!")
-                    else:
-                        st.warning("Club list does not match current clubs. Tiers not loaded.")
-            cols = st.columns([3, 2, 2, 2, 2])
-            for i, club in enumerate(all_clubs):
-                tier = cols[i % 5].selectbox(club, CLUB_TIERS_LABELS, index=CLUB_TIERS_LABELS.index(club_tiers.get(club,"Average")), key=f"clubtier_{club}")
-                club_tiers[club] = tier
-            st.session_state["club_tiers"] = club_tiers
+        # ---- TAB CONTENT ----
+        if tab_selection == "Settings":
+            st.markdown('<h2 class="section-header">⚙️ Configuration Settings</h2>', unsafe_allow_html=True)
+            
+            with st.container():
+                st.markdown("### 🏅 Assign Club Tiers")
+                if "club_tiers" not in st.session_state:
+                    st.session_state["club_tiers"] = {club: "Average" for club in all_clubs}
+                col1, col2 = st.columns([1,1])
+                with col1:
+                    save_dict_to_download_button(st.session_state["club_tiers"], "💾 Download Club Tiers", "club_tiers.json")
+                with col2:
+                    club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
+                    if club_upload:
+                        loaded_tiers = load_dict_from_file(club_upload)
+                        if set(loaded_tiers.keys()) == set(all_clubs):
+                            st.session_state["club_tiers"] = loaded_tiers
+                            st.success("Club tiers loaded!")
+                        else:
+                            st.warning("Club list does not match current clubs. Tiers not loaded.")
+                cols = st.columns(5)
+                club_cols = [cols[i % 5] for i in range(len(all_clubs))]
+                for i, club in enumerate(all_clubs):
+                    tier = club_cols[i].selectbox(
+                        club, 
+                        CLUB_TIERS_LABELS, 
+                        index=CLUB_TIERS_LABELS.index(st.session_state["club_tiers"].get(club,"Average")), 
+                        key=f"clubtier_{club}"
+                    )
+                    st.session_state["club_tiers"][club] = tier
+            
+            with st.container():
+                st.markdown("### 🆕 New Player Ratings")
+                if "new_player_scores" not in st.session_state:
+                    st.session_state["new_player_scores"] = {}
+                new_players = df_new[~df_new['is_historical']]
+                max_perf = df_hist_kpis['estimated_performance'].max() if not df_hist_kpis.empty else 1.0
+                max_pot  = df_hist_kpis['estimated_potential'].max() if not df_hist_kpis.empty else 1.0
+                max_reg  = df_hist_kpis['estimated_regularity'].max() if not df_hist_kpis.empty else 1.0
+                max_goals= df_hist_kpis['estimated_goals'].max() if not df_hist_kpis.empty else 1.0
+                
+                col1, col2 = st.columns([1,1])
+                with col1:
+                    save_dict_to_download_button(st.session_state["new_player_scores"], "💾 Download New Player Scores", "new_player_scores.json")
+                with col2:
+                    np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
+                    if np_upload:
+                        loaded_scores = load_dict_from_file(np_upload)
+                        st.session_state["new_player_scores"].update(loaded_scores)
+                        st.success("New player scores loaded!")
+                
+                if not new_players.empty:
+                    st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
+                    for i, nprow in new_players.iterrows():
+                        pid = nprow['player_id']
+                        if pid not in st.session_state["new_player_scores"]:
+                            st.session_state["new_player_scores"][pid] = {
+                                "estimated_performance": 0,
+                                "estimated_potential": 0,
+                                "estimated_regularity": 0,
+                                "estimated_goals": 0,
+                            }
+                        with st.expander(f"{nprow['Joueur']} ({nprow['simplified_position']} - {nprow['Club']})", expanded=False):
+                            cols = st.columns(4)
+                            for kpi, maxval, label in [
+                                ("estimated_performance", max_perf, "Performance"),
+                                ("estimated_potential", max_pot, "Potential"),
+                                ("estimated_regularity", max_reg, "Regularity"),
+                                ("estimated_goals", max_goals, "Goals")
+                            ]:
+                                with cols[0] if kpi == "estimated_performance" else cols[1] if kpi == "estimated_potential" else cols[2] if kpi == "estimated_regularity" else cols[3]:
+                                    sel = st.selectbox(
+                                        label, 
+                                        NEW_PLAYER_SCORE_OPTIONS,
+                                        index=NEW_PLAYER_SCORE_OPTIONS.index(st.session_state["new_player_scores"][pid][kpi]),
+                                        key=f"{pid}_{kpi}"
+                                    )
+                                    st.session_state["new_player_scores"][pid][kpi] = sel
+                else:
+                    st.info("No new players to rate.")
+        
+        # Process data for other tabs
+        if tab_selection != "Settings" or (df_hist is not None and df_new is not None):
+            # Merge all player base info
+            merged_rows = []
+            for idx, row in df_new.iterrows():
+                base = row.to_dict()
+                club = base['Club']
+                base['team_ranking'] = CLUB_TIERS[st.session_state["club_tiers"].get(club,"Average")]
+                if base['is_historical']:
+                    hist_row = df_hist_kpis[df_hist_kpis['player_id']==base['player_id']]
+                    for col in ['estimated_performance','estimated_potential','estimated_regularity','estimated_goals']:
+                        base[col] = float(hist_row.iloc[0][col]) if not hist_row.empty else 0.0
+                else:
+                    pid = base['player_id']
+                    for kpi in ['estimated_performance','estimated_potential','estimated_regularity','estimated_goals']:
+                        if pid in st.session_state["new_player_scores"]:
+                            score_pct = st.session_state["new_player_scores"][pid][kpi]
+                            if kpi == "estimated_performance": maxval = df_hist_kpis['estimated_performance'].max() if not df_hist_kpis.empty else 1.0
+                            elif kpi == "estimated_potential": maxval = df_hist_kpis['estimated_potential'].max() if not df_hist_kpis.empty else 1.0
+                            elif kpi == "estimated_regularity": maxval = df_hist_kpis['estimated_regularity'].max() if not df_hist_kpis.empty else 1.0
+                            elif kpi == "estimated_goals": maxval = df_hist_kpis['estimated_goals'].max() if not df_hist_kpis.empty else 1.0
+                            base[col] = (score_pct/100) * maxval
+                        else:
+                            base[col] = 0.0
+                merged_rows.append(base)
+            df_all = pd.DataFrame(merged_rows)
 
-        # ---- Merge all player base info ----
-        merged_rows = []
-        for idx, row in df_new.iterrows():
-            base = row.to_dict()
-            club = base['Club']
-            base['team_ranking'] = CLUB_TIERS[st.session_state["club_tiers"][club]]
-            if base['is_historical']:
-                hist_row = df_hist_kpis[df_hist_kpis['player_id']==base['player_id']]
-                for col in ['estimated_performance','estimated_potential','estimated_regularity','estimated_goals']:
-                    base[col] = float(hist_row.iloc[0][col]) if not hist_row.empty else 0.0
-            merged_rows.append(base)
-        df_all = pd.DataFrame(merged_rows)
-
-        # ---- NEW PLAYERS UI ----
-        with st.expander("🆕 Assign Scores to New Players", expanded=False):
-            new_players = df_all[~df_all['is_historical']]
-            if "new_player_scores" not in st.session_state:
-                st.session_state["new_player_scores"] = {}
-            max_perf = df_all[df_all['is_historical']]['estimated_performance'].max() if (df_all['is_historical'].any()) else 1.0
-            max_pot  = df_all[df_all['is_historical']]['estimated_potential'].max() if (df_all['is_historical'].any()) else 1.0
-            max_reg  = df_all[df_all['is_historical']]['estimated_regularity'].max() if (df_all['is_historical'].any()) else 1.0
-            max_goals= df_all[df_all['is_historical']]['estimated_goals'].max() if (df_all['is_historical'].any()) else 1.0
-            col1, col2 = st.columns([1,1])
-            with col1:
-                save_dict_to_download_button(st.session_state["new_player_scores"], "💾 Download New Player Scores", "new_player_scores.json")
-            with col2:
-                np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
-                if np_upload:
-                    loaded_scores = load_dict_from_file(np_upload)
-                    st.session_state["new_player_scores"].update(loaded_scores)
-                    st.success("New player scores loaded!")
-            if not new_players.empty:
-                st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
-                grid_cols = st.columns([2,1,1,1,1,1])
-                grid_cols[0].markdown("**Player**")
-                grid_cols[1].markdown("**Perf**")
-                grid_cols[2].markdown("**Pot**")
-                grid_cols[3].markdown("**Reg**")
-                grid_cols[4].markdown("**Goals**")
-                for i, nprow in new_players.iterrows():
-                    pid = nprow['player_id']
-                    if pid not in st.session_state["new_player_scores"]:
-                        st.session_state["new_player_scores"][pid] = {
-                            "estimated_performance": 0,
-                            "estimated_potential": 0,
-                            "estimated_regularity": 0,
-                            "estimated_goals": 0,
-                        }
-                    cols = st.columns([2,1,1,1,1])
-                    cols[0].markdown(f"{nprow['Joueur']} ({nprow['simplified_position']} - {nprow['Club']})")
-                    for ci, (kpi, maxval, label) in enumerate([
-                        ("estimated_performance", max_perf, "Perf"),
-                        ("estimated_potential", max_pot, "Pot"),
-                        ("estimated_regularity", max_reg, "Reg"),
-                        ("estimated_goals", max_goals, "Goals"),
-                    ], 1):
-                        sel = cols[ci].selectbox(
-                            "", NEW_PLAYER_SCORE_OPTIONS,
-                            index=NEW_PLAYER_SCORE_OPTIONS.index(st.session_state["new_player_scores"][pid][kpi]),
-                            key=f"{pid}_{kpi}")
-                        st.session_state["new_player_scores"][pid][kpi] = sel
-                    for kpi, maxval in [
-                        ("estimated_performance", max_perf),
-                        ("estimated_potential", max_pot),
-                        ("estimated_regularity", max_reg),
-                        ("estimated_goals", max_goals)
-                    ]:
-                        score_pct = st.session_state["new_player_scores"][pid][kpi]
-                        df_all.loc[df_all['player_id']==pid, kpi] = (score_pct/100) * maxval
-            else:
-                st.info("No new players to rate.")
-
-        df_all = normalize_kpis(df_all, max_perf, max_pot, max_reg, max_goals)
-        df_all = calculate_pvs(df_all, st.session_state["kpi_weights"])
-        df_all = calculate_mrb(df_all, st.session_state["mrb_params"])
-        df_all['Ratings per GW'], df_all['Goals per GW'] = zip(
-            *df_all.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
-        )
-
-        st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
-        squad_df, squad_summary = squad_builder.select_squad(df_all, formation_key_ui, target_squad_size_ui)
-        if not squad_df.empty:
-            squad_disp = squad_df.copy()
-            squad_disp = squad_disp.rename(columns={
-                "Joueur": "Player", "simplified_position":"Pos", "pvs_in_squad":"PVS", "Cote":"Cote",
-                "mrb_actual_cost":"Bid", "estimated_performance":"Perf","estimated_potential":"Pot",
-                "estimated_regularity":"Reg", "estimated_goals":"Goals", "team_ranking":"TeamRank"
-            })
-            squad_disp['Starter'] = squad_disp['is_starter'].map({True:"Yes",False:"No"})
-            squad_disp['Ratings per GW'], squad_disp['Goals per GW'] = zip(
-                *squad_disp.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
+            # Normalize and calculate metrics
+            max_perf = df_hist_kpis['estimated_performance'].max() if not df_hist_kpis.empty else 1.0
+            max_pot  = df_hist_kpis['estimated_potential'].max() if not df_hist_kpis.empty else 1.0
+            max_reg  = df_hist_kpis['estimated_regularity'].max() if not df_hist_kpis.empty else 1.0
+            max_goals= df_hist_kpis['estimated_goals'].max() if not df_hist_kpis.empty else 1.0
+            
+            df_all = normalize_kpis(df_all, max_perf, max_pot, max_reg, max_goals)
+            df_all = calculate_pvs(df_all, st.session_state["kpi_weights"])
+            df_all = calculate_mrb(df_all, st.session_state["mrb_params"])
+            df_all['Ratings per GW'], df_all['Goals per GW'] = zip(
+                *df_all.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
             )
-            squad_disp_show = squad_disp[['Player','Club','Pos','PVS','Bid','Perf','Pot','Reg','Goals','TeamRank','Starter','Ratings per GW','Goals per GW']]
-            st.dataframe(squad_disp_show, use_container_width=True, hide_index=True)
-            display_squad_formation(squad_df, formation_key_ui)
-            st.markdown('<h2 class="section-header">📈 Squad Summary</h2>', unsafe_allow_html=True)
-            st.metric("Budget Spent", f"€ {squad_summary.get('total_cost',0):.0f}", help=f"Remaining: € {squad_summary.get('remaining_budget',0):.0f}")
-            st.metric("Squad Size", f"{squad_summary.get('total_players',0)} (Target: {target_squad_size_ui})")
-            st.metric("Total Squad PVS", f"{squad_summary.get('total_squad_pvs',0):.2f}")
-            st.metric("Starters PVS", f"{squad_summary.get('total_starters_pvs',0):.2f}")
-            st.info(f"**Formation:** {formation_key_ui}")
-            for pos in ['GK','DEF','MID','FWD']:
-                c = squad_summary.get('position_counts',{}).get(pos,0)
-                minr = squad_builder.squad_minimums.get(pos,0)
-                st.markdown(f"• **{pos}:** {c} (Min: {minr})")
-            st.download_button(label="📥 Download Squad (CSV)", data=squad_disp_show.to_csv(index=False).encode('utf-8'), file_name="mpg_suggested_squad.csv", mime="text/csv")
-        else:
-            st.warning("Could not build a valid squad. Check your data and settings.")
-
-        st.markdown('<h2 class="section-header">📋 Full Player Database</h2>', unsafe_allow_html=True)
-        disp_df = df_all.rename(columns={
-            "Joueur":"Player", "simplified_position":"Pos", "pvs":"PVS", "Cote":"Cote",
-            "mrb":"Suggested Bid", "estimated_performance":"Perf","estimated_potential":"Pot",
-            "estimated_regularity":"Reg", "estimated_goals":"Goals", "team_ranking":"TeamRank"
-        })
-        disp_df_show = disp_df[['Player','Club','Pos','PVS','Suggested Bid','Perf','Pot','Reg','Goals','TeamRank','Ratings per GW','Goals per GW']]
-        st.dataframe(disp_df_show, use_container_width=True, hide_index=True)
-        st.download_button(label="📥 Download Player Database (CSV)", data=disp_df_show.to_csv(index=False).encode('utf-8'), file_name="mpg_full_player_database.csv", mime="text/csv")
-
+            
+            if tab_selection == "Squad Builder":
+                st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
+                squad_df, squad_summary = squad_builder.select_squad(df_all, formation_key_ui, target_squad_size_ui)
+                
+                if not squad_df.empty:
+                    # Budget Progress Bar
+                    budget_spent = squad_summary.get('total_cost', 0)
+                    budget_remaining = squad_summary.get('remaining_budget', 0)
+                    progress_percent = min(100, (budget_spent / squad_builder.budget) * 100)
+                    
+                    col1, col2 = st.columns([1, 2])
+                    with col1:
+                        st.metric("Budget Spent", f"€ {budget_spent:,}")
+                    with col2:
+                        st.caption(f"Remaining: € {budget_remaining:,}")
+                        st.markdown(f"""
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {progress_percent}%"></div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Squad Summary Cards
+                    cols = st.columns(4)
+                    with cols[0]:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div style="font-size: 1.25rem; font-weight: 700;">{squad_summary.get('total_players',0)}</div>
+                            <div>Players</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with cols[1]:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div style="font-size: 1.25rem; font-weight: 700;">{squad_summary.get('total_squad_pvs',0):.0f}</div>
+                            <div>Total PVS</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with cols[2]:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div style="font-size: 1.25rem; font-weight: 700;">{squad_summary.get('total_starters_pvs',0):.0f}</div>
+                            <div>Starters PVS</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    with cols[3]:
+                        st.markdown(f"""
+                        <div class="metric-card">
+                            <div style="font-size: 1.25rem; font-weight: 700;">{formation_key_ui}</div>
+                            <div>Formation</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                    
+                    # Enhanced Formation Visualization
+                    st.markdown("### **Team Formation**")
+                    display_enhanced_formation(squad_df, formation_key_ui)
+                    
+                    # Position Distribution
+                    st.markdown("### **Position Distribution**")
+                    pos_counts = squad_summary.get('position_counts', {})
+                    min_counts = squad_builder.squad_minimums
+                    
+                    for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                        count = pos_counts.get(pos, 0)
+                        min_req = min_counts.get(pos, 0)
+                        status = "✅" if count >= min_req else "⚠️"
+                        st.progress(
+                            min(1.0, count / (min_req * 1.5)), 
+                            text=f"{pos}: {count} players {status} (Min: {min_req})"
+                        )
+                    
+                    # Player Table
+                    st.markdown("### **Squad Details**")
+                    squad_disp_show = squad_df[['Joueur','Club','simplified_position','pvs_in_squad','mrb_actual_cost','is_starter']]
+                    squad_disp_show = squad_disp_show.rename(columns={
+                        "Joueur": "Player", 
+                        "simplified_position": "Position",
+                        "pvs_in_squad": "PVS",
+                        "mrb_actual_cost": "Bid",
+                        "is_starter": "Starter"
+                    })
+                    
+                    # Format table with badges and colors
+                    def format_row(row):
+                        position = row['Position']
+                        starter = "🟢" if row['Starter'] else "🔵"
+                        badge = f"<span class='{position}-tag position-tag'>{position}</span>"
+                        return [
+                            row['Player'],
+                            row['Club'],
+                            badge,
+                            f"{row['PVS']:.1f}",
+                            f"€{row['Bid']}",
+                            starter
+                        ]
+                    
+                    formatted_data = [format_row(row) for _, row in squad_disp_show.iterrows()]
+                    st.write(pd.DataFrame(
+                        formatted_data,
+                        columns=["Player", "Club", "Position", "PVS", "Bid", "Starter"]
+                    ).to_html(escape=False, index=False), unsafe_allow_html=True)
+                    
+                    st.download_button(
+                        label="📥 Download Squad (CSV)", 
+                        data=squad_disp_show.to_csv(index=False).encode('utf-8'), 
+                        file_name="mpg_suggested_squad.csv", 
+                        mime="text/csv"
+                    )
+                    
+                else:
+                    st.warning("Could not build a valid squad. Check your data and settings.")
+            
+            elif tab_selection == "Player Database":
+                st.markdown('<h2 class="section-header">📋 Full Player Database</h2>', unsafe_allow_html=True)
+                disp_df = df_all.rename(columns={
+                    "Joueur":"Player", "simplified_position":"Pos", "pvs":"PVS", "Cote":"Cote",
+                    "mrb":"Suggested Bid", "estimated_performance":"Perf","estimated_potential":"Pot",
+                    "estimated_regularity":"Reg", "estimated_goals":"Goals", "team_ranking":"TeamRank"
+                })
+                disp_df_show = disp_df[['Player','Club','Pos','PVS','Suggested Bid','Perf','Pot','Reg','Goals','TeamRank','Ratings per GW','Goals per GW']]
+                
+                # Format position tags
+                def format_pos(pos):
+                    return f"<span class='{pos}-tag position-tag'>{pos}</span>"
+                
+                disp_df_show['Pos'] = disp_df_show['Pos'].apply(format_pos)
+                
+                st.write(disp_df_show.to_html(escape=False, index=False), unsafe_allow_html=True)
+                st.download_button(
+                    label="📥 Download Player Database (CSV)", 
+                    data=disp_df_show.to_csv(index=False).encode('utf-8'), 
+                    file_name="mpg_full_player_database.csv", 
+                    mime="text/csv"
+                )
+    
     else:
         st.info("Upload BOTH last season and new season player files to start. Example columns: Joueur, Poste, Club, Cote, D1..D34")
         example_hist = pd.DataFrame({'Joueur':['PlayerA','PlayerB'], 'Poste':['A','M'], 'Club':['Club X','Club Y'], 'Cote':[45,30], 'D34':['7.5*','6.5'], 'D33':['(6.0)**','0'], 'D32':['','5.5*']})
