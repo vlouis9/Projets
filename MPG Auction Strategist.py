@@ -32,10 +32,10 @@ with col2:
     if URL_NEW_SEASON_APP != "YOUR_URL_FOR_THE_NEW_SEASON_APP_HERE":
         st.link_button("Launch New Season App", URL_NEW_SEASON_APP)
     else:
-        st.warning("🏝️ New Season App URL not configured.")
+        st.warning("New Season App URL not configured.")
 
 with col3:
-    st.subheader("🎯 SandBox")
+    st.subheader("🏝️ SandBox")
     st.markdown("To play with data and players")
     if URL_SANDBOX_APP != "YOUR_URL_FOR_THE_SANDBOX_APP_HERE":
         st.link_button("Launch Sandbox App", URL_SANDBOX_APP)
