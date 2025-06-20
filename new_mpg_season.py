@@ -15,68 +15,67 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# ---- CUSTOM CSS ----
+# ---- CSS for compact UI ----
 st.markdown("""
 <style>
-    .main-header {
-        font-size: 2.5rem; 
-        font-weight: 800; 
-        text-align: center; 
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.5rem;
-        border-bottom: 3px solid #10b981;
-        background: linear-gradient(90deg, #2563eb, #8b5cf6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-    .section-header {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #2563eb;
-        margin-top: 1.5rem;
-        margin-bottom: 1rem;
-        padding-left: 0.5rem;
-        border-left: 4px solid #10b981;
-    }
-    .squad-summary-card {
-        background: #f8fafc;
-        border-radius: 8px;
-        margin-bottom: 8px;
-        padding: 0.7em 1em 0.7em 1em;
-        font-size: 1.05em;
-        border-left: 5px solid #2563eb;
-    }
-    .squad-table-row {
-        font-size: 1.08em;
-        padding-bottom: 0.1em;
-        border-bottom: 1px solid #e2e8f0;
-    }
-    .mini-btn {
-        font-size: 1.0em !important;
-        min-width: 0.8em !important;
-        padding: 0.05em 0.3em !important;
-        margin: 0 0.2em 0 0 !important;
-    }
-    .player-database-table th, .player-database-table td {
-        font-size: 0.98em;
-        padding: 0.15em 0.2em;
-    }
-    .position-badge {
-        border-radius: 12px;
-        padding: 0.07em 0.6em;
-        font-size: 0.98em;
-        font-weight: 700;
-        color: #fff;
-        display: inline-block;
-    }
-    .GK-badge { background: #3b82f6; }
-    .DEF-badge { background: #22c55e; }
-    .MID-badge { background: #f59e42; }
-    .FWD-badge { background: #f43f5e; }
+.main-header {
+    font-size: 2.5rem; 
+    font-weight: 800; 
+    text-align: center; 
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #10b981;
+    background: linear-gradient(90deg, #2563eb, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.section-header {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2563eb;
+    margin-top: 1.5rem;
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+    border-left: 4px solid #10b981;
+}
+.squad-summary-card {
+    background: #f8fafc;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    padding: 0.7em 1em 0.7em 1em;
+    font-size: 1.05em;
+    border-left: 5px solid #2563eb;
+}
+.position-badge {
+    border-radius: 12px;
+    padding: 0.07em 0.6em;
+    font-size: 0.98em;
+    font-weight: 700;
+    color: #fff;
+    display: inline-block;
+}
+.GK-badge { background: #3b82f6; }
+.DEF-badge { background: #22c55e; }
+.MID-badge { background: #f59e42; }
+.FWD-badge { background: #f43f5e; }
+.player-details-box {
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    background: #f8fafc;
+    margin: 0.5em 0 1em 0;
+    padding: 1em;
+}
+.compact-btn {
+    font-size: 1.0em !important;
+    min-width: 0.8em !important;
+    padding: 0.1em 0.4em !important;
+    margin: 0 0.2em 0 0 !important;
+}
+.stDataFrame td { font-size: 0.98em; }
 </style>
 """, unsafe_allow_html=True)
 
-# ---- CONSTANTS & PREDEFINED PROFILES ----
+# ---- CONSTANTS & PROFILES ----
 CLUB_TIERS = {
     "Winner": 100, "European": 75, "Average": 50, "Relegation": 25
 }
@@ -100,7 +99,34 @@ PREDEFINED_PROFILES = {
             'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
         }
     },
-    # ... [Include the other profiles as in your original code]
+    "Potential Focus": {
+        "kpi_weights": {
+            'GK': {'estimated_performance': 0.20, 'estimated_potential': 0.60, 'estimated_regularity': 0.20, 'estimated_goals': 0.0, 'team_ranking': 0.0},
+            'DEF': {'estimated_performance': 0.15, 'estimated_potential': 0.55, 'estimated_regularity': 0.15, 'estimated_goals': 0.05, 'team_ranking': 0.10},
+            'MID': {'estimated_performance': 0.10, 'estimated_potential': 0.55, 'estimated_regularity': 0.15, 'estimated_goals': 0.10, 'team_ranking': 0.10},
+            'FWD': {'estimated_performance': 0.05, 'estimated_potential': 0.50, 'estimated_regularity': 0.10, 'estimated_goals': 0.25, 'team_ranking': 0.10}
+        },
+        "mrb_params_per_pos": {
+            'GK': {'max_proportional_bonus_at_pvs100': 0.25},
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.35},
+            'MID': {'max_proportional_bonus_at_pvs100': 0.5},
+            'FWD': {'max_proportional_bonus_at_pvs100': 0.7}
+        }
+    },
+    "Goal Focus": {
+        "kpi_weights": {
+            'GK': {'estimated_performance': 0.50, 'estimated_potential': 0.30, 'estimated_regularity': 0.20, 'estimated_goals': 0.0, 'team_ranking': 0.0},
+            'DEF': {'estimated_performance': 0.20, 'estimated_potential': 0.10, 'estimated_regularity': 0.20, 'estimated_goals': 0.30, 'team_ranking': 0.20},
+            'MID': {'estimated_performance': 0.15, 'estimated_potential': 0.10, 'estimated_regularity': 0.15, 'estimated_goals': 0.40, 'team_ranking': 0.20},
+            'FWD': {'estimated_performance': 0.10, 'estimated_potential': 0.10, 'estimated_regularity': 0.10, 'estimated_goals': 0.60, 'team_ranking': 0.10}
+        },
+        "mrb_params_per_pos": {
+            'GK': {'max_proportional_bonus_at_pvs100': 0.2},
+            'DEF': {'max_proportional_bonus_at_pvs100': 0.3},
+            'MID': {'max_proportional_bonus_at_pvs100': 0.4},
+            'FWD': {'max_proportional_bonus_at_pvs100': 0.9}
+        }
+    }
 }
 
 # ---- HELPERS ----
@@ -437,14 +463,12 @@ def main():
     df_all = calculate_pvs(df_all, st.session_state['kpi_weights'])
     df_all = calculate_mrb(df_all, st.session_state['mrb_params'])
 
-    # ---- UI Layout: Columns for Squad & Database ----
+    # ---- UI Layout: Squad & Database ----
     squad_col, db_col = st.columns([1,2])
-
-    # ---- Left: Squad Panel ----
+    # --- Left: Squad Panel ---
     with squad_col:
         st.markdown('<h2 class="section-header">🏆 Your Squad</h2>', unsafe_allow_html=True)
         squad_df = df_all[df_all['player_id'].isin(st.session_state.manual_squad)]
-        # ---- Squad Summary ----
         summary = squad_summary(squad_df)
         if summary:
             st.markdown(f"<div class='squad-summary-card'><b>Total:</b> {summary['Total players']} &nbsp; "
@@ -454,9 +478,8 @@ def main():
                         f"<b>Avg Perf:</b> {summary['Avg performance']} &nbsp; "
                         f"<b>Avg Pot:</b> {summary['Avg potential']} &nbsp; "
                         f"<b>Avg Reg:</b> {summary['Avg regularity (%)']}%<br>"
-                        + " ".join([f"<span class='position-badge {p}-badge'>{p}: {c}</span>" for p,c in summary["Pos counts"].items()])
+                        + " ".join([f"<span class='position-badge {p}-badge'>{p}: {c}</span>" for p,c in summary['Pos counts'].items()])
                         + "</div>", unsafe_allow_html=True)
-        # ---- Squad Table ----
         for idx, row in squad_df.iterrows():
             cols = st.columns([2,1,1,0.7,0.7])
             cols[0].markdown(f"{row['Joueur']} (<span class='position-badge {row['simplified_position']}-badge'>{row['simplified_position']}</span>, {row['Club']})", unsafe_allow_html=True)
@@ -466,8 +489,15 @@ def main():
                 remove_player_from_squad(row['player_id'])
             if cols[4].button("🔍", key=f"details_squad_{row['player_id']}"):
                 st.session_state.selected_player = row['player_id']
+            if st.session_state.selected_player == row['player_id']:
+                with st.container():
+                    st.markdown(f"<div class='player-details-box'><b>Details for {row['Joueur']} ({row['Club']})</b><br>"
+                                f"PVS: {row['pvs']:.2f} | MRB: €{row['mrb']}<br>"
+                                f"Performance: {row['estimated_performance']:.2f} | Potential: {row['estimated_potential']:.2f} | "
+                                f"Regularity: {row['estimated_regularity']:.1f}% | Goals: {row['estimated_goals']}<br></div>", unsafe_allow_html=True)
+                    plot_player_performance(row, df_hist)
 
-    # ---- Right: Player Database ----
+    # --- Right: Player Database ---
     with db_col:
         st.markdown('<h2 class="section-header">📋 Player Database</h2>', unsafe_allow_html=True)
         pos_filter = st.multiselect("Position", options=df_all['simplified_position'].unique().tolist(), default=[])
@@ -480,43 +510,39 @@ def main():
         if club_filter:
             filtered = filtered[filtered['Club'].isin(club_filter)]
         filtered = filtered.sort_values(by=sort_col, ascending=sort_asc)
-        # ---- Compact Table with Small Buttons ----
+        # Table headers
+        table_cols = ["Player", "Pos", "Club", "PVS", "MRB", "Avg Rating", "Regularity (%)", "Goals", "", ""]
+        st.markdown("| " + " | ".join(table_cols) + " |")
+        st.markdown("|" + " --- |"*len(table_cols))
+        # Each row
         for idx, row in filtered.iterrows():
-            cols = st.columns([2,1,1,1,0.8,1,1,1,0.7,0.6,0.6])
-            cols[0].markdown(f"{row['Joueur']}")
-            cols[1].markdown(f"<span class='position-badge {row['simplified_position']}-badge'>{row['simplified_position']}</span>", unsafe_allow_html=True)
-            cols[2].markdown(row['Club'])
-            cols[3].markdown(f"<b>{row['pvs']:.1f}</b>", unsafe_allow_html=True)
-            cols[4].markdown(f"€{row['mrb']}")
-            cols[5].markdown(f"{row['estimated_performance']:.2f}")
-            cols[6].markdown(f"{row['estimated_potential']:.2f}")
-            cols[7].markdown(f"{row['estimated_regularity']:.0f}")
-            cols[8].markdown(f"{row['estimated_goals']:.0f}")
+            row_vals = [
+                row['Joueur'],
+                f"<span class='position-badge {row['simplified_position']}-badge'>{row['simplified_position']}</span>",
+                row['Club'],
+                f"{row['pvs']:.1f}",
+                f"€{row['mrb']}",
+                f"{row['estimated_performance']:.2f}",
+                f"{row['estimated_regularity']:.1f}",
+                f"{row['estimated_goals']:.0f}",
+            ]
+            col_btns = st.columns(len(row_vals)+2)
+            for i, val in enumerate(row_vals):
+                col_btns[i].markdown(val, unsafe_allow_html=True)
             if row['player_id'] not in st.session_state.manual_squad:
-                if cols[9].button("➕", key=f"add_{row['player_id']}"):
+                if col_btns[-2].button("➕", key=f"add_{row['player_id']}"):
                     add_player_to_squad(row['player_id'])
             else:
-                cols[9].write("✅")
-            if cols[10].button("🔍", key=f"details_{row['player_id']}"):
+                col_btns[-2].write("✅")
+            if col_btns[-1].button("🔍", key=f"details_{row['player_id']}"):
                 st.session_state.selected_player = row['player_id']
-
-    # ---- Player Detail Panel ----
-    if st.session_state.selected_player:
-        selected_row = df_all[df_all['player_id'] == st.session_state.selected_player]
-        if not selected_row.empty:
-            row = selected_row.iloc[0]
-            st.sidebar.markdown(f"### Player Details: {row['Joueur']}")
-            st.sidebar.write({
-                "Club": row['Club'],
-                "Position": row['simplified_position'],
-                "PVS": row['pvs'],
-                "Bid": row['mrb'],
-                "Performance": row['estimated_performance'],
-                "Potential": row['estimated_potential'],
-                "Regularity": row['estimated_regularity'],
-                "Goals": row['estimated_goals']
-            })
-            plot_player_performance(row, df_hist)
+            if st.session_state.selected_player == row['player_id']:
+                with st.container():
+                    st.markdown(f"<div class='player-details-box'><b>Details for {row['Joueur']} ({row['Club']})</b><br>"
+                                f"PVS: {row['pvs']:.2f} | MRB: €{row['mrb']}<br>"
+                                f"Performance: {row['estimated_performance']:.2f} | Potential: {row['estimated_potential']:.2f} | "
+                                f"Regularity: {row['estimated_regularity']:.1f}% | Goals: {row['estimated_goals']}<br></div>", unsafe_allow_html=True)
+                    plot_player_performance(row, df_hist)
 
 if __name__ == "__main__":
     main()
