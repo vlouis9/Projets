@@ -4,7 +4,7 @@ import json
 import os
 from datetime import datetime
 
-# --- Fichiers de persistance ---
+# --- Fichiers de persistance (pour usage local, mais non fiables sur Streamlit Cloud)---
 DB_FILE = "players_db.csv"
 LINEUPS_FILE = "lineups.json"
 MATCHES_FILE = "matches.json"
@@ -88,6 +88,64 @@ if "matches" not in st.session_state:
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
+# --- Fonctions de download/upload ---
+def download_buttons():
+    st.markdown("### 📥 Sauvegarder manuellement vos données")
+    # Téléchargement joueurs
+    st.download_button(
+        label="Télécharger la base joueurs (CSV)",
+        data=st.session_state.players.to_csv(index=False).encode("utf-8"),
+        file_name="players_db.csv",
+        mime="text/csv"
+    )
+    # Téléchargement compos
+    st.download_button(
+        label="Télécharger les compositions (JSON)",
+        data=json.dumps(st.session_state.lineups, indent=2),
+        file_name="lineups.json",
+        mime="application/json"
+    )
+    # Téléchargement matchs
+    st.download_button(
+        label="Télécharger les matchs (JSON)",
+        data=json.dumps(st.session_state.matches, indent=2),
+        file_name="matches.json",
+        mime="application/json"
+    )
+
+def upload_buttons():
+    st.markdown("### 📤 Importer vos données sauvegardées")
+    # Upload joueurs
+    up_csv = st.file_uploader("Importer une base joueurs (CSV)", type="csv", key="upload_players")
+    if up_csv:
+        try:
+            df = pd.read_csv(up_csv)
+            for col in PLAYER_COLS:
+                if col not in df.columns:
+                    df[col] = [PLAYER_DEFAULTS[col]] * len(df)
+            st.session_state.players = df[PLAYER_COLS]
+            st.success("Base joueurs importée !")
+        except Exception as e:
+            st.error(f"Erreur à l'import : {e}")
+
+    # Upload compos
+    up_lineups = st.file_uploader("Importer des compositions (JSON)", type="json", key="upload_lineups")
+    if up_lineups:
+        try:
+            st.session_state.lineups = json.load(up_lineups)
+            st.success("Compositions importées !")
+        except Exception as e:
+            st.error(f"Erreur à l'import : {e}")
+
+    # Upload matchs
+    up_matches = st.file_uploader("Importer des matchs (JSON)", type="json", key="upload_matches")
+    if up_matches:
+        try:
+            st.session_state.matches = json.load(up_matches)
+            st.success("Matchs importés !")
+        except Exception as e:
+            st.error(f"Erreur à l'import : {e}")
+
 # --- Terrain interactif (fonction réutilisable) ---
 def terrain_interactif(formation, terrain_key):
     if terrain_key not in st.session_state or st.session_state.get(f"formation_{terrain_key}", None) != formation:
@@ -131,7 +189,6 @@ def terrain_interactif(formation, terrain_key):
         poste, idx = st.session_state[edit_key]
         st.markdown(f"---\n**Ajouter/modifier {poste}{idx+1}**")
         joueurs_sur_terrain = joueur_deja_sur_terrain()
-        # On retire le joueur déjà à la position courante
         joueur_courant = terrain[poste][idx]["Nom"] if terrain[poste][idx] else None
         if joueur_courant:
             joueurs_sur_terrain = joueurs_sur_terrain - {joueur_courant}
@@ -156,7 +213,6 @@ def terrain_interactif(formation, terrain_key):
             st.session_state[terrain_key] = terrain
             st.experimental_rerun()
 
-    # Affichage récap
     st.markdown("**Composition actuelle :**")
     for poste in POSTES_ORDER:
         joueurs = [
@@ -173,7 +229,7 @@ def terrain_interactif(formation, terrain_key):
 st.sidebar.title("⚽ Gestion Équipe AFC")
 menu = st.sidebar.radio(
     "Menu",
-    ["Database", "Créer Composition", "Mes Compos", "Matchs"]
+    ["Database", "Créer Composition", "Mes Compos", "Matchs", "Sauvegarde / Import"]
 )
 
 # --- DATABASE (édition inline) ---
@@ -242,7 +298,6 @@ elif menu == "Matchs":
     st.title("Gestion des matchs")
     tab1, tab2 = st.tabs(["Créer un match", "Mes matchs"])
 
-    # Création d'un match
     with tab1:
         st.subheader("Créer un nouveau match")
         type_match = st.selectbox("Type de match", ["Championnat", "Coupe"])
@@ -285,7 +340,6 @@ elif menu == "Matchs":
             save_matches()
             st.success("Match enregistré !")
 
-    # Consultation/édition des matchs
     with tab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
@@ -371,7 +425,6 @@ elif menu == "Matchs":
                         homme_du_match = st.selectbox("Homme du match", [""] + joueurs_all, key=f"hdm_{mid}")
 
                         if st.button("Valider le match", key=f"valide_{mid}"):
-                            # Mise à jour stats joueurs
                             df = st.session_state.players
                             for nom in joueurs_all:
                                 idx = df[df["Nom"] == nom].index
@@ -424,3 +477,10 @@ elif menu == "Matchs":
                         del st.session_state.matches[mid]
                         save_matches()
                         st.experimental_rerun()
+
+# --- PAGE SAUVEGARDE / IMPORT ---
+elif menu == "Sauvegarde / Import":
+    st.title("Sauvegarde et importation manuelles des données")
+    st.info("Téléchargez vos données pour les sauvegarder sur votre ordinateur. En cas de redéploiement, vous pourrez les réimporter ici.")
+    download_buttons()
+    upload_buttons()
