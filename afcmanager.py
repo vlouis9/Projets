@@ -29,6 +29,7 @@ PLAYER_DEFAULTS = {
     "Homme du match": 0
 }
 
+# Définition des formations
 FORMATION = {
     "4-4-2": {"G": 1, "D": 4, "M": 4, "A": 2},
     "4-3-3": {"G": 1, "D": 4, "M": 3, "A": 3},
@@ -37,10 +38,11 @@ FORMATION = {
     "5-3-2": {"G": 1, "D": 5, "M": 3, "A": 2},
 }
 
+# Ordre des postes pour l'affichage
 POSTES_ORDER = ["G", "D", "M", "A"]
 DEFAULT_FORMATION = "4-4-2"
 
-def afficher_terrain(formation, terrain_data=None):
+def afficher_terrain(formation, terrain_data=None, prefix_key=""):
     st.write("### Terrain de jeu")
     cols = st.columns(len(POSTES_ORDER))
     
@@ -58,7 +60,7 @@ def afficher_terrain(formation, terrain_data=None):
                     selected_player = st.selectbox(
                         "Joueur",
                         [""] + list(st.session_state.players[st.session_state.players["Poste"] == poste]["Nom"]),
-                        key=f"player_{poste}_{i}",
+                        key=f"{prefix_key}player_{poste}_{i}_{formation}",
                         index=0 if not joueur else list(st.session_state.players["Nom"]).index(joueur["nom"]) + 1
                     )
                     
@@ -70,13 +72,13 @@ def afficher_terrain(formation, terrain_data=None):
                                 min_value=1,
                                 max_value=99,
                                 value=joueur.get("numero", 1),
-                                key=f"numero_{poste}_{i}"
+                                key=f"{prefix_key}numero_{poste}_{i}_{formation}"
                             )
                         with col2:
                             capitaine = st.checkbox(
                                 "Capitaine",
                                 value=joueur.get("capitaine", False),
-                                key=f"capitaine_{poste}_{i}"
+                                key=f"{prefix_key}capitaine_{poste}_{i}_{formation}"
                             )
                         
                         terrain_data = terrain_data or {p: [None]*FORMATION[formation][p] for p in POSTES_ORDER}
@@ -97,9 +99,10 @@ def gestion_joueurs():
             edited_df = st.data_editor(
                 st.session_state.players,
                 num_rows="dynamic",
-                use_container_width=True
+                use_container_width=True,
+                key="players_editor"
             )
-            if st.button("Mettre à jour la liste"):
+            if st.button("Mettre à jour la liste", key="update_players"):
                 st.session_state.players = edited_df
                 st.success("Liste mise à jour!")
         else:
@@ -108,10 +111,10 @@ def gestion_joueurs():
     with tabs[1]:
         st.header("Ajouter un joueur")
         with st.form("new_player"):
-            nom = st.text_input("Nom")
-            poste = st.selectbox("Poste", POSTES_ORDER)
-            club = st.text_input("Club")
-            if st.form_submit_button("Ajouter"):
+            nom = st.text_input("Nom", key="new_player_name")
+            poste = st.selectbox("Poste", POSTES_ORDER, key="new_player_position")
+            club = st.text_input("Club", key="new_player_club")
+            if st.form_submit_button("Ajouter", key="add_player"):
                 new_player = PLAYER_DEFAULTS.copy()
                 new_player.update({
                     "Nom": nom,
@@ -132,17 +135,25 @@ def gestion_joueurs():
         
         with col1:
             st.write("### Charger")
-            uploaded_file = st.file_uploader("Choisir un fichier CSV", type="csv")
+            uploaded_file = st.file_uploader(
+                "Choisir un fichier CSV",
+                type="csv",
+                key="players_file_uploader"
+            )
             if uploaded_file is not None:
-                if st.button("Charger les données"):
+                if st.button("Charger les données", key="load_players"):
                     st.session_state.players = pd.read_csv(uploaded_file)
                     st.success("Données chargées!")
         
         with col2:
             st.write("### Sauvegarder")
-            if st.button("Sauvegarder en CSV"):
+            if st.button("Sauvegarder en CSV", key="save_players"):
                 if "players" in st.session_state:
-                    filename = st.text_input("Nom du fichier", value="players_db.csv")
+                    filename = st.text_input(
+                        "Nom du fichier",
+                        value="players_db.csv",
+                        key="players_filename"
+                    )
                     st.session_state.players.to_csv(filename, index=False)
                     st.success(f"Données sauvegardées dans {filename}!")
 
@@ -151,11 +162,16 @@ def gestion_compositions():
     
     with tabs[0]:
         st.header("Créer une composition")
-        nom_compo = st.text_input("Nom de la composition")
-        formation = st.selectbox("Formation", list(FORMATION.keys()), index=0)
+        nom_compo = st.text_input("Nom de la composition", key="new_compo_name")
+        formation = st.selectbox(
+            "Formation",
+            list(FORMATION.keys()),
+            index=0,
+            key="new_compo_formation"
+        )
         
         if nom_compo and formation:
-            terrain_data = afficher_terrain(formation)
+            terrain_data = afficher_terrain(formation, prefix_key="new_")
             
             st.subheader("Remplaçants")
             selected_players = set(
@@ -169,10 +185,11 @@ def gestion_compositions():
                 ]
                 subs = st.multiselect(
                     "Sélectionner les remplaçants",
-                    available_subs["Nom"]
+                    available_subs["Nom"],
+                    key="new_compo_subs"
                 )
                 
-                if st.button("Enregistrer la composition"):
+                if st.button("Enregistrer la composition", key="save_new_compo"):
                     if "lineups" not in st.session_state:
                         st.session_state.lineups = {}
                     st.session_state.lineups[nom_compo] = {
@@ -187,7 +204,8 @@ def gestion_compositions():
         if "lineups" in st.session_state and st.session_state.lineups:
             compo_to_edit = st.selectbox(
                 "Sélectionner une composition",
-                list(st.session_state.lineups.keys())
+                list(st.session_state.lineups.keys()),
+                key="select_compo_edit"
             )
             
             if compo_to_edit:
@@ -196,13 +214,14 @@ def gestion_compositions():
                 
                 terrain_data = afficher_terrain(
                     compo['formation'],
-                    compo['terrain']
+                    compo['terrain'],
+                    prefix_key="edit_"
                 )
                 
                 st.write("### Remplaçants")
                 st.write(", ".join(compo['remplacants']))
                 
-                if st.button("Supprimer cette composition"):
+                if st.button("Supprimer cette composition", key="delete_compo"):
                     del st.session_state.lineups[compo_to_edit]
                     st.success(f"Composition {compo_to_edit} supprimée!")
                     st.rerun()
@@ -213,17 +232,25 @@ def gestion_compositions():
         
         with col1:
             st.write("### Charger")
-            uploaded_file = st.file_uploader("Choisir un fichier JSON", type="json")
+            uploaded_file = st.file_uploader(
+                "Choisir un fichier JSON",
+                type="json",
+                key="compo_file_uploader"
+            )
             if uploaded_file is not None:
-                if st.button("Charger les compositions"):
+                if st.button("Charger les compositions", key="load_compo"):
                     st.session_state.lineups = json.load(uploaded_file)
                     st.success("Compositions chargées!")
         
         with col2:
             st.write("### Sauvegarder")
-            if st.button("Sauvegarder en JSON"):
+            if st.button("Sauvegarder en JSON", key="save_compo"):
                 if "lineups" in st.session_state:
-                    filename = st.text_input("Nom du fichier", value="lineups.json")
+                    filename = st.text_input(
+                        "Nom du fichier",
+                        value="lineups.json",
+                        key="compo_filename"
+                    )
                     with open(filename, "w") as f:
                         json.dump(st.session_state.lineups, f, indent=2)
                     st.success(f"Compositions sauvegardées dans {filename}!")
@@ -238,15 +265,20 @@ def gestion_matchs():
             count = sum(1 for match in st.session_state.matches.keys() if suggested_name in match)
             suggested_name = f"{suggested_name}-{count+1}"
         
-        match_name = st.text_input("Nom du match", value=suggested_name)
+        match_name = st.text_input(
+            "Nom du match",
+            value=suggested_name,
+            key="new_match_name"
+        )
         
         if "lineups" in st.session_state and st.session_state.lineups:
             compo = st.selectbox(
                 "Sélectionner une composition",
-                list(st.session_state.lineups.keys())
+                list(st.session_state.lineups.keys()),
+                key="new_match_compo"
             )
             
-            if st.button("Créer le match"):
+            if st.button("Créer le match", key="create_match"):
                 if "matches" not in st.session_state:
                     st.session_state.matches = {}
                 st.session_state.matches[match_name] = {
@@ -262,15 +294,15 @@ def gestion_matchs():
         if "matches" in st.session_state and st.session_state.matches:
             match_to_edit = st.selectbox(
                 "Sélectionner un match",
-                list(st.session_state.matches.keys())
+                list(st.session_state.matches.keys()),
+                key="select_match_edit"
             )
             
             if match_to_edit:
                 match = st.session_state.matches[match_to_edit]
                 st.write(f"Composition utilisée: {match['composition']}")
                 
-                if st.button("Supprimer ce match"):
-                    # Mise à jour des statistiques
+                if st.button("Supprimer ce match", key="delete_match"):
                     match_stats = match.get("stats", {})
                     if "players" in st.session_state:
                         players_df = st.session_state.players.copy()
@@ -293,17 +325,25 @@ def gestion_matchs():
         
         with col1:
             st.write("### Charger")
-            uploaded_file = st.file_uploader("Choisir un fichier JSON", type="json")
+            uploaded_file = st.file_uploader(
+                "Choisir un fichier JSON",
+                type="json",
+                key="match_file_uploader"
+            )
             if uploaded_file is not None:
-                if st.button("Charger les matchs"):
+                if st.button("Charger les matchs", key="load_matches"):
                     st.session_state.matches = json.load(uploaded_file)
                     st.success("Matchs chargés!")
         
         with col2:
             st.write("### Sauvegarder")
-            if st.button("Sauvegarder en JSON"):
+            if st.button("Sauvegarder en JSON", key="save_matches"):
                 if "matches" in st.session_state:
-                    filename = st.text_input("Nom du fichier", value="matches.json")
+                    filename = st.text_input(
+                        "Nom du fichier",
+                        value="matches.json",
+                        key="matches_filename"
+                    )
                     with open(filename, "w") as f:
                         json.dump(st.session_state.matches, f, indent=2)
                     st.success(f"Matchs sauvegardés dans {filename}!")
@@ -311,7 +351,6 @@ def gestion_matchs():
 def main():
     st.title("AFC Manager")
     
-    # Menus principaux sous forme d'onglets
     main_tabs = st.tabs(["Joueurs", "Compositions", "Matchs"])
     
     with main_tabs[0]:
