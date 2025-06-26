@@ -4,7 +4,7 @@ import json
 import os
 from datetime import datetime
 
-# --- Constantes fichiers et structures ---
+# --- Fichiers de persistance ---
 DB_FILE = "players_db.csv"
 LINEUPS_FILE = "lineups.json"
 MATCHES_FILE = "matches.json"
@@ -12,7 +12,7 @@ MATCHES_FILE = "matches.json"
 PLAYER_COLS = [
     "Nom", "Poste", "Club", "Titulaire", "Infos",
     "Buts", "Passes décisives", "Cartons jaunes", "Cartons rouges",
-    "Sélections", "Titularisations", "Note générale"
+    "Sélections", "Titularisations", "Note générale", "Homme du match"
 ]
 PLAYER_DEFAULTS = {
     "Nom": "",
@@ -26,7 +26,8 @@ PLAYER_DEFAULTS = {
     "Cartons rouges": 0,
     "Sélections": 0,
     "Titularisations": 0,
-    "Note générale": 0.0
+    "Note générale": 0.0,
+    "Homme du match": 0
 }
 FORMATION = {
     "4-4-2": {"G": 1, "D": 4, "M": 4, "A": 2},
@@ -75,7 +76,6 @@ def save_matches():
         json.dump(st.session_state.matches, f, indent=2)
 
 def terrain_init(formation):
-    # Crée toujours la structure du terrain pour la formation donnée
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
 # --- Initialisation session ---
@@ -90,14 +90,18 @@ if "formation" not in st.session_state:
 
 # --- Terrain interactif (fonction réutilisable) ---
 def terrain_interactif(formation, terrain_key):
-    """Affiche un terrain interactif, retourne le dict terrain, propose TOUS les joueurs au choix à chaque poste"""
     if terrain_key not in st.session_state or st.session_state.get(f"formation_{terrain_key}", None) != formation:
-        # On réinitialise le terrain à chaque changement de formation
         st.session_state[terrain_key] = terrain_init(formation)
         st.session_state[f"formation_{terrain_key}"] = formation
     terrain = st.session_state[terrain_key]
 
-    st.caption("Cliquez sur une case pour modifier le joueur à cette position.")
+    def joueur_deja_sur_terrain():
+        return set(
+            j["Nom"]
+            for p in POSTES_ORDER
+            for j in terrain.get(p, [])
+            if j and isinstance(j, dict) and j.get("Nom")
+        )
 
     def poste_buttons(poste, n):
         cols = st.columns(n)
@@ -126,11 +130,16 @@ def terrain_interactif(formation, terrain_key):
     if edit_key in st.session_state:
         poste, idx = st.session_state[edit_key]
         st.markdown(f"---\n**Ajouter/modifier {poste}{idx+1}**")
-        # --- TOUS les joueurs proposés ---
-        options = st.session_state.players["Nom"].tolist()
-        choix = st.selectbox("Choisir un joueur", [""] + options)
-        numero = st.number_input("Numéro de maillot", min_value=1, max_value=99, value=10, key=f"num_{terrain_key}_{poste}_{idx}")
-        capitaine = st.checkbox("Capitaine", key=f"cap_{terrain_key}_{poste}_{idx}")
+        joueurs_sur_terrain = joueur_deja_sur_terrain()
+        # On retire le joueur déjà à la position courante
+        joueur_courant = terrain[poste][idx]["Nom"] if terrain[poste][idx] else None
+        if joueur_courant:
+            joueurs_sur_terrain = joueurs_sur_terrain - {joueur_courant}
+        all_options = st.session_state.players["Nom"].tolist()
+        options = [n for n in all_options if n not in joueurs_sur_terrain]
+        choix = st.selectbox("Choisir un joueur", [""] + options, key=f"choix_{terrain_key}_{poste}_{idx}")
+        numero = st.number_input("Numéro de maillot", min_value=1, max_value=99, value=terrain[poste][idx]["Numero"] if terrain[poste][idx] else 10, key=f"num_{terrain_key}_{poste}_{idx}")
+        capitaine = st.checkbox("Capitaine", value=terrain[poste][idx]["Capitaine"] if terrain[poste][idx] else False, key=f"cap_{terrain_key}_{poste}_{idx}")
         if st.button("Valider ce joueur", key=f"valider_{terrain_key}_{poste}_{idx}"):
             if choix:
                 terrain[poste][idx] = {
@@ -139,11 +148,13 @@ def terrain_interactif(formation, terrain_key):
                     "Capitaine": capitaine
                 }
                 del st.session_state[edit_key]
-                st.success("Joueur ajouté à la position !")
+                st.session_state[terrain_key] = terrain
+                st.experimental_rerun()
         if st.button("Retirer ce joueur", key=f"retirer_{terrain_key}_{poste}_{idx}"):
             terrain[poste][idx] = None
             del st.session_state[edit_key]
-            st.info("Position libérée.")
+            st.session_state[terrain_key] = terrain
+            st.experimental_rerun()
 
     # Affichage récap
     st.markdown("**Composition actuelle :**")
@@ -154,7 +165,6 @@ def terrain_interactif(formation, terrain_key):
         ]
         st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
 
-    # Sauvegarde temporaire en session
     st.session_state[terrain_key] = terrain
     st.session_state[f"formation_{terrain_key}"] = formation
     return terrain
@@ -176,9 +186,7 @@ if menu == "Database":
         use_container_width=True,
         key="data_edit"
     )
-    # Validation et sauvegarde
     if st.button("Sauvegarder les modifications"):
-        # On nettoie les lignes vides (sans nom)
         edited_df = edited_df.fillna("")
         edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
         st.session_state.players = edited_df[PLAYER_COLS]
@@ -271,7 +279,8 @@ elif menu == "Matchs":
                 "remplacants": remplaçants,
                 "events": {},
                 "score": "",
-                "noted": False
+                "noted": False,
+                "homme_du_match": ""
             }
             save_matches()
             st.success("Match enregistré !")
@@ -283,9 +292,35 @@ elif menu == "Matchs":
         else:
             for mid, match in st.session_state.matches.items():
                 with st.expander(f"{match['date']} {match['heure']} vs {match['adversaire']} ({match['type']})"):
+                    statut = "Terminé" if match.get("noted", False) else "En cours"
+                    st.write(f"**Statut :** {statut}")
+                    if match.get("noted", False):
+                        st.success("Match terminé")
+                        st.write(f"**Score :** {match.get('score','')}")
+                        ev = match.get("events", {})
+                        st.write("**Buteurs :**")
+                        for nom, nb in ev.get("buteurs", {}).items():
+                            st.write(f"- {nom} : {nb}")
+                        st.write("**Passeurs :**")
+                        for nom, nb in ev.get("passeurs", {}).items():
+                            st.write(f"- {nom} : {nb}")
+                        st.write("**Cartons jaunes :**")
+                        for nom, nb in ev.get("cartons_jaunes", {}).items():
+                            st.write(f"- {nom} : {nb}")
+                        st.write("**Cartons rouges :**")
+                        for nom, nb in ev.get("cartons_rouges", {}).items():
+                            st.write(f"- {nom} : {nb}")
+                        st.write(f"**Homme du match :** {match.get('homme_du_match','')}")
                     st.write(f"**Lieu :** {match['lieu']}")
                     st.write(f"**Formation :** {match['formation']}")
-                    # Terrain interactif sur le match (édition possible tant que non noté)
+                    for poste in POSTES_ORDER:
+                        joueurs = [
+                            f"{j['Nom']} (#{j['Numero']}){' (C)' if j.get('Capitaine') else ''}"
+                            for j in match["details"].get(poste, []) if j
+                        ]
+                        st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
+                    st.write("**Remplaçants :** " + ", ".join(match.get("remplacants", [])))
+
                     if not match.get("noted", False):
                         st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
                         st.session_state[f"terrain_match_{mid}"] = match["details"]
@@ -294,32 +329,49 @@ elif menu == "Matchs":
                             match["details"] = st.session_state.get(f"terrain_match_{mid}", match["details"])
                             save_matches()
                             st.success("Composition du match mise à jour.")
-                    else:
-                        for poste in POSTES_ORDER:
-                            joueurs = [
-                                f"{j['Nom']} (#{j['Numero']}){' (C)' if j.get('Capitaine') else ''}"
-                                for j in match["details"].get(poste, []) if j
-                            ]
-                            st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
-                    st.write("**Remplaçants :** " + ", ".join(match.get("remplacants", [])))
-
-                    # Statut match terminé
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
                     if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
                         joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
                         score = st.text_input("Score (ex: 2-1)", key=f"score_{mid}")
-                        buteurs = st.multiselect("Buteurs", joueurs_all, key=f"buteurs_{mid}")
-                        passeurs = st.multiselect("Passeurs", joueurs_all, key=f"passeurs_{mid}")
-                        cj = st.multiselect("Cartons jaunes", joueurs_all, key=f"cj_{mid}")
-                        cr = st.multiselect("Cartons rouges", joueurs_all, key=f"cr_{mid}")
-                        notes = {}
+
+                        buteurs_qte = {}
+                        st.write("#### Buteurs")
                         for nom in joueurs_all:
-                            notes[nom] = st.number_input(
-                                f"Note pour {nom}", min_value=0.0, max_value=10.0, value=6.0, step=0.1, key=f"note_{mid}_{nom}"
-                            )
+                            q = st.number_input(f"{nom} - Buts", min_value=0, max_value=10, value=0, step=1, key=f"but_{mid}_{nom}")
+                            if q > 0:
+                                buteurs_qte[nom] = q
+
+                        passeurs_qte = {}
+                        st.write("#### Passeurs")
+                        for nom in joueurs_all:
+                            q = st.number_input(f"{nom} - Passes", min_value=0, max_value=10, value=0, step=1, key=f"pass_{mid}_{nom}")
+                            if q > 0:
+                                passeurs_qte[nom] = q
+
+                        cj_qte = {}
+                        st.write("#### Cartons jaunes")
+                        for nom in joueurs_all:
+                            q = st.number_input(f"{nom} - Cartons jaunes", min_value=0, max_value=5, value=0, step=1, key=f"cj_{mid}_{nom}")
+                            if q > 0:
+                                cj_qte[nom] = q
+
+                        cr_qte = {}
+                        st.write("#### Cartons rouges")
+                        for nom in joueurs_all:
+                            q = st.number_input(f"{nom} - Cartons rouges", min_value=0, max_value=3, value=0, step=1, key=f"cr_{mid}_{nom}")
+                            if q > 0:
+                                cr_qte[nom] = q
+
+                        notes = {}
+                        st.write("#### Notes des joueurs")
+                        for nom in joueurs_all:
+                            notes[nom] = st.slider(f"Note pour {nom}", min_value=1, max_value=10, value=6, step=1, key=f"note_{mid}_{nom}")
+
+                        homme_du_match = st.selectbox("Homme du match", [""] + joueurs_all, key=f"hdm_{mid}")
+
                         if st.button("Valider le match", key=f"valide_{mid}"):
-                            # Mise à jour stats joueurs dans la base
+                            # Mise à jour stats joueurs
                             df = st.session_state.players
                             for nom in joueurs_all:
                                 idx = df[df["Nom"] == nom].index
@@ -331,52 +383,43 @@ elif menu == "Matchs":
                                         df.at[i, "Note générale"] = round((df.at[i, "Note générale"] + notes[nom]) / 2, 2)
                                     else:
                                         df.at[i, "Note générale"] = notes[nom]
+                                    if homme_du_match == nom:
+                                        df.at[i, "Homme du match"] = df.at[i, "Homme du match"] + 1
                             for nom in match.get("remplacants", []):
                                 idx = df[df["Nom"] == nom].index
                                 if len(idx):
                                     i = idx[0]
                                     df.at[i, "Sélections"] = df.at[i, "Sélections"] + 1
-                            for nom in buteurs:
+                            for nom, nb in buteurs_qte.items():
                                 idx = df[df["Nom"] == nom].index
                                 if len(idx):
-                                    df.at[idx[0], "Buts"] = df.at[idx[0], "Buts"] + 1
-                            for nom in passeurs:
+                                    df.at[idx[0], "Buts"] = df.at[idx[0], "Buts"] + nb
+                            for nom, nb in passeurs_qte.items():
                                 idx = df[df["Nom"] == nom].index
                                 if len(idx):
-                                    df.at[idx[0], "Passes décisives"] = df.at[idx[0], "Passes décisives"] + 1
-                            for nom in cj:
+                                    df.at[idx[0], "Passes décisives"] = df.at[idx[0], "Passes décisives"] + nb
+                            for nom, nb in cj_qte.items():
                                 idx = df[df["Nom"] == nom].index
                                 if len(idx):
-                                    df.at[idx[0], "Cartons jaunes"] = df.at[idx[0], "Cartons jaunes"] + 1
-                            for nom in cr:
+                                    df.at[idx[0], "Cartons jaunes"] = df.at[idx[0], "Cartons jaunes"] + nb
+                            for nom, nb in cr_qte.items():
                                 idx = df[df["Nom"] == nom].index
                                 if len(idx):
-                                    df.at[idx[0], "Cartons rouges"] = df.at[idx[0], "Cartons rouges"] + 1
+                                    df.at[idx[0], "Cartons rouges"] = df.at[idx[0], "Cartons rouges"] + nb
                             save_players()
                             match["score"] = score
                             match["events"] = {
-                                "buteurs": buteurs,
-                                "passeurs": passeurs,
-                                "cartons_jaunes": cj,
-                                "cartons_rouges": cr,
+                                "buteurs": buteurs_qte,
+                                "passeurs": passeurs_qte,
+                                "cartons_jaunes": cj_qte,
+                                "cartons_rouges": cr_qte,
                                 "notes": notes
                             }
                             match["noted"] = True
+                            match["homme_du_match"] = homme_du_match
                             save_matches()
                             st.success("Stats du match enregistrées !")
                             st.experimental_rerun()
-                    elif match.get("noted", False):
-                        st.success("Match terminé")
-                        st.write(f"**Score :** {match['score']}")
-                        ev = match.get("events", {})
-                        st.write("**Buteurs :** " + ", ".join(ev.get("buteurs", [])))
-                        st.write("**Passeurs :** " + ", ".join(ev.get("passeurs", [])))
-                        st.write("**Cartons jaunes :** " + ", ".join(ev.get("cartons_jaunes", [])))
-                        st.write("**Cartons rouges :** " + ", ".join(ev.get("cartons_rouges", [])))
-                        st.write("**Notes :**")
-                        for nom, note in ev.get("notes", {}).items():
-                            st.write(f"{nom} : {note}")
-
                     if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
                         del st.session_state.matches[mid]
                         save_matches()
