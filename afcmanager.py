@@ -46,14 +46,14 @@ def afficher_terrain(formation, terrain_data=None, prefix_key=""):
     st.write("### Terrain de jeu")
     cols = st.columns(len(POSTES_ORDER))
     
+    terrain_data = terrain_data or {p: [None]*FORMATION[formation][p] for p in POSTES_ORDER}
+    
     for idx, poste in enumerate(POSTES_ORDER):
         with cols[idx]:
             st.write(f"#### {poste}")
             nb_joueurs = FORMATION[formation][poste]
             for i in range(nb_joueurs):
-                joueur = {}
-                if terrain_data and terrain_data[poste][i]:
-                    joueur = terrain_data[poste][i]
+                joueur = terrain_data[poste][i] if terrain_data[poste][i] else {}
                 
                 with st.container():
                     st.write(f"Position {poste}{i+1}")
@@ -61,7 +61,7 @@ def afficher_terrain(formation, terrain_data=None, prefix_key=""):
                         "Joueur",
                         [""] + list(st.session_state.players[st.session_state.players["Poste"] == poste]["Nom"]),
                         key=f"{prefix_key}player_{poste}_{i}_{formation}",
-                        index=0 if not joueur else list(st.session_state.players["Nom"]).index(joueur["nom"]) + 1
+                        index=0 if not joueur else list(st.session_state.players["Nom"]).index(joueur.get("nom", "")) + 1
                     )
                     
                     if selected_player:
@@ -81,7 +81,6 @@ def afficher_terrain(formation, terrain_data=None, prefix_key=""):
                                 key=f"{prefix_key}capitaine_{poste}_{i}_{formation}"
                             )
                         
-                        terrain_data = terrain_data or {p: [None]*FORMATION[formation][p] for p in POSTES_ORDER}
                         terrain_data[poste][i] = {
                             "nom": selected_player,
                             "numero": numero,
@@ -110,24 +109,23 @@ def gestion_joueurs():
     
     with tabs[1]:
         st.header("Ajouter un joueur")
-        with st.form("new_player"):
-            nom = st.text_input("Nom", key="new_player_name")
-            poste = st.selectbox("Poste", POSTES_ORDER, key="new_player_position")
-            club = st.text_input("Club", key="new_player_club")
-            if st.form_submit_button("Ajouter", key="add_player"):
-                new_player = PLAYER_DEFAULTS.copy()
-                new_player.update({
-                    "Nom": nom,
-                    "Poste": poste,
-                    "Club": club
-                })
-                if "players" not in st.session_state:
-                    st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
-                st.session_state.players = pd.concat([
-                    st.session_state.players,
-                    pd.DataFrame([new_player])
-                ], ignore_index=True)
-                st.success(f"Joueur {nom} ajouté!")
+        nom = st.text_input("Nom", key="new_player_name")
+        poste = st.selectbox("Poste", POSTES_ORDER, key="new_player_position")
+        club = st.text_input("Club", key="new_player_club")
+        if st.button("Ajouter", key="add_player"):
+            new_player = PLAYER_DEFAULTS.copy()
+            new_player.update({
+                "Nom": nom,
+                "Poste": poste,
+                "Club": club
+            })
+            if "players" not in st.session_state:
+                st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
+            st.session_state.players = pd.concat([
+                st.session_state.players,
+                pd.DataFrame([new_player])
+            ], ignore_index=True)
+            st.success(f"Joueur {nom} ajouté!")
     
     with tabs[2]:
         st.header("Charger/Sauvegarder")
@@ -170,7 +168,7 @@ def gestion_compositions():
             key="new_compo_formation"
         )
         
-        if nom_compo and formation:
+        if nom_compo and formation and "players" in st.session_state:
             terrain_data = afficher_terrain(formation, prefix_key="new_")
             
             st.subheader("Remplaçants")
@@ -179,25 +177,24 @@ def gestion_compositions():
                 for player in poste if player
             ) if terrain_data else set()
             
-            if "players" in st.session_state:
-                available_subs = st.session_state.players[
-                    ~st.session_state.players["Nom"].isin(selected_players)
-                ]
-                subs = st.multiselect(
-                    "Sélectionner les remplaçants",
-                    available_subs["Nom"],
-                    key="new_compo_subs"
-                )
-                
-                if st.button("Enregistrer la composition", key="save_new_compo"):
-                    if "lineups" not in st.session_state:
-                        st.session_state.lineups = {}
-                    st.session_state.lineups[nom_compo] = {
-                        "formation": formation,
-                        "terrain": terrain_data,
-                        "remplacants": subs
-                    }
-                    st.success(f"Composition {nom_compo} enregistrée!")
+            available_subs = st.session_state.players[
+                ~st.session_state.players["Nom"].isin(selected_players)
+            ]
+            subs = st.multiselect(
+                "Sélectionner les remplaçants",
+                available_subs["Nom"],
+                key="new_compo_subs"
+            )
+            
+            if st.button("Enregistrer la composition", key="save_new_compo"):
+                if "lineups" not in st.session_state:
+                    st.session_state.lineups = {}
+                st.session_state.lineups[nom_compo] = {
+                    "formation": formation,
+                    "terrain": terrain_data,
+                    "remplacants": subs
+                }
+                st.success(f"Composition {nom_compo} enregistrée!")
     
     with tabs[1]:
         st.header("Gérer mes compositions")
@@ -350,6 +347,10 @@ def gestion_matchs():
 
 def main():
     st.title("AFC Manager")
+    
+    # Initialize session state for players if not exists
+    if "players" not in st.session_state:
+        st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
     
     main_tabs = st.tabs(["Joueurs", "Compositions", "Matchs"])
     
