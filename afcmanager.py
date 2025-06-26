@@ -74,6 +74,10 @@ def save_matches():
     with open(MATCHES_FILE, "w") as f:
         json.dump(st.session_state.matches, f, indent=2)
 
+def terrain_init(formation):
+    # Crée toujours la structure du terrain pour la formation donnée
+    return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
+
 # --- Initialisation session ---
 if "players" not in st.session_state:
     reload_players()
@@ -83,17 +87,16 @@ if "matches" not in st.session_state:
     reload_matches()
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
-if "terrain" not in st.session_state:
-    st.session_state.terrain = {
-        poste: [None for _ in range(nb)] for poste, nb in FORMATION[st.session_state.formation].items()
-    }
 
 # --- Terrain interactif (fonction réutilisable) ---
 def terrain_interactif(formation, terrain_key):
-    """Affiche un terrain interactif, retourne le dict terrain"""
-    terrain = st.session_state.get(terrain_key, {
-        poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER
-    })
+    """Affiche un terrain interactif, retourne le dict terrain, propose TOUS les joueurs au choix à chaque poste"""
+    if terrain_key not in st.session_state or st.session_state.get(f"formation_{terrain_key}", None) != formation:
+        # On réinitialise le terrain à chaque changement de formation
+        st.session_state[terrain_key] = terrain_init(formation)
+        st.session_state[f"formation_{terrain_key}"] = formation
+    terrain = st.session_state[terrain_key]
+
     st.caption("Cliquez sur une case pour modifier le joueur à cette position.")
 
     def poste_buttons(poste, n):
@@ -123,7 +126,8 @@ def terrain_interactif(formation, terrain_key):
     if edit_key in st.session_state:
         poste, idx = st.session_state[edit_key]
         st.markdown(f"---\n**Ajouter/modifier {poste}{idx+1}**")
-        options = st.session_state.players[st.session_state.players["Poste"] == poste]["Nom"].tolist()
+        # --- TOUS les joueurs proposés ---
+        options = st.session_state.players["Nom"].tolist()
         choix = st.selectbox("Choisir un joueur", [""] + options)
         numero = st.number_input("Numéro de maillot", min_value=1, max_value=99, value=10, key=f"num_{terrain_key}_{poste}_{idx}")
         capitaine = st.checkbox("Capitaine", key=f"cap_{terrain_key}_{poste}_{idx}")
@@ -152,6 +156,7 @@ def terrain_interactif(formation, terrain_key):
 
     # Sauvegarde temporaire en session
     st.session_state[terrain_key] = terrain
+    st.session_state[f"formation_{terrain_key}"] = formation
     return terrain
 
 # --- MENU PRINCIPAL ---
@@ -178,8 +183,8 @@ if menu == "Database":
         edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
         st.session_state.players = edited_df[PLAYER_COLS]
         save_players()
-        st.success("Base de joueurs mise à jour !")
         reload_players()
+        st.success("Base de joueurs mise à jour !")
     st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
 
 # --- CRÉER COMPOSITION ---
@@ -188,9 +193,9 @@ elif menu == "Créer Composition":
     nom_compo = st.text_input("Nom de la composition")
     formation = st.selectbox(
         "Formation", list(FORMATION.keys()),
-        index=list(FORMATION.keys()).index(st.session_state.formation)
+        index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION))
     )
-    # Terrain interactif intégré
+    st.session_state["formation_create_compo"] = formation
     terrain = terrain_interactif(formation, "terrain_create_compo")
 
     if st.button("Sauvegarder la composition"):
@@ -242,12 +247,13 @@ elif menu == "Matchs":
             compo_choice = st.selectbox("Choisir la composition", list(st.session_state.lineups.keys()))
             compo_data = st.session_state.lineups[compo_choice]
             formation = compo_data["formation"]
-            # Copie profonde pour modification indépendante de la compo
             import copy
             terrain = copy.deepcopy(compo_data["details"])
+            st.session_state["formation_new_match"] = formation
             st.session_state["terrain_new_match"] = terrain
         else:
             formation = st.selectbox("Formation", list(FORMATION.keys()), key="match_formation")
+            st.session_state["formation_new_match"] = formation
             terrain = terrain_interactif(formation, "terrain_new_match")
 
         remplaçants = st.multiselect("Remplaçants", st.session_state.players["Nom"].tolist())
@@ -281,13 +287,14 @@ elif menu == "Matchs":
                     st.write(f"**Formation :** {match['formation']}")
                     # Terrain interactif sur le match (édition possible tant que non noté)
                     if not match.get("noted", False):
+                        st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
+                        st.session_state[f"terrain_match_{mid}"] = match["details"]
                         terrain = terrain_interactif(match["formation"], f"terrain_match_{mid}")
                         if st.button("Mettre à jour la compo", key=f"maj_compo_{mid}"):
                             match["details"] = st.session_state.get(f"terrain_match_{mid}", match["details"])
                             save_matches()
                             st.success("Composition du match mise à jour.")
                     else:
-                        # Récapitulatif
                         for poste in POSTES_ORDER:
                             joueurs = [
                                 f"{j['Nom']} (#{j['Numero']}){' (C)' if j.get('Capitaine') else ''}"
@@ -300,8 +307,8 @@ elif menu == "Matchs":
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
                     if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
-                        score = st.text_input("Score (ex: 2-1)", key=f"score_{mid}")
                         joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
+                        score = st.text_input("Score (ex: 2-1)", key=f"score_{mid}")
                         buteurs = st.multiselect("Buteurs", joueurs_all, key=f"buteurs_{mid}")
                         passeurs = st.multiselect("Passeurs", joueurs_all, key=f"passeurs_{mid}")
                         cj = st.multiselect("Cartons jaunes", joueurs_all, key=f"cj_{mid}")
@@ -320,7 +327,6 @@ elif menu == "Matchs":
                                     i = idx[0]
                                     df.at[i, "Sélections"] = df.at[i, "Sélections"] + 1
                                     df.at[i, "Titularisations"] = df.at[i, "Titularisations"] + 1
-                                    # Moyenne pondérée des notes
                                     if df.at[i, "Note générale"] > 0:
                                         df.at[i, "Note générale"] = round((df.at[i, "Note générale"] + notes[nom]) / 2, 2)
                                     else:
