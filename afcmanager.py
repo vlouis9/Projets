@@ -4,7 +4,7 @@ import json
 import os
 from datetime import datetime
 
-# --- Fichiers de base de données ---
+# --- Constantes fichiers et structures ---
 DB_FILE = "players_db.csv"
 LINEUPS_FILE = "lineups.json"
 MATCHES_FILE = "matches.json"
@@ -14,7 +14,20 @@ PLAYER_COLS = [
     "Buts", "Passes décisives", "Cartons jaunes", "Cartons rouges",
     "Sélections", "Titularisations", "Note générale"
 ]
-
+PLAYER_DEFAULTS = {
+    "Nom": "",
+    "Poste": "G",
+    "Club": "",
+    "Titulaire": True,
+    "Infos": "",
+    "Buts": 0,
+    "Passes décisives": 0,
+    "Cartons jaunes": 0,
+    "Cartons rouges": 0,
+    "Sélections": 0,
+    "Titularisations": 0,
+    "Note générale": 0.0
+}
 FORMATION = {
     "4-4-2": {"G": 1, "D": 4, "M": 4, "A": 2},
     "4-3-3": {"G": 1, "D": 4, "M": 3, "A": 3},
@@ -22,15 +35,16 @@ FORMATION = {
     "3-4-3": {"G": 1, "D": 3, "M": 4, "A": 3},
     "5-3-2": {"G": 1, "D": 5, "M": 3, "A": 2},
 }
+POSTES_ORDER = ["G", "D", "M", "A"]
 DEFAULT_FORMATION = "4-4-2"
 
-# --- Fonctions de base de données ---
+# --- Fonctions utilitaires ---
 def reload_players():
     if os.path.exists(DB_FILE):
         df = pd.read_csv(DB_FILE)
         for col in PLAYER_COLS:
             if col not in df.columns:
-                df[col] = 0 if col not in ["Nom", "Poste", "Club", "Titulaire", "Infos"] else ""
+                df[col] = [PLAYER_DEFAULTS[col]] * len(df)
         st.session_state.players = df[PLAYER_COLS]
     else:
         st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
@@ -60,7 +74,7 @@ def save_matches():
     with open(MATCHES_FILE, "w") as f:
         json.dump(st.session_state.matches, f, indent=2)
 
-# --- Initialisation Session ---
+# --- Initialisation session ---
 if "players" not in st.session_state:
     reload_players()
 if "lineups" not in st.session_state:
@@ -74,126 +88,134 @@ if "terrain" not in st.session_state:
         poste: [None for _ in range(nb)] for poste, nb in FORMATION[st.session_state.formation].items()
     }
 
-# --- Affichage du menu principal ---
-st.sidebar.title("⚽ Gestion Équipe AFC")
-menu = st.sidebar.radio(
-    "Menu",
-    ["Terrain interactif", "Créer Composition", "Mes Compos", "Matchs", "Base Joueurs"]
-)
-
-# --- Terrain interactif ---
-if menu == "Terrain interactif":
-    st.header(f"Terrain interactif – {st.session_state.formation}")
-    st.sidebar.subheader("Formation")
-    formation = st.sidebar.selectbox(
-        "Choix de la formation", list(FORMATION.keys()),
-        index=list(FORMATION.keys()).index(st.session_state.formation)
-    )
-    if formation != st.session_state.formation:
-        st.session_state.formation = formation
-        st.session_state.terrain = {
-            poste: [None for _ in range(nb)] for poste, nb in FORMATION[formation].items()
-        }
-        if "edit_poste" in st.session_state:
-            del st.session_state["edit_poste"]
-
-    st.write("Cliquez sur une case pour ajouter/modifier un joueur à cette position.")
+# --- Terrain interactif (fonction réutilisable) ---
+def terrain_interactif(formation, terrain_key):
+    """Affiche un terrain interactif, retourne le dict terrain"""
+    terrain = st.session_state.get(terrain_key, {
+        poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER
+    })
+    st.caption("Cliquez sur une case pour modifier le joueur à cette position.")
 
     def poste_buttons(poste, n):
         cols = st.columns(n)
         for i in range(n):
-            joueur = st.session_state.terrain[poste][i]
+            joueur = terrain[poste][i]
             if joueur:
-                label = f"{joueur['Nom']} (#{joueur['Numero']}){' (C)' if joueur['Capitaine'] else ''}"
+                label = f"{joueur['Nom']} (#{joueur['Numero']}){' (C)' if joueur.get('Capitaine') else ''}"
                 color = "🟢"
             else:
                 label = f"Ajouter {poste}{i+1}"
                 color = "⚪"
-            if cols[i].button(f"{color} {label}", key=f"{poste}_{i}"):
-                st.session_state["edit_poste"] = (poste, i)
+            if cols[i].button(f"{color} {label}", key=f"{terrain_key}_{poste}_{i}"):
+                st.session_state[f"edit_{terrain_key}"] = (poste, i)
 
-    st.markdown("#### Gardien")
-    poste_buttons("G", FORMATION[st.session_state.formation]["G"])
-    st.markdown("#### Défenseurs")
-    poste_buttons("D", FORMATION[st.session_state.formation]["D"])
-    st.markdown("#### Milieux")
-    poste_buttons("M", FORMATION[st.session_state.formation]["M"])
-    st.markdown("#### Attaquants")
-    poste_buttons("A", FORMATION[st.session_state.formation]["A"])
+    st.markdown("**Gardien**")
+    poste_buttons("G", FORMATION[formation]["G"])
+    st.markdown("**Défenseurs**")
+    poste_buttons("D", FORMATION[formation]["D"])
+    st.markdown("**Milieux**")
+    poste_buttons("M", FORMATION[formation]["M"])
+    st.markdown("**Attaquants**")
+    poste_buttons("A", FORMATION[formation]["A"])
 
     # Formulaire sur clic
-    if "edit_poste" in st.session_state:
-        poste, idx = st.session_state["edit_poste"]
-        st.markdown(f"---\n### Ajouter/modifier {poste}{idx+1}")
+    edit_key = f"edit_{terrain_key}"
+    if edit_key in st.session_state:
+        poste, idx = st.session_state[edit_key]
+        st.markdown(f"---\n**Ajouter/modifier {poste}{idx+1}**")
         options = st.session_state.players[st.session_state.players["Poste"] == poste]["Nom"].tolist()
         choix = st.selectbox("Choisir un joueur", [""] + options)
-        numero = st.number_input("Numéro de maillot", min_value=1, max_value=99, value=10)
-        capitaine = st.checkbox("Capitaine")
-        if st.button("Valider ce joueur"):
+        numero = st.number_input("Numéro de maillot", min_value=1, max_value=99, value=10, key=f"num_{terrain_key}_{poste}_{idx}")
+        capitaine = st.checkbox("Capitaine", key=f"cap_{terrain_key}_{poste}_{idx}")
+        if st.button("Valider ce joueur", key=f"valider_{terrain_key}_{poste}_{idx}"):
             if choix:
-                st.session_state.terrain[poste][idx] = {
+                terrain[poste][idx] = {
                     "Nom": choix,
                     "Numero": numero,
                     "Capitaine": capitaine
                 }
-                del st.session_state["edit_poste"]
+                del st.session_state[edit_key]
                 st.success("Joueur ajouté à la position !")
-        if st.button("Retirer ce joueur", key=f"ret_{poste}_{idx}"):
-            st.session_state.terrain[poste][idx] = None
-            del st.session_state["edit_poste"]
+        if st.button("Retirer ce joueur", key=f"retirer_{terrain_key}_{poste}_{idx}"):
+            terrain[poste][idx] = None
+            del st.session_state[edit_key]
             st.info("Position libérée.")
 
-    st.markdown("---")
-    st.markdown("#### Composition actuelle :")
-    for poste in ["G", "D", "M", "A"]:
+    # Affichage récap
+    st.markdown("**Composition actuelle :**")
+    for poste in POSTES_ORDER:
         joueurs = [
-            f"{j['Nom']} (#{j['Numero']}){' (C)' if j['Capitaine'] else ''}"
-            for j in st.session_state.terrain.get(poste, []) if j
+            f"{j['Nom']} (#{j['Numero']}){' (C)' if j.get('Capitaine') else ''}"
+            for j in terrain.get(poste, []) if j
         ]
         st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
 
-# --- Création de composition ---
+    # Sauvegarde temporaire en session
+    st.session_state[terrain_key] = terrain
+    return terrain
+
+# --- MENU PRINCIPAL ---
+st.sidebar.title("⚽ Gestion Équipe AFC")
+menu = st.sidebar.radio(
+    "Menu",
+    ["Database", "Créer Composition", "Mes Compos", "Matchs"]
+)
+
+# --- DATABASE (édition inline) ---
+if menu == "Database":
+    st.title("Base de données joueurs (édition directe)")
+    st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous. Les modifications sont enregistrées automatiquement.")
+    edited_df = st.data_editor(
+        st.session_state.players,
+        num_rows="dynamic",
+        use_container_width=True,
+        key="data_edit"
+    )
+    # Validation et sauvegarde
+    if st.button("Sauvegarder les modifications"):
+        # On nettoie les lignes vides (sans nom)
+        edited_df = edited_df.fillna("")
+        edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
+        st.session_state.players = edited_df[PLAYER_COLS]
+        save_players()
+        st.success("Base de joueurs mise à jour !")
+        reload_players()
+    st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
+
+# --- CRÉER COMPOSITION ---
 elif menu == "Créer Composition":
-    st.header("Créer une nouvelle composition")
+    st.title("Créer une nouvelle composition")
     nom_compo = st.text_input("Nom de la composition")
     formation = st.selectbox(
         "Formation", list(FORMATION.keys()),
         index=list(FORMATION.keys()).index(st.session_state.formation)
     )
-    if formation != st.session_state.formation:
-        st.session_state.formation = formation
-        st.session_state.terrain = {
-            poste: [None for _ in range(nb)] for poste, nb in FORMATION[formation].items()
-        }
-        if "edit_poste" in st.session_state:
-            del st.session_state["edit_poste"]
-
-    st.subheader("Sélection des joueurs (voir menu Terrain interactif)")
-    st.write("Utilisez le menu Terrain interactif pour sélectionner vos joueurs.")
+    # Terrain interactif intégré
+    terrain = terrain_interactif(formation, "terrain_create_compo")
 
     if st.button("Sauvegarder la composition"):
         if not nom_compo.strip():
             st.warning("Veuillez donner un nom à la composition.")
         else:
             lineup = {
-                "formation": st.session_state.formation,
-                "details": st.session_state.terrain
+                "formation": formation,
+                "details": terrain
             }
             st.session_state.lineups[nom_compo] = lineup
             save_lineups()
             st.success("Composition sauvegardée !")
 
-# --- Mes compositions sauvegardées ---
+# --- MES COMPOS ---
 elif menu == "Mes Compos":
-    st.header("Mes compositions sauvegardées")
+    st.title("Mes compositions sauvegardées")
     if not st.session_state.lineups:
         st.info("Aucune composition enregistrée.")
     else:
         for nom, compo in st.session_state.lineups.items():
             with st.expander(f"{nom} – {compo['formation']}"):
-                for poste in ["G", "D", "M", "A"]:
+                for poste in POSTES_ORDER:
                     joueurs = [
-                        f"{j['Nom']} (#{j['Numero']}){' (C)' if j['Capitaine'] else ''}"
+                        f"{j['Nom']} (#{j['Numero']}){' (C)' if j.get('Capitaine') else ''}"
                         for j in compo['details'].get(poste, []) if j
                     ]
                     st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
@@ -202,9 +224,9 @@ elif menu == "Mes Compos":
                     save_lineups()
                     st.experimental_rerun()
 
-# --- Gestion des matchs ---
+# --- MATCHS ---
 elif menu == "Matchs":
-    st.header("Gestion des matchs")
+    st.title("Gestion des matchs")
     tab1, tab2 = st.tabs(["Créer un match", "Mes matchs"])
 
     # Création d'un match
@@ -220,15 +242,16 @@ elif menu == "Matchs":
             compo_choice = st.selectbox("Choisir la composition", list(st.session_state.lineups.keys()))
             compo_data = st.session_state.lineups[compo_choice]
             formation = compo_data["formation"]
-            lineup_details = compo_data["details"]
+            # Copie profonde pour modification indépendante de la compo
+            import copy
+            terrain = copy.deepcopy(compo_data["details"])
+            st.session_state["terrain_new_match"] = terrain
         else:
             formation = st.selectbox("Formation", list(FORMATION.keys()), key="match_formation")
-            lineup_details = {poste: [None for _ in range(nb)] for poste, nb in FORMATION[formation].items()}
-            # Sélection rapide (pour compléter si besoin)
-            st.write("Sélectionnez vos joueurs dans le menu Terrain interactif puis sauvegardez la compo.")
+            terrain = terrain_interactif(formation, "terrain_new_match")
 
-        # Remplaçants
-        subs = st.multiselect("Remplaçants", st.session_state.players["Nom"].tolist())
+        remplaçants = st.multiselect("Remplaçants", st.session_state.players["Nom"].tolist())
+
         if st.button("Enregistrer le match"):
             match_id = f"{str(date)}_{adversaire}_{str(heure)}"
             st.session_state.matches[match_id] = {
@@ -238,14 +261,14 @@ elif menu == "Matchs":
                 "heure": str(heure),
                 "lieu": lieu,
                 "formation": formation,
-                "details": lineup_details,
-                "remplacants": subs,
+                "details": st.session_state.get("terrain_new_match", terrain),
+                "remplacants": remplaçants,
                 "events": {},
                 "score": "",
                 "noted": False
             }
             save_matches()
-            st.success("Match enregistré.")
+            st.success("Match enregistré !")
 
     # Consultation/édition des matchs
     with tab2:
@@ -256,20 +279,29 @@ elif menu == "Matchs":
                 with st.expander(f"{match['date']} {match['heure']} vs {match['adversaire']} ({match['type']})"):
                     st.write(f"**Lieu :** {match['lieu']}")
                     st.write(f"**Formation :** {match['formation']}")
-                    st.write("**Titularaires :**")
-                    for poste in ["G", "D", "M", "A"]:
-                        joueurs = [
-                            f"{j['Nom']} (#{j['Numero']}){' (C)' if j['Capitaine'] else ''}"
-                            for j in match["details"].get(poste, []) if j
-                        ]
-                        st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
+                    # Terrain interactif sur le match (édition possible tant que non noté)
+                    if not match.get("noted", False):
+                        terrain = terrain_interactif(match["formation"], f"terrain_match_{mid}")
+                        if st.button("Mettre à jour la compo", key=f"maj_compo_{mid}"):
+                            match["details"] = st.session_state.get(f"terrain_match_{mid}", match["details"])
+                            save_matches()
+                            st.success("Composition du match mise à jour.")
+                    else:
+                        # Récapitulatif
+                        for poste in POSTES_ORDER:
+                            joueurs = [
+                                f"{j['Nom']} (#{j['Numero']}){' (C)' if j.get('Capitaine') else ''}"
+                                for j in match["details"].get(poste, []) if j
+                            ]
+                            st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
                     st.write("**Remplaçants :** " + ", ".join(match.get("remplacants", [])))
 
-                    # Saisie post match
-                    if not match.get("noted", False):
+                    # Statut match terminé
+                    match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
+                    if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
                         score = st.text_input("Score (ex: 2-1)", key=f"score_{mid}")
-                        joueurs_all = [j['Nom'] for p in ["G", "D", "M", "A"] for j in match["details"].get(p, []) if j]
+                        joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
                         buteurs = st.multiselect("Buteurs", joueurs_all, key=f"buteurs_{mid}")
                         passeurs = st.multiselect("Passeurs", joueurs_all, key=f"passeurs_{mid}")
                         cj = st.multiselect("Cartons jaunes", joueurs_all, key=f"cj_{mid}")
@@ -327,7 +359,8 @@ elif menu == "Matchs":
                             save_matches()
                             st.success("Stats du match enregistrées !")
                             st.experimental_rerun()
-                    else:
+                    elif match.get("noted", False):
+                        st.success("Match terminé")
                         st.write(f"**Score :** {match['score']}")
                         ev = match.get("events", {})
                         st.write("**Buteurs :** " + ", ".join(ev.get("buteurs", [])))
@@ -342,35 +375,3 @@ elif menu == "Matchs":
                         del st.session_state.matches[mid]
                         save_matches()
                         st.experimental_rerun()
-
-# --- Base de données joueurs ---
-elif menu == "Base Joueurs":
-    st.header("Base de données des joueurs")
-    st.write("### Joueurs enregistrés")
-    st.dataframe(st.session_state.players)
-
-    st.markdown("---")
-    st.write("### Ajouter un joueur à la base")
-    with st.form("add_player"):
-        nom = st.text_input("Nom")
-        poste = st.selectbox("Poste", ["G", "D", "M", "A"])
-        club = st.text_input("Club")
-        titulaire = st.checkbox("Titulaire probable", value=True)
-        infos = st.text_input("Infos complémentaires")
-        buts = st.number_input("Buts", min_value=0, value=0)
-        pdec = st.number_input("Passes décisives", min_value=0, value=0)
-        cj = st.number_input("Cartons jaunes", min_value=0, value=0)
-        cr = st.number_input("Cartons rouges", min_value=0, value=0)
-        selections = st.number_input("Sélections", min_value=0, value=0)
-        titul = st.number_input("Titularisations", min_value=0, value=0)
-        note = st.number_input("Note générale", min_value=0.0, max_value=10.0, value=0.0, step=0.1)
-        submitted = st.form_submit_button("Ajouter Joueur")
-        if submitted and nom:
-            new_row = [nom, poste, club, titulaire, infos, buts, pdec, cj, cr, selections, titul, note]
-            st.session_state.players = pd.concat([
-                st.session_state.players,
-                pd.DataFrame([new_row], columns=PLAYER_COLS)
-            ], ignore_index=True)
-            save_players()
-            reload_players()
-            st.success(f"{nom} ajouté à la base.")
