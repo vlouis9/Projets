@@ -174,13 +174,18 @@ with tab1:
         "Cartons rouges", "Sélections", "Titularisations", 
         "Note générale", "Homme du match"
     ])
+
+    # Correction des types pour le Data Editor
+    combined_df["Numero"] = combined_df["Numero"].astype(str).replace("nan", "")
+    combined_df["Capitaine"] = combined_df["Capitaine"].fillna(False).astype(bool)
+
     edited_df = st.data_editor(
         combined_df,
         num_rows="dynamic",
         use_container_width=True,
         column_config={
             "Nom": st.column_config.TextColumn(required=True),
-            "Numero": st.column_config.NumberColumn(),
+            "Numero": st.column_config.TextColumn(),  # <--- Utilise TextColumn pour éviter les problèmes
             "Poste": st.column_config.SelectboxColumn(
                 options=POSTES_ORDER,
                 required=True,
