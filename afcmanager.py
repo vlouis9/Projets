@@ -1,308 +1,361 @@
 import streamlit as st
-import pandas as pd
-import json
-import os
-from datetime import datetime
-
-DATA_FILE = "afcdata.json"
-PLAYER_COLS = ["Nom", "Poste", "Infos"]
-STATS_COLS = [
-    "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
-    "Cartons jaunes", "Cartons rouges", "Sélections", "Titularisations",
-    "Note générale", "Homme du match"
-]
-ALL_COLS = PLAYER_COLS + STATS_COLS
 
 FORMATION = {
-    "4-4-2": [("G", 50, 95), ("D1", 10, 80), ("D2", 35, 80), ("D3", 65, 80), ("D4", 90, 80),
-              ("M1", 15, 60), ("M2", 35, 60), ("M3", 65, 60), ("M4", 85, 60),
-              ("A1", 35, 35), ("A2", 65, 35)],
-    "4-3-3": [("G", 50, 95), ("D1", 10, 80), ("D2", 35, 80), ("D3", 65, 80), ("D4", 90, 80),
-              ("M1", 28, 60), ("M2", 50, 60), ("M3", 72, 60),
-              ("A1", 20, 35), ("A2", 50, 30), ("A3", 80, 35)],
-    "3-5-2": [("G", 50, 95), ("D1", 20, 80), ("D2", 50, 80), ("D3", 80, 80),
-              ("M1", 10, 60), ("M2", 30, 60), ("M3", 50, 55), ("M4", 70, 60), ("M5", 90, 60),
-              ("A1", 38, 35), ("A2", 62, 35)],
-    "3-4-3": [("G", 50, 95), ("D1", 20, 80), ("D2", 50, 80), ("D3", 80, 80),
-              ("M1", 20, 60), ("M2", 40, 60), ("M3", 60, 60), ("M4", 80, 60),
-              ("A1", 25, 35), ("A2", 50, 30), ("A3", 75, 35)],
-    "5-3-2": [("G", 50, 95), ("D1", 5, 80), ("D2", 25, 80), ("D3", 50, 80), ("D4", 75, 80), ("D5", 95, 80),
-              ("M1", 30, 60), ("M2", 50, 60), ("M3", 70, 60),
-              ("A1", 38, 35), ("A2", 62, 35)],
-    "4-2-3-1": [("G", 50, 95), ("D1", 10, 80), ("D2", 35, 80), ("D3", 65, 80), ("D4", 90, 80),
-                ("M1", 32, 65), ("M2", 68, 65),
-                ("MO1", 22, 50), ("MO2", 50, 45), ("MO3", 78, 50),
-                ("A1", 50, 30)],
+    "4-4-2": [
+        ("Gardien", 50, 90),
+        ("Arrière Gauche", 15, 70),
+        ("Défenseur Central Gauche", 35, 70),
+        ("Défenseur Central Droit", 65, 70),
+        ("Arrière Droit", 85, 70),
+        ("Milieu Gauche", 15, 45),
+        ("Milieu Central Gauche", 35, 45),
+        ("Milieu Central Droit", 65, 45),
+        ("Milieu Droit", 85, 45),
+        ("Attaquant Gauche", 30, 20),
+        ("Attaquant Droit", 70, 20),
+    ],
+    "4-3-3": [
+        ("Gardien", 50, 90),
+        ("Arrière Gauche", 15, 70),
+        ("Défenseur Central Gauche", 35, 70),
+        ("Défenseur Central Droit", 65, 70),
+        ("Arrière Droit", 85, 70),
+        ("Milieu Gauche", 25, 45),
+        ("Milieu Central", 50, 45),
+        ("Milieu Droit", 75, 45),
+        ("Attaquant Gauche", 20, 20),
+        ("Attaquant Central", 50, 20),
+        ("Attaquant Droit", 80, 20),
+    ],
+    "3-5-2": [
+        ("Gardien", 50, 90),
+        ("Défenseur Gauche", 25, 70),
+        ("Défenseur Central", 50, 70),
+        ("Défenseur Droit", 75, 70),
+        ("Milieu Gauche", 10, 45),
+        ("Milieu Central Gauche", 30, 45),
+        ("Milieu Central", 50, 45),
+        ("Milieu Central Droit", 70, 45),
+        ("Milieu Droit", 90, 45),
+        ("Attaquant Gauche", 30, 20),
+        ("Attaquant Droit", 70, 20),
+    ],
 }
-POSTES_ORDER = ["G", "D", "M", "MO", "A"]
-DEFAULT_FORMATION = "4-4-2"
 
-def save_all():
-    data = {
-        "players": st.session_state.players.to_dict(orient="records"),
-        "lineups": st.session_state.lineups,
-        "matches": st.session_state.matches,
-    }
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
 
-def reload_all():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            data = json.load(f)
-        st.session_state.players = pd.DataFrame(data.get("players", []))
-        st.session_state.lineups = data.get("lineups", {})
-        st.session_state.matches = data.get("matches", {})
-    else:
-        st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
-        st.session_state.lineups = {}
-        st.session_state.matches = {}
-
-def compute_player_stats(joueur_nom):
-    buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
-    for match in st.session_state.matches.values():
-        details = match.get("details", {})
-        joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and isinstance(j, dict) and j.get("Nom") == joueur_nom]
-        is_titulaire = bool(joueurs)
-        if is_titulaire or joueur_nom in [r.get("Nom") for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]:
-            selections += 1
-        if is_titulaire:
-            titularisations += 1
-        events = match.get("events", {})
-        buts += events.get("buteurs", {}).get(joueur_nom, 0)
-        passes += events.get("passeurs", {}).get(joueur_nom, 0)
-        cj += events.get("cartons_jaunes", {}).get(joueur_nom, 0)
-        cr += events.get("cartons_rouges", {}).get(joueur_nom, 0)
-        if "notes" in events and joueur_nom in events["notes"]:
-            note_sum += events["notes"][joueur_nom]
-            note_count += 1
-        if "homme_du_match" in match and match["homme_du_match"] == joueur_nom:
-            hdm += 1
-    note = round(note_sum / note_count, 2) if note_count else 0
-    buts_passes = buts + passes
-    decisif_par_match = round(buts_passes / selections, 2) if selections > 0 else 0
-    return {
-        "Buts": buts,
-        "Passes décisives": passes,
-        "Buts + Passes": buts_passes,
-        "Décisif par match": decisif_par_match,
-        "Cartons jaunes": cj,
-        "Cartons rouges": cr,
-        "Sélections": selections,
-        "Titularisations": titularisations,
-        "Note générale": note,
-        "Homme du match": hdm
-    }
-
-# ---------- INITIALISATION SESSION ----------
-if "players" not in st.session_state:
-    reload_all()
-if "lineups" not in st.session_state:
-    reload_all()
-if "matches" not in st.session_state:
-    reload_all()
-if "formation" not in st.session_state:
-    st.session_state.formation = DEFAULT_FORMATION
-
-# --- Sidebar : Enregistrement/Import ---
-with st.sidebar:
-    st.markdown("### 📥 Sauvegarde/Import global")
-    st.download_button(
-        label="Télécharger toutes les données (JSON)",
-        data=json.dumps({
-            "players": st.session_state.players.to_dict(orient="records"),
-            "lineups": st.session_state.lineups,
-            "matches": st.session_state.matches,
-        }, indent=2),
-        file_name=DATA_FILE,
-        mime="application/json"
-    )
-    up_json = st.file_uploader("Importer un fichier complet (JSON)", type="json", key="upload_all")
-    if up_json:
-        try:
-            data = json.load(up_json)
-            st.session_state.players = pd.DataFrame(data.get("players", []))
-            st.session_state.lineups = data.get("lineups", {})
-            st.session_state.matches = data.get("matches", {})
-            st.success("Données importées ! Cliquez sur Rafraîchir la base de données si elle n'est pas à jour.")
-        except Exception as e:
-            st.error(f"Erreur à l'import : {e}")
-
-def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
-    titulaires = titulaires or []
-    remplaçants = remplaçants or []
+def choix_joueurs_interface(
+    formation, joueurs, data, key_prefix, nombre_titulaires=11, nombre_remplacants=7
+):
+    """Affiche une interface pour choisir les joueurs titulaires et remplaçants."""
+    st.subheader("Titulaires")
+    titulaires = []
     postes = FORMATION[formation]
-    html = '<div style="position:relative;width:100%;max-width:480px;aspect-ratio:2/3;margin:auto;'
-    html += 'background:linear-gradient(180deg,#4db367 0%,#245c32 100%);'
-    html += 'border-radius:30px;border:3px solid #fff;overflow:hidden;">\n'
+    for i, (poste, _, _) in enumerate(postes):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.write(f"**{poste}**")
+        with col2:
+            options = [""] + [
+                j["Nom"] for j in joueurs
+            ]  # Adds an empty string for no selection
+            selected_name = st.selectbox(
+                f"Joueur {i+1}", options, key=f"{key_prefix}_titulaire_{i}"
+            )
+            joueur = next((j for j in joueurs if j["Nom"] == selected_name), None)
+            titulaires.append(joueur)
+        with col3:
+            numero = st.number_input(
+                "Numéro",
+                min_value=1,
+                max_value=99,
+                value=i + 1,
+                key=f"{key_prefix}_numero_{i}",
+            )
+            if joueur:
+                joueur["Numero"] = numero
+
+    st.subheader("Remplaçants")
+    remplacants = []
+    for i in range(nombre_remplacants):
+        col1, col2 = st.columns([1, 2])
+        with col1:
+            st.write(f"Remplaçant {i+1}")
+        with col2:
+            options = [""] + [j["Nom"] for j in joueurs]
+            selected_name = st.selectbox(
+                f"Remplaçant {i+1}",
+                options,
+                key=f"{key_prefix}_remplacant_{i}",
+            )
+            joueur = next((j for j in joueurs if j["Nom"] == selected_name), None)
+            remplacants.append(joueur)
+    return titulaires, remplacants
+
+
+def terrain_viz_simple(formation, titulaires, remplacants, captain_name):
+    titulaires = titulaires or []
+    remplacants = remplacants or []
+    postes = FORMATION[formation]
+
+    # Define CSS styles
+    st.markdown(
+        """
+        <style>
+        .field {
+            background: linear-gradient(180deg, #4db367 0%, #245c32 100%);
+            border-radius: 30px;
+            border: 3px solid #fff;
+            overflow: hidden;
+            position: relative;
+            width: 100%;
+            max-width: 480px;
+            aspect-ratio: 2/3;
+            margin: auto;
+        }
+        .player {
+            position: absolute;
+            width: 13%;
+            min-width: 50px;
+            text-align: center;
+            transform: translate(-50%, -50%);
+        }
+        .player-circle {
+            background: #1976D2;
+            color: #fff;
+            width: 3.5em;
+            height: 3.5em;
+            border-radius: 10px;
+            border: 3px solid #fff;
+            border: 3px solid #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1em;
+            font-weight: bold;
+            position: relative;
+            margin: auto;
+        }
+        .captain-indicator {
+            position: absolute;
+            top: -13px;
+            right: -12px;
+            background: #FFD700;
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+        .player-name {
+            font-size: 0.95em;
+            color: #fff;
+            text-shadow: 0 1px 2px #000a;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Create the field container
+    field_html = '<div class="field">'
     idx = 0
+
     for poste, x, y in postes:
         joueur = titulaires[idx] if idx < len(titulaires) else None
         if joueur and isinstance(joueur, dict) and joueur.get("Nom"):
             is_cap = joueur.get("Nom") == captain_name
-            html += f'''
-            <div style="position:absolute;left:{x}%;top:{y}%;width:13%;min-width:50px;text-align:center;transform:translate(-50%,-50%);">
-                <div style="font-size:0.85em;color:#FFD700;text-shadow:0 1px 2px #000a;">{poste}</div>
-                <div style="background:#1976D2;color:#fff;width:3.5em;height:3.5em;border-radius:10px;border:3px solid {'#FFD700' if is_cap else '#fff'};display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:1.4em;margin:auto;position:relative;">
-                    {joueur.get("Numero", "")}
-                    {('<span style="position:absolute;top:-13px;right:-12px;background:#FFD700;color:#000;padding:2px 6px;border-radius:10px;font-size:0.8em;font-weight:bold;">C</span>' if is_cap else '')}
-                </div>
-                <div style="font-size:0.95em;color:#fff;text-shadow:0 1px 2px #000a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{joueur.get("Nom")}</div>
-            </div>
-            '''
-        idx += 1
-    html += "</div>"  # fermeture finale du terrain
-    st.markdown(html, unsafe_allow_html=True)
 
-    remp_aff = [f'{r.get("Nom")} (#{r.get("Numero")})' for r in remplaçants if isinstance(r, dict) and r.get("Nom")]
+            field_html += f"""
+            <div class="player" style="left:{x}%; top:{y}%;">
+                <div class="player-circle" style="border-color:{'#FFD700' if is_cap else '#fff'}">
+                    {joueur.get("Numero", "")}
+                    {'<span class="captain-indicator">C</span>' if is_cap else ''}
+                </div>
+                <div class="player-name">{joueur.get("Nom")}</div>
+            </div>
+            """
+        idx += 1
+
+    field_html += "</div>"
+
+    st.markdown(field_html, unsafe_allow_html=True)
+
+    remp_aff = [f'{r.get("Nom")} (#{r.get("Numero")})' for r in remplacants if isinstance(r, dict) and r.get("Nom")]
     if remp_aff:
         st.markdown("**Remplaçants** : " + ", ".join(remp_aff))
 
-def choix_joueurs_interface(formation, key_prefix):
-    postes = [p[0] for p in FORMATION[formation]]
-    all_joueurs = st.session_state.players["Nom"].tolist()
-    titulaires = []
-    selected = set()
-    for idx, label in enumerate(postes):
-        choix = st.selectbox(label, [""] + [j for j in all_joueurs if j not in selected],
-                             key=f"{key_prefix}_poste_{label}")
-        if choix: selected.add(choix)
-        numero = st.number_input(f"Numéro pour {choix}", 1, 99, 10+idx, key=f"{key_prefix}_num_{label}")
-        titulaires.append({"Nom": choix, "Numero": numero} if choix else None)
-    noms_titulaires = [t["Nom"] for t in titulaires if t and t["Nom"]]
-    capitaine = st.selectbox("Capitaine", noms_titulaires, key=f"{key_prefix}_capitaine") if noms_titulaires else ""
-    remplaçants = []
-    selected_remp = set(noms_titulaires)
-    for i in range(5):
-        choix = st.selectbox(f"Remplaçant {i+1}", [""] + [j for j in all_joueurs if j not in selected_remp],
-                             key=f"{key_prefix}_remp_{i}")
-        if choix: selected_remp.add(choix)
-        numero = st.number_input(f"Numéro pour {choix}", 1, 99, 16+i, key=f"{key_prefix}_num_remp_{i}")
-        remplaçants.append({"Nom": choix, "Numero": numero} if choix else None)
-    return titulaires, remplaçants, capitaine
 
-tab_labels = ["Database", "Compositions", "Matchs"]
-tab_database, tab_compositions, tab_matchs = st.tabs(tab_labels)
+def tab_compositions(data):
+    st.header("Compositions d'Équipe")
+    with st.expander("Gestion des Compositions"):
+        st.subheader("Nouvelle Composition")
+        nom_composition = st.text_input("Nom de la Composition")
+        formation = st.selectbox("Formation", list(FORMATION.keys()))
+        joueurs = data["joueurs"] if "joueurs" in data else []
 
-with tab_database:
-    st.title("Base de données joueurs (édition + stats)")
-    if st.button("Rafraîchir la base de données"):
-        reload_all()
-        st.success("Base rechargée depuis le fichier !")
-    base_df = st.session_state.players.copy()
-    all_rows = []
-    for _, row in base_df.iterrows():
-        s = compute_player_stats(row["Nom"])
-        all_rows.append({**row, **s})
-    merged_df = pd.DataFrame(all_rows)
-    for col in PLAYER_COLS + STATS_COLS:
-        if col not in merged_df.columns:
-            merged_df[col] = ""
-    if merged_df.empty:
-        merged_df = pd.DataFrame(columns=ALL_COLS)
-    editable_cols = PLAYER_COLS
-    disabled_cols = [col for col in merged_df.columns if col not in editable_cols]
-    edited_df = st.data_editor(
-        merged_df,
-        column_config={col: st.column_config.Column(disabled=True) for col in disabled_cols},
-        num_rows="dynamic",
-        use_container_width=True,
-        key="data_edit"
-    )
-    if st.button("Sauvegarder les modifications"):
-        edited_df = edited_df.fillna("")
-        edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
-        st.session_state.players = edited_df[PLAYER_COLS]
-        save_all()
-        reload_all()
-        st.success("Base de joueurs mise à jour !")
-    st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
+        if joueurs:
+            titulaires, remplacants = choix_joueurs_interface(
+                formation, joueurs, data, "composition"
+            )
 
-with tab_compositions:
-    st.title("Gestion des compositions")
-    tab1, tab2 = st.tabs(["Créer une composition", "Mes compositions"])
-    with tab1:
-        nom_compo = st.text_input("Nom de la composition")
-        formation = st.selectbox("Formation", list(FORMATION.keys()), key="formation_create")
-        titulaires, remplaçants, capitaine = choix_joueurs_interface(formation, "create")
-        terrain_viz_simple(formation, titulaires, remplaçants, capitaine)
-        if st.button("Sauvegarder la composition"):
-            if not nom_compo.strip():
-                st.warning("Veuillez donner un nom à la composition.")
+            captain_name = st.selectbox(
+                "Capitaine",
+                [""] + [j["Nom"] for j in titulaires if j],
+                key="captain_composition",
+            )
+
+            if st.button("Enregistrer la Composition"):
+                if nom_composition and formation and titulaires:
+                    data["compositions"] = data.get("compositions", []) + [
+                        {
+                            "Nom": nom_composition,
+                            "Formation": formation,
+                            "Titulaires": titulaires,
+                            "Remplacants": remplacants,
+                            "Capitaine": captain_name,
+                        }
+                    ]
+                    st.success("Composition enregistrée!")
+                else:
+                    st.error(
+                        "Veuillez remplir tous les champs et sélectionner les joueurs titulaires."
+                    )
+        else:
+            st.warning("Ajoutez des joueurs dans l'onglet 'Joueurs' d'abord.")
+
+    with st.expander("Visualisation des Compositions"):
+        if "compositions" in data and data["compositions"]:
+            composition_names = [c["Nom"] for c in data["compositions"]]
+            selected_composition_name = st.selectbox(
+                "Sélectionner une Composition à visualiser", composition_names
+            )
+            selected_composition = next(
+                (c for c in data["compositions"] if c["Nom"] == selected_composition_name),
+                None,
+            )
+
+            if selected_composition:
+                st.subheader(f"Composition: {selected_composition['Nom']}")
+                terrain_viz_simple(
+                    selected_composition["Formation"],
+                    selected_composition["Titulaires"],
+                    selected_composition["Remplacants"],
+                    selected_composition["Capitaine"],
+                )
             else:
-                lineup = {
-                    "formation": formation,
-                    "titulaires": titulaires,
-                    "remplacants": remplaçants,
-                    "capitaine": capitaine
-                }
-                st.session_state.lineups[nom_compo] = lineup
-                save_all()
-                st.success("Composition sauvegardée !")
-    with tab2:
-        if not st.session_state.lineups:
+                st.write("Aucune composition sélectionnée.")
+        else:
             st.info("Aucune composition enregistrée.")
-        else:
-            for nom, compo in st.session_state.lineups.items():
-                with st.expander(f"{nom} – {compo.get('formation', '')}"):
-                    terrain_viz_simple(
-                        compo.get("formation", DEFAULT_FORMATION),
-                        compo.get("titulaires", []) or [],
-                        compo.get("remplacants", []) or [],
-                        compo.get("capitaine", "")
-                    )
-                    col1, col2 = st.columns(2)
-                    if col1.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
-                        del st.session_state.lineups[nom]
-                        save_all()
-                        st.rerun()
 
-with tab_matchs:
-    st.title("Gestion des matchs")
-    tab1, tab2 = st.tabs(["Créer un match", "Mes matchs"])
-    with tab1:
-        type_match = st.selectbox("Type de match", ["Championnat", "Coupe"])
-        adversaire = st.text_input("Nom de l'adversaire")
-        date = st.date_input("Date du match", value=datetime.today())
-        heure = st.time_input("Heure du match")
-        lieu = st.text_input("Lieu")
-        nom_match = st.text_input("Nom du match", value=f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}")
-        formation = st.selectbox("Formation", list(FORMATION.keys()), key="formation_match")
-        titulaires, remplaçants, capitaine = choix_joueurs_interface(formation, "match")
-        terrain_viz_simple(formation, titulaires, remplaçants, capitaine)
-        if st.button("Enregistrer le match"):
-            st.session_state.matches[nom_match] = {
-                "type": type_match,
-                "adversaire": adversaire,
-                "date": str(date),
-                "heure": str(heure),
-                "lieu": lieu,
-                "formation": formation,
-                "titulaires": titulaires,
-                "remplacants": remplaçants,
-                "capitaine": capitaine,
-                "events": {},
-                "score": "",
-                "noted": False,
-                "homme_du_match": ""
-            }
-            save_all()
-            st.success("Match enregistré !")
-            st.rerun()
-    with tab2:
-        if not st.session_state.matches:
-            st.info("Aucun match enregistré.")
+
+def tab_matchs(data):
+    st.header("Gestion des Matchs")
+    with st.expander("Planification des Matchs"):
+        st.subheader("Nouveau Match")
+        date_match = st.date_input("Date du Match")
+        adversaire = st.text_input("Adversaire")
+        lieu = st.text_input("Lieu du Match")
+        compositions = data.get("compositions", [])
+        composition_options = [""] + [c["Nom"] for c in compositions]
+        selected_composition_name = st.selectbox(
+            "Composition", composition_options, key="composition_match"
+        )
+        selected_composition = next(
+            (c for c in compositions if c["Nom"] == selected_composition_name), None
+        )
+
+        if st.button("Planifier le Match"):
+            if date_match and adversaire and lieu and selected_composition:
+                data["matchs"] = data.get("matchs", []) + [
+                    {
+                        "Date": date_match,
+                        "Adversaire": adversaire,
+                        "Lieu": lieu,
+                        "Composition": selected_composition_name,
+                    }
+                ]
+                st.success("Match planifié!")
+            else:
+                st.error("Veuillez remplir tous les champs.")
+
+    with st.expander("Visualisation des Matchs"):
+        if "matchs" in data and data["matchs"]:
+            match_dates = [m["Date"] for m in data["matchs"]]
+            selected_date = st.selectbox(
+                "Sélectionner un Match par Date", match_dates, key="match_date"
+            )
+            selected_match = next(
+                (m for m in data["matchs"] if m["Date"] == selected_date), None
+            )
+
+            if selected_match:
+                st.subheader(
+                    f"Match du {selected_match['Date']} contre {selected_match['Adversaire']} à {selected_match['Lieu']}"
+                )
+                selected_composition = next(
+                    (
+                        c
+                        for c in data["compositions"]
+                        if c["Nom"] == selected_match["Composition"]
+                    ),
+                    None,
+                )
+            if selected_composition:
+                st.subheader(f"Composition: {selected_composition['Nom']}")
+                terrain_viz_simple(
+                    selected_composition["Formation"],
+                    selected_composition["Titulaires"],
+                    selected_composition["Remplacants"],
+                    selected_composition["Capitaine"],
+                )
+            else:
+                st.write("Aucune composition sélectionnée.")
         else:
-            for mid, match in st.session_state.matches.items():
-                with st.expander(f"{match.get('date', '')} {match.get('heure', '')} vs {match.get('adversaire', '')} ({match.get('type', '')})"):
-                    terrain_viz_simple(
-                        match.get("formation", DEFAULT_FORMATION),
-                        match.get("titulaires", []) or [],
-                        match.get("remplacants", []) or [],
-                        match.get("capitaine", "")
-                    )
-                    st.write(f"**Lieu :** {match.get('lieu', '')}")
-                    if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
-                        del st.session_state.matches[mid]
-                        save_all()
-                        st.rerun()
+            st.info("Aucun match planifié.")
+
+
+def tab_joueurs(data):
+    st.header("Gestion des Joueurs")
+    with st.expander("Ajouter un Joueur"):
+        nouveau_nom = st.text_input("Nom du Joueur")
+        nouveau_poste = st.text_input("Poste du Joueur")
+        if st.button("Ajouter"):
+            if nouveau_nom:
+                data["joueurs"] = data.get("joueurs", []) + [
+                    {"Nom": nouveau_nom, "Poste": nouveau_poste}
+                ]
+                st.success(f"Joueur {nouveau_nom} ajouté!")
+            else:
+                st.error("Veuillez entrer le nom du joueur.")
+
+    with st.expander("Liste des Joueurs"):
+        if "joueurs" in data and data["joueurs"]:
+            st.dataframe(data["joueurs"])
+        else:
+            st.info("Aucun joueur enregistré.")
+
+
+def main():
+    st.title("AFC Manager")
+    # Initialize the session state
+    if "data" not in st.session_state:
+        st.session_state["data"] = {}
+
+    # Sidebar for navigation
+    tabs = ["Joueurs", "Compositions", "Matchs"]
+    selected_tab = st.sidebar.selectbox("Choisir l'onglet", tabs)
+
+    # Display the selected tab
+    if selected_tab == "Joueurs":
+        tab_joueurs(st.session_state["data"])
+    elif selected_tab == "Compositions":
+        tab_compositions(st.session_state["data"])
+    elif selected_tab == "Matchs":
+        tab_matchs(st.session_state["data"])
+
+
+if __name__ == "__main__":
+    main()
