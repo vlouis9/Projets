@@ -204,7 +204,7 @@ def terrain_interactif(formation, terrain_key):
                 color = "#b8e6c1"
                 border = "#999"
             # bouton Streamlit simulé par markdown + lien sur URL paramètre
-            params_url = st.experimental_get_query_params()
+            params_url = st.query_params
             edit_val = f"{poste}_{idx}"
             # Crée une url qui déclenche le formulaire
             url = "?" + "&".join([f"{k}={v[0]}" for k, v in params_url.items() if k != edit_key] + [f"{edit_key}={edit_val}"])
@@ -225,7 +225,7 @@ def terrain_interactif(formation, terrain_key):
     st.markdown("</div>", unsafe_allow_html=True)
 
     # Lecture du poste à éditer via URL paramètre
-    params = st.experimental_get_query_params()
+    params = st.query_params
     if edit_key in params:
         poste, idx = params[edit_key][0].split("_")
         idx = int(idx)
