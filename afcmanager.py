@@ -8,7 +8,6 @@ DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
 PLAYER_DEFAULTS = {"Nom": "", "Poste": "G", "Infos": ""}
 
-# --- FORMATIONS ET ICONES ---
 FORMATION = {
     "4-4-2": {"G": 1, "D": 4, "M": 4, "A": 2},
     "4-3-3": {"G": 1, "D": 4, "M": 3, "A": 3},
@@ -18,7 +17,6 @@ FORMATION = {
     "4-2-3-1": {"G": 1, "D": 4, "M": 2, "MO": 3, "A": 1},  # Nouvelle formation
 }
 POSTES_ORDER = ["G", "D", "M", "MO", "A"]  # Ajout MO pour 4-2-3-1
-ICONS = {"G": "🧤", "D": "🛡️", "M": "🦶", "MO": "💡", "A": "⚽"}
 DEFAULT_FORMATION = "4-4-2"
 MAX_REMPLACANTS = 5
 
@@ -115,19 +113,111 @@ def download_upload_buttons():
         except Exception as e:
             st.error(f"Erreur à l'import : {e}")
 
-# --- REMPLAÇANTS INTERACTIFS ---
-def remplaçants_interactif_v2(key, titulaires):
+# --- MAQUETTE MAILLOT ---
+def draw_shirt(numero, is_captain=False):
+    shirt_style = f"""
+        background-color:#1976D2;
+        color:white;
+        width:50px;
+        height:50px;
+        border-radius:10px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:1.4em;
+        font-weight:bold;
+        border:3px solid {'#FFD700' if is_captain else '#fff'};
+        margin:auto;
+        position:relative;
+    """
+    cap_badge = ""
+    if is_captain:
+        cap_badge = '<span style="position:absolute;top:-12px;right:-10px;background:#FFD700;color:#000;padding:2px 6px;border-radius:10px;font-size:0.8em;font-weight:bold;">C</span>'
+    return f'<div style="{shirt_style}">{numero}{cap_badge}</div>'
+
+# --- TERRAIN INTERACTIF V3 (MODERNE) ---
+def terrain_interactif_v3(formation, terrain_key, show_export=True):
+    def terrain_init(formation):
+        return {poste: [None for _ in range(FORMATION[formation].get(poste, 0))] for poste in POSTES_ORDER}
+
+    if terrain_key not in st.session_state or st.session_state.get(f"formation_{terrain_key}", None) != formation:
+        st.session_state[terrain_key] = terrain_init(formation)
+        st.session_state[f"formation_{terrain_key}"] = formation
+    terrain = st.session_state[terrain_key]
+
+    layout = []
+    for poste in POSTES_ORDER:
+        if poste in FORMATION[formation]:
+            layout.append((poste, FORMATION[formation][poste]))
+
+    st.write("### Terrain")
+    for poste, n in layout:
+        st.markdown(f"**{poste}**", help="Poste")
+        cols = st.columns(n)
+        for i in range(n):
+            joueur = terrain[poste][i]
+            with cols[i]:
+                if joueur:
+                    st.markdown(draw_shirt(joueur.get("Numero", ""),(joueur.get("Capitaine",False))), unsafe_allow_html=True)
+                    st.markdown(f'<div style="text-align:center;font-size:0.95em;">{joueur["Nom"]}</div>', unsafe_allow_html=True)
+                else:
+                    st.markdown('<div style="height:50px;"></div>', unsafe_allow_html=True)
+                    st.markdown('<div style="text-align:center;color:#bbb;">(vide)</div>', unsafe_allow_html=True)
+                if st.button(f"{'Modifier' if joueur else 'Ajouter'} {poste}{i+1}", key=f"{terrain_key}_{poste}_{i}"):
+                    st.session_state[f"edit_{terrain_key}"] = (poste, i)
+    # Edition
+    edit_key = f"edit_{terrain_key}"
+    if edit_key in st.session_state:
+        poste, idx = st.session_state[edit_key]
+        st.markdown(f"---\n### Modifier poste {poste}{idx+1}")
+        joueurs_sur_terrain = set(
+            j["Nom"]
+            for p in POSTES_ORDER
+            for j in terrain.get(p, [])
+            if j and isinstance(j, dict) and j.get("Nom")
+        )
+        joueur_courant = terrain[poste][idx]["Nom"] if terrain[poste][idx] else None
+        if joueur_courant:
+            joueurs_sur_terrain = joueurs_sur_terrain - {joueur_courant}
+        all_options = st.session_state.players["Nom"].tolist()
+        options = [n for n in all_options if n not in joueurs_sur_terrain]
+        choix = st.selectbox("Choisir un joueur", [""] + options, key=f"choix_{terrain_key}_{poste}_{idx}")
+        numero = st.number_input("Numéro de maillot", min_value=1, max_value=99, value=terrain[poste][idx]["Numero"] if terrain[poste][idx] else 10, key=f"num_{terrain_key}_{poste}_{idx}")
+        cap = st.checkbox("Capitaine", value=terrain[poste][idx]["Capitaine"] if terrain[poste][idx] else False, key=f"cap_{terrain_key}_{poste}_{idx}")
+        # Un seul capitaine :
+        if cap:
+            for p in POSTES_ORDER:
+                for j, joueur in enumerate(terrain[p]):
+                    if joueur and joueur.get("Capitaine") and (p != poste or j != idx):
+                        joueur["Capitaine"] = False
+        if st.button("Valider ce joueur", key=f"valider_{terrain_key}_{poste}_{idx}"):
+            if choix:
+                terrain[poste][idx] = {"Nom": choix, "Numero": numero, "Capitaine": cap}
+                del st.session_state[edit_key]
+                st.session_state[terrain_key] = terrain
+                st.experimental_rerun()
+        if st.button("Retirer ce joueur", key=f"retirer_{terrain_key}_{poste}_{idx}"):
+            terrain[poste][idx] = None
+            del st.session_state[edit_key]
+            st.session_state[terrain_key] = terrain
+            st.experimental_rerun()
+    if show_export:
+        st.markdown("### Export du visuel")
+        st.info("Pour partager la compo, fais une capture d’écran du terrain ci-dessus.")
+
+    return terrain
+
+# --- REMPLAÇANTS INTERACTIFS MAQUETTE MAILLOT ---
+def remplaçants_interactif_v3(key, titulaires):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [None] * MAX_REMPLACANTS
     remps = st.session_state[f"remp_{key}"]
-
     all_players = [n for n in st.session_state.players["Nom"] if n not in titulaires]
+    cols = st.columns(MAX_REMPLACANTS)
     for i in range(MAX_REMPLACANTS):
-        col = st.columns(MAX_REMPLACANTS)[i]
-        with col:
+        with cols[i]:
             current = remps[i]
             options = [p for p in all_players if p not in remps or p == current]
-            value = current if current in options else None
             choix = st.selectbox(
                 f"Remplaçant {i+1}",
                 [""] + options,
@@ -138,143 +228,15 @@ def remplaçants_interactif_v2(key, titulaires):
                 remps[i] = choix
             else:
                 remps[i] = None
-    st.session_state[f"remp_{key}"] = remps
-    # Affichage visuel sous forme de badge
-    render_remplaçants(remps)
-    return [r for r in remps if r]
-
-def render_remplaçants(remplaçants_list):
-    st.markdown("### Remplaçants")
-    html = '<div style="display:flex;justify-content:center;gap:20px;">'
-    for r in remplaçants_list:
-        if r:
-            html += f'<div style="text-align:center;background:#2b3b22;border-radius:12px;padding:8px 16px;color:#fff;min-width:80px;"><b>{r}</b></div>'
-        else:
-            html += f'<div style="text-align:center;background:#444b44;border-radius:12px;padding:8px 16px;color:#bbb;min-width:80px;">+</div>'
-    html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
-
-# --- TERRAIN INTERACTIF V2 (NOUVEAU VISUEL) ---
-def terrain_interactif_v2(formation, terrain_key, show_export=True):
-    # Init du terrain selon formation
-    def terrain_init(formation):
-        return {poste: [None for _ in range(FORMATION[formation].get(poste, 0))] for poste in POSTES_ORDER}
-
-    # Init session
-    if terrain_key not in st.session_state or st.session_state.get(f"formation_{terrain_key}", None) != formation:
-        st.session_state[terrain_key] = terrain_init(formation)
-        st.session_state[f"formation_{terrain_key}"] = formation
-    terrain = st.session_state[terrain_key]
-
-    # Pour le formulaire d’édition
-    def joueur_deja_sur_terrain():
-        return set(
-            j["Nom"]
-            for p in POSTES_ORDER
-            for j in terrain.get(p, [])
-            if j and isinstance(j, dict) and j.get("Nom")
-        )
-
-    # Layout pour affichage vertical
-    layout = []
-    for poste in POSTES_ORDER:
-        if poste in FORMATION[formation]:
-            layout.append((poste, FORMATION[formation][poste]))
-
-    # Rendu du terrain (HTML/CSS)
-    pitch_html = '<div id="pitch" style="display:flex;flex-direction:column;align-items:center;background:#228B22;border-radius:30px;padding:24px 4px;width:350px;min-height:600px;margin:auto;border:4px solid #fff;box-shadow:0 0 12px #444;">'
-    for poste, n in layout:
-        pitch_html += '<div style="display:flex;justify-content:center;margin:14px 0;">'
-        for i in range(n):
-            joueur = terrain[poste][i]
-            if joueur:
-                nom = joueur["Nom"]
-                numero = joueur.get("Numero", "")
-                is_captain = joueur.get("Capitaine", False)
-                cap = ' <span style="color:gold;font-weight:bold;">(C)</span>' if is_captain else ""
-                pitch_html += f'''
-                <div style="margin:0 16px;text-align:center;min-width:70px;">
-                    <div style="font-size:2em">{ICONS[poste]}</div>
-                    <div style="font-size:1em;font-weight:bold;color:#fff;">{nom}</div>
-                    <div style="color:#ff0;font-size:0.9em;">#{numero}{cap}</div>
-                </div>
-                '''
-            else:
-                pitch_html += f'''
-                <div style="margin:0 16px;text-align:center;min-width:70px;">
-                    <div style="font-size:2em;filter:opacity(0.5);">{ICONS[poste]}</div>
-                    <div style="color:#fff;font-size:0.9em;">{poste}{i+1}</div>
-                </div>
-                '''
-        pitch_html += '</div>'
-    pitch_html += '</div>'
-
-    st.markdown(pitch_html, unsafe_allow_html=True)
-
-    # Boutons pour ajouter/modifier chaque poste (sous le terrain)
-    st.markdown("#### Modifier/Ajouter un joueur sur le terrain")
-    for poste, n in layout:
-        cols = st.columns(n)
-        for i in range(n):
-            joueur = terrain[poste][i]
-            label = f"{ICONS[poste]} {poste}{i+1} : {'Modifier' if joueur else 'Ajouter'}"
-            if cols[i].button(label, key=f"btn_{terrain_key}_{poste}_{i}"):
-                st.session_state[f"edit_{terrain_key}"] = (poste, i)
-
-    # Formulaire de sélection/édition joueur
-    edit_key = f"edit_{terrain_key}"
-    if edit_key in st.session_state:
-        poste, idx = st.session_state[edit_key]
-        st.markdown(f"---\n### Modifier poste {ICONS[poste]} {poste}{idx+1}")
-        joueurs_sur_terrain = joueur_deja_sur_terrain()
-        joueur_courant = terrain[poste][idx]["Nom"] if terrain[poste][idx] else None
-        if joueur_courant:
-            joueurs_sur_terrain = joueurs_sur_terrain - {joueur_courant}
-        all_options = st.session_state.players["Nom"].tolist()
-        options = [n for n in all_options if n not in joueurs_sur_terrain]
-        choix = st.selectbox("Choisir un joueur", [""] + options, key=f"choix_{terrain_key}_{poste}_{idx}")
-        numero = st.number_input("Numéro de maillot", min_value=1, max_value=99, value=terrain[poste][idx]["Numero"] if terrain[poste][idx] else 10, key=f"num_{terrain_key}_{poste}_{idx}")
-        cap = st.checkbox("Capitaine", value=terrain[poste][idx]["Capitaine"] if terrain[poste][idx] else False, key=f"cap_{terrain_key}_{poste}_{idx}")
-
-        # Un seul capitaine possible : décocher les autres si cap==True
-        if cap:
-            for p in POSTES_ORDER:
-                for j, joueur in enumerate(terrain[p]):
-                    if joueur and joueur.get("Capitaine") and (p != poste or j != idx):
-                        joueur["Capitaine"] = False
-        if st.button("Valider ce joueur", key=f"valider_{terrain_key}_{poste}_{idx}"):
+            # Affichage du maillot
             if choix:
-                terrain[poste][idx] = {
-                    "Nom": choix,
-                    "Numero": numero,
-                    "Capitaine": cap
-                }
-                del st.session_state[edit_key]
-                st.session_state[terrain_key] = terrain
-                st.experimental_rerun()
-        if st.button("Retirer ce joueur", key=f"retirer_{terrain_key}_{poste}_{idx}"):
-            terrain[poste][idx] = None
-            del st.session_state[edit_key]
-            st.session_state[terrain_key] = terrain
-            st.experimental_rerun()
-
-    # Export du visuel : capture d’écran utilisateur
-    if show_export:
-        st.markdown("### Export du visuel")
-        st.info("Pour partager la compo, fais une capture d’écran du terrain ci-dessus (sur mobile : bouton de capture ; sur PC : Impr écran ou outil de capture)")
-
-    # Affichage synthétique texte (facultatif)
-    st.markdown("**Résumé de la composition :**")
-    for poste in POSTES_ORDER:
-        joueurs = [
-            f"{ICONS[poste]} {j['Nom']} (#{j.get('Numero', '')}){' (C)' if j.get('Capitaine') else ''}"
-            for j in terrain.get(poste, []) if j
-        ]
-        if joueurs:
-            st.write(f"**{poste}** : " + ", ".join(joueurs))
-    st.session_state[terrain_key] = terrain
-    st.session_state[f"formation_{terrain_key}"] = formation
-    return terrain
+                st.markdown(draw_shirt(i+16), unsafe_allow_html=True)
+                st.markdown(f'<div style="text-align:center;font-size:0.95em;">{choix}</div>', unsafe_allow_html=True)
+            else:
+                st.markdown('<div style="height:50px;"></div>', unsafe_allow_html=True)
+                st.markdown('<div style="text-align:center;color:#bbb;">(vide)</div>', unsafe_allow_html=True)
+    st.session_state[f"remp_{key}"] = remps
+    return [r for r in remps if r]
 
 # --- MENU PRINCIPAL ---
 st.sidebar.title("⚽ Gestion Équipe AFC")
@@ -334,9 +296,10 @@ elif menu == "Compositions":
             index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION))
         )
         st.session_state["formation_create_compo"] = formation
-        terrain = terrain_interactif_v2(formation, "terrain_create_compo")
+        terrain = terrain_interactif_v3(formation, "terrain_create_compo")
         titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
-        remplaçants = remplaçants_interactif_v2("create_compo", titulaires)
+        st.markdown("### Remplaçants (en dessous du terrain)")
+        remplaçants = remplaçants_interactif_v3("create_compo", titulaires)
         if st.button("Sauvegarder la composition"):
             if not nom_compo.strip():
                 st.warning("Veuillez donner un nom à la composition.")
@@ -408,11 +371,12 @@ elif menu == "Matchs":
         else:
             formation = st.selectbox("Formation", list(FORMATION.keys()), key="match_formation")
             st.session_state["formation_new_match"] = formation
-            terrain = terrain_interactif_v2(formation, "terrain_new_match")
+            terrain = terrain_interactif_v3(formation, "terrain_new_match")
 
         # Titulaires pour éviter doublons remplaçants
         tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in st.session_state.get("terrain_new_match", terrain).get(p, []) if j]
-        remplaçants = remplaçants_interactif_v2("new_match", tous_titulaires)
+        st.markdown("### Remplaçants (en dessous du terrain)")
+        remplaçants = remplaçants_interactif_v3("new_match", tous_titulaires)
 
         # Enregistrer la compo depuis la création d'un match
         if st.button("Enregistrer cette compo"):
@@ -485,8 +449,9 @@ elif menu == "Matchs":
                     if not match.get("noted", False):
                         st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
                         st.session_state[f"terrain_match_{mid}"] = match["details"]
-                        terrain = terrain_interactif_v2(match["formation"], f"terrain_match_{mid}", show_export=False)
-                        remp_edit = remplaçants_interactif_v2(f"edit_match_{mid}", [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j])
+                        terrain = terrain_interactif_v3(match["formation"], f"terrain_match_{mid}", show_export=False)
+                        st.markdown("### Remplaçants (en dessous du terrain)")
+                        remp_edit = remplaçants_interactif_v3(f"edit_match_{mid}", [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j])
                         if st.button("Mettre à jour la compo", key=f"maj_compo_{mid}"):
                             match["details"] = st.session_state.get(f"terrain_match_{mid}", match["details"])
                             match["remplacants"] = remp_edit
@@ -496,7 +461,7 @@ elif menu == "Matchs":
                     if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
                         joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
-                        score = st.text_input("Score (ex: 2-1)", key=f"score_{mid}")
+                        score = st.text_input("Score (ex: 2-1)", key=f"score_{mid}_{nom}")
 
                         buteurs_qte = {}
                         st.write("#### Buteurs")
