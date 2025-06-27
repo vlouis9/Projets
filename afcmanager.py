@@ -6,8 +6,8 @@ from datetime import datetime
 
 # --- CONSTANTES ---
 DATA_FILE = "afcdata.json"
-PLAYER_COLS = ["Nom", "Poste", "Infos"]
-PLAYER_DEFAULTS = {"Nom": "", "Poste": "G", "Infos": ""}
+PLAYER_COLS = ["Nom", "Numero", "Poste", "Capitaine", "Infos"]
+PLAYER_DEFAULTS = {"Nom": "", "Numero": "", "Poste": "G", "Capitaine": False, "Infos": ""}
 
 FORMATION = {
     "4-2-3-1": {"G": 1, "D": 4, "M": 5, "A": 1},
@@ -169,7 +169,7 @@ with tab1:
         s = compute_player_stats(row["Nom"])
         stats_data.append({**row, **s})
     combined_df = pd.DataFrame(stats_data, columns=[
-        "Nom", "Poste", "Infos", "Buts", "Passes décisives", 
+        "Nom", "Numero", "Poste", "Capitaine", "Infos", "Buts", "Passes décisives", 
         "Buts + Passes", "Décisif par match", "Cartons jaunes", 
         "Cartons rouges", "Sélections", "Titularisations", 
         "Note générale", "Homme du match"
@@ -180,11 +180,13 @@ with tab1:
         use_container_width=True,
         column_config={
             "Nom": st.column_config.TextColumn(required=True),
+            "Numero": st.column_config.NumberColumn(),
             "Poste": st.column_config.SelectboxColumn(
                 options=POSTES_ORDER,
                 required=True,
                 default="G"
             ),
+            "Capitaine": st.column_config.CheckboxColumn(),
             "Infos": st.column_config.TextColumn(),
             "Buts": st.column_config.NumberColumn(disabled=True),
             "Passes décisives": st.column_config.NumberColumn(disabled=True),
@@ -247,7 +249,7 @@ with tab2:
                 with st.expander(f"{nom} – {compo['formation']}"):
                     for poste in POSTES_ORDER:
                         joueurs = [
-                            f"{j['Nom']} (#{j.get('Numero', '')}){' (C)' if j.get('Capitaine') else ''}"
+                            f"{j['Numero']} {j['Nom']}{' (C)' if j.get('Capitaine') else ''}"
                             for j in compo['details'].get(poste, []) if j
                         ]
                         st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
@@ -318,6 +320,8 @@ with tab3:
                 "remplacants": remplaçants,
                 "events": {},
                 "score": "",
+                "score_afc": 0,
+                "score_adv": 0,
                 "noted": False,
                 "homme_du_match": ""
             }
@@ -332,12 +336,14 @@ with tab3:
                 with st.expander(f"{match['date']} {match['heure']} vs {match['adversaire']} ({match['type']})"):
                     statut = "Terminé" if match.get("noted", False) else "En cours"
                     st.write(f"**Statut :** {statut}")
+                    st.write(f"**Lieu :** {match['lieu']}")
+                    st.write(f"**Formation :** {match['formation']}")
                     if match.get("noted", False):
                         score_col1, score_col2, score_col3 = st.columns([2,1,2])
                         with score_col1:
                             st.markdown(f"### {match['adversaire']}")
                         with score_col2:
-                            st.markdown(f"### {match.get('score','')}")
+                            st.markdown(f"### {match.get('score_afc', 0)} - {match.get('score_adv', 0)}")
                         with score_col3:
                             st.markdown("### AFC")
                         st.markdown("---")
@@ -375,27 +381,21 @@ with tab3:
                                 st.markdown(f"- {nom} ({nb})")
                         st.markdown("---")
                         st.markdown("#### 📋 Composition")
-                        compo_col1, compo_col2 = st.columns(2)
-                        with compo_col1:
-                            st.write(f"**Formation:** {match['formation']}")
-                            for poste in POSTES_ORDER:
-                                joueurs = [
-                                    f"{j['Nom']}{' (C)' if j.get('Capitaine') else ''}"
-                                    for j in match["details"].get(poste, []) if j
-                                ]
-                                st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
-                        with compo_col2:
-                            st.write("**Remplaçants:**")
-                            for remp in match.get("remplacants", []):
-                                st.markdown(f"- {remp}")
-                        st.write(f"**Lieu :** {match['lieu']}")
-                        st.write(f"**Formation :** {match['formation']}")
+                        st.markdown("""
+                            <div style='background: radial-gradient(ellipse at center, #91c47b 0%, #4b943b 100%);padding:10px;border-radius:16px'>
+                        """, unsafe_allow_html=True)
                         for poste in POSTES_ORDER:
-                            joueurs = [
-                                f"{j['Nom']} (#{j.get('Numero', '')}){' (C)' if j.get('Capitaine') else ''}"
-                                for j in match["details"].get(poste, []) if j
-                            ]
-                            st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
+                            nb_joueurs = FORMATION[match['formation']][poste]
+                            cols = st.columns(nb_joueurs)
+                            for i, joueur in enumerate(match["details"].get(poste, [])):
+                                if joueur:
+                                    cap = " <b>(C)</b>" if joueur.get("Capitaine") else ""
+                                    num = f"{joueur.get('Numero', '')} " if joueur.get("Numero") else ""
+                                    display = f"<div style='text-align:center;background:#dff0d8;padding:8px;border-radius:12px;font-weight:bold'>{num}{joueur['Nom']}{cap}</div>"
+                                    cols[i].markdown(display, unsafe_allow_html=True)
+                                else:
+                                    cols[i].markdown("")
+                        st.markdown("</div>", unsafe_allow_html=True)
                         st.write("**Remplaçants :** " + ", ".join(match.get("remplacants", [])))
                     else:
                         st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
@@ -411,7 +411,8 @@ with tab3:
                     if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
                         joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
-                        score = st.text_input("Score (ex: 2-1)", key=f"score_{mid}")
+                        score_afc = st.number_input("Buts AFC", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
+                        score_adv = st.number_input(f"Buts {match['adversaire']}", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
                         buteurs_qte = {}
                         st.write("#### Buteurs")
                         for nom in joueurs_all:
@@ -444,7 +445,9 @@ with tab3:
                                 notes[nom] = n
                         homme_du_match = st.selectbox("Homme du match", [""] + joueurs_all, key=f"hdm_{mid}")
                         if st.button("Valider le match", key=f"valide_{mid}"):
-                            match["score"] = score
+                            match["score"] = f"{score_afc}-{score_adv}"
+                            match["score_afc"] = score_afc
+                            match["score_adv"] = score_adv
                             match["events"] = {
                                 "buteurs": buteurs_qte,
                                 "passeurs": passeurs_qte,
