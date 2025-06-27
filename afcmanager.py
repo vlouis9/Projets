@@ -5,8 +5,8 @@ import os
 from datetime import datetime
 
 DATA_FILE = "afcdata.json"
-PLAYER_COLS = ["Nom", "Poste", "Infos"]
-PLAYER_DEFAULTS = {"Nom": "", "Poste": "G", "Infos": ""}
+PLAYER_COLS = ["Nom", "Poste", "Infos", "Numero"]
+PLAYER_DEFAULTS = {"Nom": "", "Poste": "G", "Infos": "", "Numero": 10}
 
 FORMATION = {
     "4-4-2": {"G": 1, "D": 4, "M": 4, "A": 2},
@@ -15,45 +15,44 @@ FORMATION = {
     "3-4-3": {"G": 1, "D": 3, "M": 4, "A": 3},
     "5-3-2": {"G": 1, "D": 5, "M": 3, "A": 2},
 }
-POSTES_ORDER = ["G", "D", "M", "A"]
+POSTES_ORDER = ["A", "M", "D", "G"]  # Pour affichage vertical (attaquants en haut, gardien en bas)
 DEFAULT_FORMATION = "4-4-2"
 MAX_REMPLACANTS = 5
 
-# Normalized positions for each formation for visual field
+# Positions normalisées pour terrain vertical (gardien en bas)
 FORMATION_COORDS = {
     "4-4-2": {
-        "G": [(0.07, 0.5)],
-        "D": [(0.27, 0.12), (0.27, 0.32), (0.27, 0.68), (0.27, 0.88)],
-        "M": [(0.54, 0.12), (0.54, 0.32), (0.54, 0.68), (0.54, 0.88)],
-        "A": [(0.83, 0.35), (0.83, 0.65)],
+        "G": [(0.5, 0.88)],
+        "D": [(0.13, 0.68), (0.32, 0.68), (0.68, 0.68), (0.87, 0.68)],
+        "M": [(0.18, 0.45), (0.38, 0.45), (0.62, 0.45), (0.82, 0.45)],
+        "A": [(0.35, 0.18), (0.65, 0.18)],
     },
     "4-3-3": {
-        "G": [(0.07, 0.5)],
-        "D": [(0.27, 0.12), (0.27, 0.32), (0.27, 0.68), (0.27, 0.88)],
-        "M": [(0.54, 0.22), (0.54, 0.5), (0.54, 0.78)],
-        "A": [(0.83, 0.18), (0.83, 0.5), (0.83, 0.82)],
+        "G": [(0.5, 0.88)],
+        "D": [(0.13, 0.68), (0.32, 0.68), (0.68, 0.68), (0.87, 0.68)],
+        "M": [(0.28, 0.5), (0.5, 0.45), (0.72, 0.5)],
+        "A": [(0.18, 0.18), (0.5, 0.10), (0.82, 0.18)],
     },
     "3-5-2": {
-        "G": [(0.07, 0.5)],
-        "D": [(0.27, 0.2), (0.27, 0.5), (0.27, 0.8)],
-        "M": [(0.47, 0.09), (0.47, 0.28), (0.54, 0.5), (0.47, 0.72), (0.47, 0.91)],
-        "A": [(0.83, 0.35), (0.83, 0.65)],
+        "G": [(0.5, 0.88)],
+        "D": [(0.22, 0.68), (0.5, 0.68), (0.78, 0.68)],
+        "M": [(0.13, 0.45), (0.32, 0.38), (0.5, 0.36), (0.68, 0.38), (0.87, 0.45)],
+        "A": [(0.35, 0.18), (0.65, 0.18)],
     },
     "3-4-3": {
-        "G": [(0.07, 0.5)],
-        "D": [(0.27, 0.2), (0.27, 0.5), (0.27, 0.8)],
-        "M": [(0.54, 0.2), (0.54, 0.4), (0.54, 0.6), (0.54, 0.8)],
-        "A": [(0.83, 0.18), (0.83, 0.5), (0.83, 0.82)],
+        "G": [(0.5, 0.88)],
+        "D": [(0.22, 0.68), (0.5, 0.68), (0.78, 0.68)],
+        "M": [(0.22, 0.45), (0.39, 0.39), (0.61, 0.39), (0.78, 0.45)],
+        "A": [(0.18, 0.18), (0.5, 0.10), (0.82, 0.18)],
     },
     "5-3-2": {
-        "G": [(0.07, 0.5)],
-        "D": [(0.22, 0.08), (0.27, 0.25), (0.27, 0.5), (0.27, 0.75), (0.22, 0.92)],
-        "M": [(0.54, 0.22), (0.54, 0.5), (0.54, 0.78)],
-        "A": [(0.83, 0.35), (0.83, 0.65)],
+        "G": [(0.5, 0.88)],
+        "D": [(0.10, 0.68), (0.25, 0.68), (0.42, 0.68), (0.58, 0.68), (0.75, 0.68)],
+        "M": [(0.28, 0.45), (0.5, 0.45), (0.72, 0.45)],
+        "A": [(0.35, 0.18), (0.65, 0.18)],
     }
 }
 
-# --- Utilitaires persistance ---
 def save_all():
     data = {
         "players": st.session_state.players.to_dict(orient="records"),
@@ -75,12 +74,11 @@ def reload_all():
         st.session_state.lineups = {}
         st.session_state.matches = {}
 
-# --- Calcul dynamique des stats joueurs ---
 def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     for match in st.session_state.matches.values():
         details = match.get("details", {})
-        joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and j["Nom"] == joueur_nom]
+        joueurs = [j for p in FORMATION.keys() for j in details.get(p, []) if isinstance(j, dict) and j.get("Nom") == joueur_nom]
         is_titulaire = bool(joueurs)
         if is_titulaire or joueur_nom in match.get("remplacants", []):
             selections += 1
@@ -112,7 +110,6 @@ def compute_player_stats(joueur_nom):
         "Homme du match": hdm
     }
 
-# --- Initialisation session ---
 if "players" not in st.session_state:
     reload_all()
 if "lineups" not in st.session_state:
@@ -122,7 +119,6 @@ if "matches" not in st.session_state:
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
-# --- Fonctions de download/upload ---
 def download_upload_buttons():
     st.markdown("### 📥 Sauvegarde/Import global (tout-en-un)")
     st.download_button(
@@ -146,7 +142,6 @@ def download_upload_buttons():
         except Exception as e:
             st.error(f"Erreur à l'import : {e}")
 
-# --- Sélection Remplaçants Interactifs ---
 def remplaçants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [None] * MAX_REMPLACANTS
@@ -167,108 +162,82 @@ def remplaçants_interactif(key, titulaires):
     st.session_state[f"remp_{key}"] = remps
     return [r for r in remps if r]
 
-# --- Helper for initializing the terrain ---
 def terrain_init(formation):
-    return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
+    return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in FORMATION[formation]}
 
-# --- Visual terrain interactif (NEW) ---
 def terrain_interactif(formation, terrain_key):
-    # Field dimensions for rendering
-    field_width, field_height = 750, 500
+    field_width, field_height = 400, 600  # Vertical
 
     if terrain_key not in st.session_state or st.session_state.get(f"formation_{terrain_key}", None) != formation:
         st.session_state[terrain_key] = terrain_init(formation)
         st.session_state[f"formation_{terrain_key}"] = formation
     terrain = st.session_state[terrain_key]
 
-    # Editing state
+    # Poste à éditer
     edit_key = f"edit_{terrain_key}"
     if edit_key not in st.session_state:
         st.session_state[edit_key] = None
 
-    # HTML for field and players
-    html = f"""
-    <div style="position:relative;width:{field_width}px;height:{field_height}px;background:#2d7d46;
-                border-radius:30px;box-shadow:0 0 20px #333;border:5px solid #fff;overflow:hidden;">
-        <!-- Center line -->
-        <div style="position:absolute;left:{field_width//2-2}px;top:0;width:4px;height:{field_height}px;background:#fff;opacity:0.3;"></div>
-        <!-- Circle -->
-        <div style="position:absolute;left:{field_width//2-60}px;top:{field_height//2-60}px;width:120px;height:120px;border:4px solid #fff;border-radius:50%;opacity:0.3;"></div>
-    """
-
-    for poste, coords_list in FORMATION_COORDS[formation].items():
-        for idx, (x, y) in enumerate(coords_list):
-            joueur = terrain[poste][idx] if idx < len(terrain[poste]) else None
-            left = int(x * field_width)
-            top = int(y * field_height)
-            base_style = (
-                f"position:absolute;left:{left-36}px;top:{top-36}px;width:72px;height:72px;"
-                "border-radius:50%;display:flex;flex-direction:column;align-items:center;"
-                "justify-content:center;box-shadow:0 4px 18px #1118;"
-                "cursor:pointer;transition:transform 0.1s;"
-            )
+    # On affiche le terrain
+    st.markdown(
+        f'<div style="position:relative;width:{field_width}px;height:{field_height}px;background:#2d7d46;border-radius:30px;border:5px solid #fff;margin:auto;box-shadow:0 0 20px #333;">'
+        # Lignes terrain (central, point de penalty, etc) :
+        f'<div style="position:absolute;left:0;top:{int(field_height*0.5)-2}px;width:{field_width}px;height:4px;background:#fff;opacity:0.25;"></div>'
+        f'<div style="position:absolute;left:{int(field_width/2)-60}px;top:{int(field_height/2)-60}px;width:120px;height:120px;border:4px solid #fff;border-radius:50%;opacity:0.25;"></div>',
+        unsafe_allow_html=True,
+    )
+    # Affichage des boutons joueurs
+    for poste in POSTES_ORDER:
+        for idx, (x, y) in enumerate(FORMATION_COORDS[formation][poste]):
+            abs_x = int(x * field_width)
+            abs_y = int(y * field_height)
+            joueur = terrain[poste][idx]
+            btn_label = ""
+            color = "#fff"
+            border = "#1b6d3c"
             if joueur:
+                btn_label = f"{joueur['Nom']}<br><b>#{joueur.get('Numero','')}</b>{' <span style=\'color:gold;\'>★</span>' if joueur.get('Capitaine') else ''}"
                 color = "#fff"
-                border = "#2d7d46"
-                icon = f"""<b style="font-size:26px;color:#246;">{joueur.get('Numero','')}</b>"""
-                name = f"""<span style="font-size:13px;font-weight:600;color:#222;">{joueur['Nom']}</span>"""
-                cap = '<span style="position:absolute;top:4px;right:7px;color:gold;font-size:19px;">★</span>' if joueur.get("Capitaine") else ""
-                player_html = (
-                    f"""<div style="{base_style}background:{color};border:3px solid {border};position:absolute;"
-                            onclick="window.parent.postMessage({{'edit':'{poste}_{idx}'}}, '*')"
-                            title="Cliquer pour modifier">
-                            {icon}{name}{cap}
-                        </div>"""
-                )
+                border = "#1b6d3c"
             else:
-                color = "#d3e6d7"
-                border = "#aaa"
-                player_html = (
-                    f"""<div style="{base_style}background:{color};border:3px dashed {border};color:#555;font-size:42px;position:absolute;"
-                            onclick="window.parent.postMessage({{'edit':'{poste}_{idx}'}}, '*')"
-                            title="Ajouter un joueur">
-                            +
-                        </div>"""
-                )
-            html += player_html
+                btn_label = f"+ {poste}{idx+1}"
+                color = "#b8e6c1"
+                border = "#999"
+            # bouton Streamlit simulé par markdown + lien sur URL paramètre
+            params_url = st.experimental_get_query_params()
+            edit_val = f"{poste}_{idx}"
+            # Crée une url qui déclenche le formulaire
+            url = "?" + "&".join([f"{k}={v[0]}" for k, v in params_url.items() if k != edit_key] + [f"{edit_key}={edit_val}"])
+            st.markdown(
+                f"""
+                <div style="position:absolute;left:{abs_x-36}px;top:{abs_y-36}px;width:72px;height:72px;z-index:2;">
+                <a href="{url}">
+                  <div style="width:72px;height:72px;border-radius:50%;background:{color};border:3px solid {border};
+                              display:flex;flex-direction:column;align-items:center;justify-content:center;
+                              font-size:14px;font-weight:bold;text-align:center;box-shadow:0 2px 12px #1115;color:#222;">
+                    {btn_label}
+                  </div>
+                </a>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+    st.markdown("</div>", unsafe_allow_html=True)
 
-    html += "</div>"
-
-    # Display field
-    st.markdown(html, unsafe_allow_html=True)
-
-    # JavaScript to catch player clicks (Streamlit workaround!)
-    st.components.v1.html("""
-    <script>
-    window.addEventListener('message', (ev) => {
-        if(ev.data.edit){
-            const s = window.parent.document.querySelector('iframe[title^="streamlit"]');
-            if(s) s.contentWindow.postMessage(ev.data, '*');
-        }
-    });
-    window.addEventListener('message', (ev) => {
-        if(ev.data.edit){
-            window.parent.postMessage(ev.data, '*');
-        }
-    });
-    </script>
-    """, height=0)
-
-    # Use Streamlit event handling for player edit
-    edit = st.query_params.get("edit", [None])[0]
-    if edit and edit_key in st.session_state:
-        poste, idx = edit.split("_")
+    # Lecture du poste à éditer via URL paramètre
+    params = st.experimental_get_query_params()
+    if edit_key in params:
+        poste, idx = params[edit_key][0].split("_")
         idx = int(idx)
         st.session_state[edit_key] = (poste, idx)
-        # Clean up URL param
+        # Nettoie paramètre pour éviter la répétition
         st.experimental_set_query_params()
-
     if st.session_state[edit_key]:
         poste, idx = st.session_state[edit_key]
-        st.markdown(f"### Ajouter/Modifier {poste}{idx+1}")
+        st.markdown(f"### Ajouter/modifier {poste}{idx+1}")
         joueurs_sur_terrain = set(
             j["Nom"]
-            for p in POSTES_ORDER
+            for p in terrain
             for j in terrain.get(p, [])
             if j and isinstance(j, dict) and j.get("Nom")
         )
@@ -278,7 +247,9 @@ def terrain_interactif(formation, terrain_key):
         all_options = st.session_state.players["Nom"].tolist()
         options = [n for n in all_options if n not in joueurs_sur_terrain]
         choix = st.selectbox("Choisir un joueur", [""] + options, key=f"choix_{terrain_key}_{poste}_{idx}")
-        numero = st.number_input("Numéro de maillot", min_value=1, max_value=99, value=terrain[poste][idx]["Numero"] if terrain[poste][idx] else 10, key=f"num_{terrain_key}_{poste}_{idx}")
+        numero = st.number_input("Numéro de maillot", min_value=1, max_value=99,
+                                value=terrain[poste][idx]["Numero"] if terrain[poste][idx] else 10,
+                                key=f"num_{terrain_key}_{poste}_{idx}")
         capitaine = st.checkbox("Capitaine", value=terrain[poste][idx]["Capitaine"] if terrain[poste][idx] else False, key=f"cap_{terrain_key}_{poste}_{idx}")
         col1, col2 = st.columns(2)
         if col1.button("Valider ce joueur", key=f"valider_{terrain_key}_{poste}_{idx}"):
@@ -298,7 +269,7 @@ def terrain_interactif(formation, terrain_key):
             st.experimental_rerun()
 
     with st.expander("Composition actuelle"):
-        for poste in POSTES_ORDER:
+        for poste in ["G", "D", "M", "A"]:
             joueurs = [
                 f"{j['Nom']} (#{j.get('Numero', '')}){' (C)' if j.get('Capitaine') else ''}"
                 for j in terrain.get(poste, []) if j
@@ -308,7 +279,6 @@ def terrain_interactif(formation, terrain_key):
     st.session_state[f"formation_{terrain_key}"] = formation
     return terrain
 
-# --- Visual remplaçants ---
 def render_replacements(remplaçants, players_df):
     st.markdown("#### Remplaçants")
     cols = st.columns(max(len(remplaçants), 1))
@@ -334,14 +304,12 @@ def render_replacements(remplaçants, players_df):
                 unsafe_allow_html=True
             )
 
-# --- MENU PRINCIPAL ---
 st.sidebar.title("⚽ Gestion Équipe AFC")
 menu = st.sidebar.radio(
     "Menu",
     ["Database", "Compositions", "Matchs", "Sauvegarde / Import"]
 )
 
-# --- DATABASE (édition inline) ---
 if menu == "Database":
     st.title("Base de données joueurs (édition directe)")
     st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous. Les modifications sont enregistrées automatiquement.")
@@ -360,10 +328,9 @@ if menu == "Database":
         st.success("Base de joueurs mise à jour !")
     st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
 
-    # Affichage dynamique des stats
     st.markdown("### Statistiques dynamiques (calculées à partir des matchs présents)")
     stats_cols = [
-        "Nom", "Poste", "Infos", "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
+        "Nom", "Poste", "Infos", "Numero", "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
         "Cartons jaunes", "Cartons rouges", "Sélections", "Titularisations", "Note générale", "Homme du match"
     ]
     stats_data = []
@@ -372,11 +339,9 @@ if menu == "Database":
         stats_data.append({**row, **s})
     st.dataframe(pd.DataFrame(stats_data, columns=stats_cols))
 
-# --- COMPOSITIONS ---
 elif menu == "Compositions":
     st.title("Gestion des compositions")
     tab1, tab2 = st.tabs(["Créer une composition", "Mes compositions"])
-    # Edition/Création
     with tab1:
         edit_key = "edit_compo"
         edit_compo = st.session_state.get(edit_key, None)
@@ -404,16 +369,13 @@ elif menu == "Compositions":
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
-        # Ajout visuel des remplaçants sous le terrain (optionnel ici)
-        # render_replacements([], st.session_state.players)
-    # Liste/Edition
     with tab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
         else:
             for nom, compo in st.session_state.lineups.items():
                 with st.expander(f"{nom} – {compo['formation']}"):
-                    for poste in POSTES_ORDER:
+                    for poste in ["G", "D", "M", "A"]:
                         joueurs = [
                             f"{j['Nom']} (#{j.get('Numero', '')}){' (C)' if j.get('Capitaine') else ''}"
                             for j in compo['details'].get(poste, []) if j
@@ -428,7 +390,6 @@ elif menu == "Compositions":
                         save_all()
                         st.experimental_rerun()
 
-# --- MATCHS ---
 elif menu == "Matchs":
     st.title("Gestion des matchs")
     tab1, tab2 = st.tabs(["Créer un match", "Mes matchs"])
@@ -448,7 +409,6 @@ elif menu == "Matchs":
         date = st.date_input("Date du match", value=datetime.today())
         heure = st.time_input("Heure du match")
         lieu = st.text_input("Lieu", key="lieu")
-        # Suggestion automatique du nom
         nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
 
@@ -466,12 +426,10 @@ elif menu == "Matchs":
             st.session_state["formation_new_match"] = formation
             terrain = terrain_interactif(formation, "terrain_new_match")
 
-        # Titulaires pour éviter doublons remplaçants
-        tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in st.session_state.get("terrain_new_match", terrain).get(p, []) if j]
+        tous_titulaires = [j["Nom"] for p in terrain for j in terrain.get(p, []) if j]
         remplaçants = remplaçants_interactif("new_match", tous_titulaires)
         render_replacements(remplaçants, st.session_state.players)
 
-        # Enregistrer la compo depuis la création d'un match
         if st.button("Enregistrer cette compo"):
             name_compo = st.text_input("Nom pour la compo à enregistrer", value=nom_match)
             if name_compo:
@@ -530,7 +488,7 @@ elif menu == "Matchs":
                         st.write(f"**Homme du match :** {match.get('homme_du_match','')}")
                     st.write(f"**Lieu :** {match['lieu']}")
                     st.write(f"**Formation :** {match['formation']}")
-                    for poste in POSTES_ORDER:
+                    for poste in ["G", "D", "M", "A"]:
                         joueurs = [
                             f"{j['Nom']} (#{j.get('Numero', '')}){' (C)' if j.get('Capitaine') else ''}"
                             for j in match["details"].get(poste, []) if j
@@ -543,7 +501,7 @@ elif menu == "Matchs":
                         st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
                         st.session_state[f"terrain_match_{mid}"] = match["details"]
                         terrain = terrain_interactif(match["formation"], f"terrain_match_{mid}")
-                        remp_edit = remplaçants_interactif(f"edit_match_{mid}", [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j])
+                        remp_edit = remplaçants_interactif(f"edit_match_{mid}", [j["Nom"] for p in terrain for j in match["details"].get(p, []) if j])
                         render_replacements(remp_edit, st.session_state.players)
                         if st.button("Mettre à jour la compo", key=f"maj_compo_{mid}"):
                             match["details"] = st.session_state.get(f"terrain_match_{mid}", match["details"])
@@ -553,7 +511,7 @@ elif menu == "Matchs":
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
                     if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
-                        joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
+                        joueurs_all = [j['Nom'] for p in match["details"] for j in match["details"].get(p, []) if j]
                         score = st.text_input("Score (ex: 2-1)", key=f"score_{mid}")
 
                         buteurs_qte = {}
@@ -610,7 +568,6 @@ elif menu == "Matchs":
                         save_all()
                         st.experimental_rerun()
 
-# --- PAGE SAUVEGARDE / IMPORT ---
 elif menu == "Sauvegarde / Import":
     st.title("Sauvegarde et importation manuelles des données")
     st.info("Téléchargez ou importez toutes vos données (joueurs, compos, matchs) en un seul fichier.")
