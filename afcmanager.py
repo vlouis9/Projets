@@ -54,7 +54,8 @@ def reload_all():
         st.session_state.lineups = data.get("lineups", {})
         st.session_state.matches = data.get("matches", {})
     else:
-        st.session_state.players = pd.DataFrame(columns=.lineups = {}
+        st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
+        st.session_state.lineups = {}
         st.session_state.matches = {}
 
 def compute_player_stats(joueur_nom):
