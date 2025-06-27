@@ -89,30 +89,6 @@ if "matches" not in st.session_state:
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
-# ---------- MENU HORIZONTAL CLIQUABLE ----------
-st.markdown("""
-<style>
-.menu-afc a {
-    display: inline-block; margin-right: 1.5em; font-weight: bold; font-size:1.1em;
-    color: #1976D2; text-decoration: none; padding: 4px 12px; border-radius: 8px;
-}
-.menu-afc a.selected, .menu-afc a:hover { background: #e3f0fa; }
-</style>
-""", unsafe_allow_html=True)
-menu_items = ["Database", "Compositions", "Matchs", "Sauvegarde"]
-menu_keys = ["Database", "Compositions", "Matchs", "Sauvegarde"]
-if "menu" not in st.session_state:
-    st.session_state.menu = menu_keys[0]
-query_params = st.experimental_get_query_params()
-if "afcmenu" in query_params and query_params["afcmenu"][0] in menu_keys:
-    st.session_state.menu = query_params["afcmenu"][0]
-menu_html = '<div class="menu-afc">' + " ".join(
-    f'<a href="?afcmenu={key}" class="{("selected" if st.session_state.menu==key else "")}">{label}</a>'
-    for label, key in zip(menu_items, menu_keys)
-) + "</div>"
-st.markdown(menu_html, unsafe_allow_html=True)
-menu = st.session_state.menu
-
 # ---------- TELECHARGEMENT / IMPORT ----------
 def download_upload_buttons():
     st.markdown("### 📥 Sauvegarde/Import global (tout-en-un)")
@@ -196,7 +172,6 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
         st.markdown("**Remplaçants** : " + ", ".join(f'{r["Nom"]} (#{r["Numero"]})' for r in remplaçants if r and r["Nom"]))
 
 def choix_joueurs_interface(formation, key_prefix):
-    # Déduit le nombre de postes selon la formation
     postes = []
     for poste, n in FORMATION[formation].items():
         for i in range(n):
@@ -222,8 +197,11 @@ def choix_joueurs_interface(formation, key_prefix):
         remplaçants.append({"Nom": choix, "Numero": numero} if choix else None)
     return titulaires, remplaçants, capitaine
 
-# ---------- DATABASE ----------
-if menu == "Database":
+# ----------- TABS PRINCIPAUX -----------
+tab_labels = ["Database", "Compositions", "Matchs", "Sauvegarde"]
+tab_database, tab_compositions, tab_matchs, tab_sauvegarde = st.tabs(tab_labels)
+
+with tab_database:
     st.title("Base de données joueurs (édition directe)")
     edited_df = st.data_editor(
         st.session_state.players,
@@ -250,11 +228,9 @@ if menu == "Database":
         stats_data.append({**row, **s})
     st.dataframe(pd.DataFrame(stats_data, columns=stats_cols))
 
-# ---------- COMPOSITIONS ----------
-elif menu == "Compositions":
+with tab_compositions:
     st.title("Gestion des compositions")
     tab1, tab2 = st.tabs(["Créer une composition", "Mes compositions"])
-    # Création
     with tab1:
         nom_compo = st.text_input("Nom de la composition")
         formation = st.selectbox("Formation", list(FORMATION.keys()), key="formation_create")
@@ -273,7 +249,6 @@ elif menu == "Compositions":
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
-    # Liste et édition
     with tab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
@@ -287,8 +262,7 @@ elif menu == "Compositions":
                         save_all()
                         st.experimental_rerun()
 
-# ---------- MATCHS ----------
-elif menu == "Matchs":
+with tab_matchs:
     st.title("Gestion des matchs")
     tab1, tab2 = st.tabs(["Créer un match", "Mes matchs"])
     with tab1:
@@ -333,8 +307,7 @@ elif menu == "Matchs":
                         save_all()
                         st.experimental_rerun()
 
-# ---------- SAUVEGARDE / IMPORT ----------
-elif menu == "Sauvegarde":
+with tab_sauvegarde:
     st.title("Sauvegarde et importation manuelles des données")
     st.info("Téléchargez ou importez toutes vos données (joueurs, compos, matchs) en un seul fichier.")
     download_upload_buttons()
