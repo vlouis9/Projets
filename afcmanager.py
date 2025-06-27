@@ -214,15 +214,16 @@ def terrain_interactif(formation, terrain_key):
     st.session_state[f"formation_{terrain_key}"] = formation
     return terrain
 
-# --- MENU PRINCIPAL ---
+# --- INTERFACE PRINCIPALE ---
 st.sidebar.title("⚽ Gestion Équipe AFC")
-menu = st.sidebar.radio(
-    "Menu",
-    ["Database", "Compositions", "Matchs", "Sauvegarde / Import"]
-)
+# Uniquement la sauvegarde/import dans la sidebar
+download_upload_buttons()
 
-# --- DATABASE (édition inline) ---
-if menu == "Database":
+# Corps principal avec onglets
+tab1, tab2, tab3 = st.tabs(["Database", "Compositions", "Matchs"])
+
+# --- DATABASE ---
+with tab1:
     st.title("Base de données joueurs (édition directe)")
     st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous. Les modifications sont enregistrées automatiquement.")
     edited_df = st.data_editor(
@@ -253,11 +254,12 @@ if menu == "Database":
     st.dataframe(pd.DataFrame(stats_data, columns=stats_cols))
 
 # --- COMPOSITIONS ---
-elif menu == "Compositions":
+with tab2:
     st.title("Gestion des compositions")
-    tab1, tab2 = st.tabs(["Créer une composition", "Mes compositions"])
+    subtab1, subtab2 = st.tabs(["Créer une composition", "Mes compositions"])
+    
     # Edition/Création
-    with tab1:
+    with subtab1:
         edit_key = "edit_compo"
         edit_compo = st.session_state.get(edit_key, None)
         if edit_compo:
@@ -284,8 +286,9 @@ elif menu == "Compositions":
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
+
     # Liste/Edition
-    with tab2:
+    with subtab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
         else:
@@ -307,11 +310,12 @@ elif menu == "Compositions":
                         st.experimental_rerun()
 
 # --- MATCHS ---
-elif menu == "Matchs":
+with tab3:
     st.title("Gestion des matchs")
-    tab1, tab2 = st.tabs(["Créer un match", "Mes matchs"])
+    subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
 
-    with tab1:
+    # Création de match
+    with subtab1:
         if st.button("Réinitialiser la création du match"):
             for k in [
                 "terrain_new_match", "formation_new_match",
@@ -326,6 +330,7 @@ elif menu == "Matchs":
         date = st.date_input("Date du match", value=datetime.today())
         heure = st.time_input("Heure du match")
         lieu = st.text_input("Lieu", key="lieu")
+        
         # Suggestion automatique du nom
         nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
@@ -380,7 +385,8 @@ elif menu == "Matchs":
             st.success("Match enregistré !")
             st.experimental_rerun()
 
-    with tab2:
+    # Liste des matchs
+    with subtab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
         else:
@@ -425,6 +431,7 @@ elif menu == "Matchs":
                             match["remplacants"] = remp_edit
                             save_all()
                             st.success("Composition du match mise à jour.")
+                    
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
                     if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
@@ -480,13 +487,8 @@ elif menu == "Matchs":
                             save_all()
                             st.success("Stats du match enregistrées !")
                             st.experimental_rerun()
+                    
                     if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
                         del st.session_state.matches[mid]
                         save_all()
                         st.experimental_rerun()
-
-# --- PAGE SAUVEGARDE / IMPORT ---
-elif menu == "Sauvegarde / Import":
-    st.title("Sauvegarde et importation manuelles des données")
-    st.info("Téléchargez ou importez toutes vos données (joueurs, compos, matchs) en un seul fichier.")
-    download_upload_buttons()
