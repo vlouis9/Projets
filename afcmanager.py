@@ -3,6 +3,7 @@ import pandas as pd
 import json
 import os
 from datetime import datetime
+import plotly.graph_objects as go
 
 # --- CONSTANTES ---
 DATA_FILE = "afcdata.json"
@@ -20,6 +21,111 @@ FORMATION = {
 POSTES_ORDER = ["G", "D", "M", "A"]
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
+
+# --- Fonctions terrain Plotly ---
+def draw_football_pitch():
+    fig = go.Figure()
+    fig.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(width=2, color="darkgreen"))
+    fig.add_shape(type="rect", x0=0, y0=13.84, x1=16.5, y1=68-13.84, line=dict(width=1, color="darkgreen"))
+    fig.add_shape(type="rect", x0=105-16.5, y0=13.84, x1=105, y1=68-13.84, line=dict(width=1, color="darkgreen"))
+    fig.add_shape(type="circle", x0=52.5-9.15, y0=34-9.15, x1=52.5+9.15, y1=34+9.15, line=dict(width=1, color="darkgreen"))
+    fig.add_shape(type="circle", x0=52.5-0.4, y0=34-0.4, x1=52.5+0.4, y1=34+0.4, fillcolor="darkgreen", line=dict(color="darkgreen"))
+    fig.update_xaxes(showticklabels=False, range=[-5, 120], visible=False)
+    fig.update_yaxes(showticklabels=False, range=[-5, 73], visible=False)
+    fig.update_layout(
+        width=760, height=500, plot_bgcolor="mediumseagreen", margin=dict(l=10,r=10,t=10,b=10), showlegend=False
+    )
+    return fig
+
+def positions_for_formation(formation):
+    # Tu peux personnaliser chaque formation ici si tu veux
+    presets = {
+        "4-2-3-1": {
+            "G": [(6,34)],
+            "D": [(20,10), (20,24), (20,44), (20,58)],
+            "M": [(40,22), (40,46), (60,15), (60,34), (60,53)],
+            "A": [(85,34)],
+        },
+        "4-3-3": {
+            "G": [(6,34)],
+            "D": [(20,10), (20,24), (20,44), (20,58)],
+            "M": [(50,17), (50,34), (50,51)],
+            "A": [(85,15), (100,34), (85,53)],
+        },
+        "4-4-2": {
+            "G": [(6,34)],
+            "D": [(20,10), (20,24), (20,44), (20,58)],
+            "M": [(50,10), (50,24), (50,44), (50,58)],
+            "A": [(85,25), (85,43)],
+        },
+        "3-5-2": {
+            "G": [(6,34)],
+            "D": [(17,17), (17,34), (17,51)],
+            "M": [(40,10), (40,24), (52.5,34), (65,44), (65,58)],
+            "A": [(90,27), (90,41)],
+        },
+        "3-4-3": {
+            "G": [(6,34)],
+            "D": [(17,17), (17,34), (17,51)],
+            "M": [(40,15), (40,34), (40,53), (60,34)],
+            "A": [(85,15), (100,34), (85,53)],
+        },
+        "5-3-2": {
+            "G": [(6,34)],
+            "D": [(15,8), (15,20), (15,34), (15,48), (15,60)],
+            "M": [(52.5,17), (52.5,34), (52.5,51)],
+            "A": [(90,27), (90,41)],
+        },
+    }
+    return presets.get(formation, presets["4-2-3-1"])
+
+def plot_lineup_on_pitch(fig, match):
+    formation = match["formation"]
+    details = match["details"]
+    positions = positions_for_formation(formation)
+    color_map = {"G":"#ffe082", "D":"#90caf9", "M":"#b2dfdb", "A":"#ffab91"}
+    # Place titulaires
+    for poste in POSTES_ORDER:
+        for i, joueur in enumerate(details.get(poste, [])):
+            if joueur:
+                x, y = positions[poste][i % len(positions[poste])]
+                fig.add_trace(go.Scatter(
+                    x=[x], y=[y],
+                    mode="markers+text",
+                    marker=dict(size=35, color=color_map[poste], line=dict(width=2, color="black")),
+                    text=f"{joueur.get('Numero', '')}".strip(),
+                    textposition="middle center",
+                    textfont=dict(color="black", size=15),
+                    hovertext=f"{joueur['Nom']}{' (C)' if joueur.get('Capitaine') else ''}",
+                    hoverinfo="text"
+                ))
+                # Nom sous le cercle
+                fig.add_trace(go.Scatter(
+                    x=[x], y=[y-4],
+                    mode="text",
+                    text=[joueur['Nom'] + (" (C)" if joueur.get("Capitaine") else "")],
+                    textfont=dict(color="black", size=11),
+                    showlegend=False
+                ))
+    # Place remplaçants à droite
+    remplaçants = match.get("remplacants", [])
+    for idx, remp in enumerate(remplaçants):
+        fig.add_trace(go.Scatter(
+            x=[112], y=[68 - 6 - 8*idx],
+            mode="markers+text",
+            marker=dict(size=26, color="#bdbdbd", line=dict(width=2, color="black")),
+            text="",
+            hovertext=remp,
+            hoverinfo="text"
+        ))
+        fig.add_trace(go.Scatter(
+            x=[116], y=[68 - 6 - 8*idx],
+            mode="text",
+            text=[remp],
+            textfont=dict(color="black", size=12),
+            showlegend=False
+        ))
+    return fig
 
 # --- Utilitaires persistance ---
 def save_all():
@@ -174,8 +280,6 @@ with tab1:
         "Cartons rouges", "Sélections", "Titularisations", 
         "Note générale", "Homme du match"
     ])
-
-    # Correction des types pour le Data Editor
     combined_df["Numero"] = combined_df["Numero"].astype(str).replace("nan", "")
     combined_df["Capitaine"] = combined_df["Capitaine"].fillna(False).astype(bool)
 
@@ -185,7 +289,7 @@ with tab1:
         use_container_width=True,
         column_config={
             "Nom": st.column_config.TextColumn(required=True),
-            "Numero": st.column_config.TextColumn(),  # <--- Utilise TextColumn pour éviter les problèmes
+            "Numero": st.column_config.TextColumn(),
             "Poste": st.column_config.SelectboxColumn(
                 options=POSTES_ORDER,
                 required=True,
@@ -385,22 +489,10 @@ with tab3:
                             for nom, nb in ev.get("cartons_rouges", {}).items():
                                 st.markdown(f"- {nom} ({nb})")
                         st.markdown("---")
-                        st.markdown("#### 📋 Composition")
-                        st.markdown("""
-                            <div style='background: radial-gradient(ellipse at center, #91c47b 0%, #4b943b 100%);padding:10px;border-radius:16px'>
-                        """, unsafe_allow_html=True)
-                        for poste in POSTES_ORDER:
-                            nb_joueurs = FORMATION[match['formation']][poste]
-                            cols = st.columns(nb_joueurs)
-                            for i, joueur in enumerate(match["details"].get(poste, [])):
-                                if joueur:
-                                    cap = " <b>(C)</b>" if joueur.get("Capitaine") else ""
-                                    num = f"{joueur.get('Numero', '')} " if joueur.get("Numero") else ""
-                                    display = f"<div style='text-align:center;background:#dff0d8;padding:8px;border-radius:12px;font-weight:bold'>{num}{joueur['Nom']}{cap}</div>"
-                                    cols[i].markdown(display, unsafe_allow_html=True)
-                                else:
-                                    cols[i].markdown("")
-                        st.markdown("</div>", unsafe_allow_html=True)
+                        st.markdown("#### 📋 Composition (terrain)")
+                        fig = draw_football_pitch()
+                        fig = plot_lineup_on_pitch(fig, match)
+                        st.plotly_chart(fig, use_container_width=True)
                         st.write("**Remplaçants :** " + ", ".join(match.get("remplacants", [])))
                     else:
                         st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
