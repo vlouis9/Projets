@@ -104,8 +104,9 @@ if "matches" not in st.session_state:
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
-def download_upload_buttons():
-    st.markdown("### 📥 Sauvegarde/Import global (tout-en-un)")
+# --- Sidebar : Enregistrement/Import ---
+with st.sidebar:
+    st.markdown("### 📥 Sauvegarde/Import global")
     st.download_button(
         label="Télécharger toutes les données (JSON)",
         data=json.dumps({
@@ -131,7 +132,7 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
     titulaires = titulaires or []
     remplaçants = remplaçants or []
     postes = FORMATION[formation]
-    # Construction de tout le HTML en un seul bloc pour éviter toute fuite.
+    # Construction du HTML complet en une seule chaîne :
     html = '''
     <div style="position:relative;width:100%;max-width:480px;aspect-ratio:2/3;margin:auto;
     background:linear-gradient(180deg,#4db367 0%,#245c32 100%);
@@ -162,7 +163,6 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
 
 def choix_joueurs_interface(formation, key_prefix):
     postes = []
-    # Pour compatibilité, on vérifie si FORMATION[formation] est bien une liste de tuples ou un dict :
     if isinstance(FORMATION[formation], dict):
         for poste, n in FORMATION[formation].items():
             for i in range(n):
@@ -190,8 +190,8 @@ def choix_joueurs_interface(formation, key_prefix):
         remplaçants.append({"Nom": choix, "Numero": numero} if choix else None)
     return titulaires, remplaçants, capitaine
 
-tab_labels = ["Database", "Compositions", "Matchs", "Sauvegarde"]
-tab_database, tab_compositions, tab_matchs, tab_sauvegarde = st.tabs(tab_labels)
+tab_labels = ["Database", "Compositions", "Matchs"]
+tab_database, tab_compositions, tab_matchs = st.tabs(tab_labels)
 
 with tab_database:
     st.title("Base de données joueurs (édition + stats)")
@@ -209,7 +209,6 @@ with tab_database:
             merged_df[col] = ""
     if merged_df.empty:
         merged_df = pd.DataFrame(columns=ALL_COLS)
-    # Edition seulement des colonnes joueurs, stats désactivées
     editable_cols = PLAYER_COLS
     disabled_cols = [col for col in merged_df.columns if col not in editable_cols]
     edited_df = st.data_editor(
@@ -316,8 +315,3 @@ with tab_matchs:
                         del st.session_state.matches[mid]
                         save_all()
                         st.experimental_rerun()
-
-with tab_sauvegarde:
-    st.title("Sauvegarde et importation manuelles des données")
-    st.info("Téléchargez ou importez toutes vos données (joueurs, compos, matchs) en un seul fichier.")
-    download_upload_buttons()
