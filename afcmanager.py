@@ -4,6 +4,7 @@ import json
 import os
 from datetime import datetime
 
+# --- CONSTANTES ---
 DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
 PLAYER_DEFAULTS = {"Nom": "", "Poste": "G", "Infos": ""}
@@ -216,7 +217,7 @@ def terrain_interactif(formation, terrain_key):
 
 # --- INTERFACE PRINCIPALE ---
 st.sidebar.title("⚽ Gestion Équipe AFC")
-# Uniquement la sauvegarde/import dans la sidebar
+# Import/Export dans la barre latérale
 download_upload_buttons()
 
 # Corps principal avec onglets
@@ -224,34 +225,58 @@ tab1, tab2, tab3 = st.tabs(["Database", "Compositions", "Matchs"])
 
 # --- DATABASE ---
 with tab1:
-    st.title("Base de données joueurs (édition directe)")
-    st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous. Les modifications sont enregistrées automatiquement.")
+    st.title("Base de données joueurs")
+    st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous.")
+    
+    # Création du dataframe combiné avec stats
+    stats_data = []
+    for _, row in st.session_state.players.iterrows():
+        s = compute_player_stats(row["Nom"])
+        stats_data.append({**row, **s})
+    
+    combined_df = pd.DataFrame(stats_data, columns=[
+        "Nom", "Poste", "Infos", "Buts", "Passes décisives", 
+        "Buts + Passes", "Décisif par match", "Cartons jaunes", 
+        "Cartons rouges", "Sélections", "Titularisations", 
+        "Note générale", "Homme du match"
+    ])
+    
+    # Affichage et édition du tableau unique
     edited_df = st.data_editor(
-        st.session_state.players,
+        combined_df,
         num_rows="dynamic",
         use_container_width=True,
+        column_config={
+            "Nom": st.column_config.TextColumn(required=True),
+            "Poste": st.column_config.SelectboxColumn(
+                options=POSTES_ORDER,
+                required=True,
+                default="G"
+            ),
+            "Infos": st.column_config.TextColumn(),
+            "Buts": st.column_config.NumberColumn(disabled=True),
+            "Passes décisives": st.column_config.NumberColumn(disabled=True),
+            "Buts + Passes": st.column_config.NumberColumn(disabled=True),
+            "Décisif par match": st.column_config.NumberColumn(disabled=True),
+            "Cartons jaunes": st.column_config.NumberColumn(disabled=True),
+            "Cartons rouges": st.column_config.NumberColumn(disabled=True),
+            "Sélections": st.column_config.NumberColumn(disabled=True),
+            "Titularisations": st.column_config.NumberColumn(disabled=True),
+            "Note générale": st.column_config.NumberColumn(disabled=True),
+            "Homme du match": st.column_config.NumberColumn(disabled=True)
+        },
         key="data_edit"
     )
+    
     if st.button("Sauvegarder les modifications"):
         edited_df = edited_df.fillna("")
         edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
+        # Ne garder que les colonnes de base pour la sauvegarde
         st.session_state.players = edited_df[PLAYER_COLS]
         save_all()
         reload_all()
         st.success("Base de joueurs mise à jour !")
     st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
-
-    # Affichage dynamique des stats
-    st.markdown("### Statistiques dynamiques (calculées à partir des matchs présents)")
-    stats_cols = [
-        "Nom", "Poste", "Infos", "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
-        "Cartons jaunes", "Cartons rouges", "Sélections", "Titularisations", "Note générale", "Homme du match"
-    ]
-    stats_data = []
-    for _, row in st.session_state.players.iterrows():
-        s = compute_player_stats(row["Nom"])
-        stats_data.append({**row, **s})
-    st.dataframe(pd.DataFrame(stats_data, columns=stats_cols))
 
 # --- COMPOSITIONS ---
 with tab2:
