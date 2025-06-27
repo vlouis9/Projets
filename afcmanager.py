@@ -47,9 +47,9 @@ def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     for match in st.session_state.matches.values():
         details = match.get("details", {})
-        joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and j["Nom"] == joueur_nom]
+        joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and j.get("Nom") == joueur_nom]
         is_titulaire = bool(joueurs)
-        if is_titulaire or joueur_nom in match.get("remplacants", []):
+        if is_titulaire or joueur_nom in [r.get("Nom") for r in match.get("remplacants", []) if r]:
             selections += 1
         if is_titulaire:
             titularisations += 1
@@ -115,6 +115,8 @@ def download_upload_buttons():
 
 # ---------- VISUEL TERRAIN NON INTERACTIF ----------
 def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
+    titulaires = titulaires or []
+    remplaçants = remplaçants or []
     pos_dict = {
         "4-4-2": [
             ("G", 50, 95), ("D1", 10, 80), ("D2", 35, 80), ("D3", 65, 80), ("D4", 90, 80),
@@ -154,22 +156,22 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
     idx = 0
     for poste, x, y in postes:
         joueur = titulaires[idx] if idx < len(titulaires) else None
-        if joueur and joueur["Nom"]:
+        if joueur and joueur.get("Nom"):
             left = int(x * 4.1)
             top = int(y * 6.1)
-            is_cap = joueur["Nom"] == captain_name
+            is_cap = joueur.get("Nom") == captain_name
             html += f'<div style="position:absolute;top:{top}px;left:{left}px;width:74px;text-align:center">'
             html += f'<div style="background:#1976D2;color:#fff;width:54px;height:54px;border-radius:10px;border:3px solid {"#FFD700" if is_cap else "#fff"};display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:17px;margin:auto;position:relative;">'
-            html += f'{joueur["Numero"]}'
+            html += f'{joueur.get("Numero", "")}'
             if is_cap:
                 html += '<span style="position:absolute;top:-13px;right:-12px;background:#FFD700;color:#000;padding:2px 6px;border-radius:10px;font-size:0.8em;font-weight:bold;">C</span>'
             html += '</div>'
-            html += f'<div style="font-size:0.95em;color:#fff;text-shadow:0 1px 2px #000a;">{joueur["Nom"]}</div></div>'
+            html += f'<div style="font-size:0.95em;color:#fff;text-shadow:0 1px 2px #000a;">{joueur.get("Nom")}</div></div>'
         idx += 1
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
     if remplaçants:
-        st.markdown("**Remplaçants** : " + ", ".join(f'{r["Nom"]} (#{r["Numero"]})' for r in remplaçants if r and r["Nom"]))
+        st.markdown("**Remplaçants** : " + ", ".join(f'{r.get("Nom")} (#{r.get("Numero")})' for r in remplaçants if r and r.get("Nom")))
 
 def choix_joueurs_interface(formation, key_prefix):
     postes = []
@@ -202,11 +204,24 @@ tab_labels = ["Database", "Compositions", "Matchs", "Sauvegarde"]
 tab_database, tab_compositions, tab_matchs, tab_sauvegarde = st.tabs(tab_labels)
 
 with tab_database:
-    st.title("Base de données joueurs (édition directe)")
+    st.title("Base de données joueurs (édition + stats)")
+    # Build stats dataframe
+    stats_cols = [
+        "Nom", "Poste", "Infos", "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
+        "Cartons jaunes", "Cartons rouges", "Sélections", "Titularisations", "Note générale", "Homme du match"
+    ]
+    base_df = st.session_state.players.copy()
+    stats_data = []
+    for _, row in base_df.iterrows():
+        s = compute_player_stats(row["Nom"])
+        stats_data.append({**row, **s})
+    merged_df = pd.DataFrame(stats_data, columns=stats_cols)
     edited_df = st.data_editor(
-        st.session_state.players,
+        merged_df[["Nom", "Poste", "Infos"]],  # Only allow editing of player "core" columns
         num_rows="dynamic", use_container_width=True, key="data_edit"
     )
+    # Show full stats table below for visualization only
+    st.dataframe(merged_df, use_container_width=True)
     if st.button("Sauvegarder les modifications"):
         edited_df = edited_df.fillna("")
         edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
@@ -215,18 +230,6 @@ with tab_database:
         reload_all()
         st.success("Base de joueurs mise à jour !")
     st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
-
-    # Statistiques dynamiques
-    st.markdown("### Statistiques dynamiques (calculées à partir des matchs présents)")
-    stats_cols = [
-        "Nom", "Poste", "Infos", "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
-        "Cartons jaunes", "Cartons rouges", "Sélections", "Titularisations", "Note générale", "Homme du match"
-    ]
-    stats_data = []
-    for _, row in st.session_state.players.iterrows():
-        s = compute_player_stats(row["Nom"])
-        stats_data.append({**row, **s})
-    st.dataframe(pd.DataFrame(stats_data, columns=stats_cols))
 
 with tab_compositions:
     st.title("Gestion des compositions")
@@ -254,8 +257,13 @@ with tab_compositions:
             st.info("Aucune composition enregistrée.")
         else:
             for nom, compo in st.session_state.lineups.items():
-                with st.expander(f"{nom} – {compo['formation']}"):
-                    terrain_viz_simple(compo["formation"], compo["titulaires"], compo.get("remplacants", []), compo.get("capitaine", ""))
+                with st.expander(f"{nom} – {compo.get('formation', '')}"):
+                    terrain_viz_simple(
+                        compo.get("formation", DEFAULT_FORMATION),
+                        compo.get("titulaires", []) or [],
+                        compo.get("remplacants", []) or [],
+                        compo.get("capitaine", "")
+                    )
                     col1, col2 = st.columns(2)
                     if col1.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
                         del st.session_state.lineups[nom]
@@ -299,9 +307,14 @@ with tab_matchs:
             st.info("Aucun match enregistré.")
         else:
             for mid, match in st.session_state.matches.items():
-                with st.expander(f"{match['date']} {match['heure']} vs {match['adversaire']} ({match['type']})"):
-                    terrain_viz_simple(match["formation"], match["titulaires"], match.get("remplacants", []), match.get("capitaine", ""))
-                    st.write(f"**Lieu :** {match['lieu']}")
+                with st.expander(f"{match.get('date', '')} {match.get('heure', '')} vs {match.get('adversaire', '')} ({match.get('type', '')})"):
+                    terrain_viz_simple(
+                        match.get("formation", DEFAULT_FORMATION),
+                        match.get("titulaires", []) or [],
+                        match.get("remplacants", []) or [],
+                        match.get("capitaine", "")
+                    )
+                    st.write(f"**Lieu :** {match.get('lieu', '')}")
                     if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
                         del st.session_state.matches[mid]
                         save_all()
