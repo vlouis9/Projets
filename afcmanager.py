@@ -5,8 +5,7 @@ import os
 from datetime import datetime
 
 DATA_FILE = "afcdata.json"
-
-PLAYER_COLS = ["Nom", "Poste", "Infos"]  # Club supprimé, stats calculées dynamiquement
+PLAYER_COLS = ["Nom", "Poste", "Infos"]
 PLAYER_DEFAULTS = {"Nom": "", "Poste": "G", "Infos": ""}
 
 FORMATION = {
@@ -18,8 +17,9 @@ FORMATION = {
 }
 POSTES_ORDER = ["G", "D", "M", "A"]
 DEFAULT_FORMATION = "4-4-2"
+MAX_REMPLACANTS = 5
 
-# --- Fonctions utilitaires persistance ---
+# --- Utilitaires persistance ---
 def save_all():
     data = {
         "players": st.session_state.players.to_dict(orient="records"),
@@ -63,11 +63,19 @@ def compute_player_stats(joueur_nom):
         if "homme_du_match" in match and match["homme_du_match"] == joueur_nom:
             hdm += 1
     note = round(note_sum / note_count, 2) if note_count else 0
+    buts_passes = buts + passes
+    decisif_par_match = round(buts_passes / selections, 2) if selections > 0 else 0
     return {
-        "Buts": buts, "Passes décisives": passes,
-        "Cartons jaunes": cj, "Cartons rouges": cr,
-        "Sélections": selections, "Titularisations": titularisations,
-        "Note générale": note, "Homme du match": hdm
+        "Buts": buts,
+        "Passes décisives": passes,
+        "Buts + Passes": buts_passes,
+        "Décisif par match": decisif_par_match,
+        "Cartons jaunes": cj,
+        "Cartons rouges": cr,
+        "Sélections": selections,
+        "Titularisations": titularisations,
+        "Note générale": note,
+        "Homme du match": hdm
     }
 
 # --- Initialisation session ---
@@ -104,7 +112,28 @@ def download_upload_buttons():
         except Exception as e:
             st.error(f"Erreur à l'import : {e}")
 
-# --- Terrain interactif ---
+# --- Sélection Remplaçants Interactifs ---
+def remplaçants_interactif(key, titulaires):
+    if f"remp_{key}" not in st.session_state:
+        st.session_state[f"remp_{key}"] = [None] * MAX_REMPLACANTS
+    remps = st.session_state[f"remp_{key}"]
+
+    dispo = [n for n in st.session_state.players["Nom"] if n not in titulaires and n not in remps if n]
+    for i in range(MAX_REMPLACANTS):
+        current = remps[i]
+        options = dispo + ([current] if current and current not in dispo else [])
+        choix = st.selectbox(
+            f"Remplaçant {i+1}",
+            [""] + options,
+            index=(options.index(current)+1) if current in options else 0,
+            key=f"remp_choice_{key}_{i}"
+        )
+        remps[i] = choix if choix else None
+        dispo = [n for n in dispo if n != choix]
+    st.session_state[f"remp_{key}"] = remps
+    return [r for r in remps if r]
+
+# --- Terrain interactif (titulaires) ---
 def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
@@ -213,7 +242,10 @@ if menu == "Database":
 
     # Affichage dynamique des stats
     st.markdown("### Statistiques dynamiques (calculées à partir des matchs présents)")
-    stats_cols = ["Nom", "Poste", "Infos", "Buts", "Passes décisives", "Cartons jaunes", "Cartons rouges", "Sélections", "Titularisations", "Note générale", "Homme du match"]
+    stats_cols = [
+        "Nom", "Poste", "Infos", "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
+        "Cartons jaunes", "Cartons rouges", "Sélections", "Titularisations", "Note générale", "Homme du match"
+    ]
     stats_data = []
     for _, row in st.session_state.players.iterrows():
         s = compute_player_stats(row["Nom"])
@@ -224,15 +256,23 @@ if menu == "Database":
 elif menu == "Compositions":
     st.title("Gestion des compositions")
     tab1, tab2 = st.tabs(["Créer une composition", "Mes compositions"])
+    # Edition/Création
     with tab1:
-        nom_compo = st.text_input("Nom de la composition")
+        edit_key = "edit_compo"
+        edit_compo = st.session_state.get(edit_key, None)
+        if edit_compo:
+            nom_compo, loaded = edit_compo
+            st.info(f"Édition de la compo : {nom_compo}")
+            st.session_state["formation_create_compo"] = loaded["formation"]
+            st.session_state["terrain_create_compo"] = loaded["details"]
+            del st.session_state[edit_key]
+        nom_compo = st.text_input("Nom de la composition", value=nom_compo if edit_compo else "")
         formation = st.selectbox(
             "Formation", list(FORMATION.keys()),
             index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION))
         )
         st.session_state["formation_create_compo"] = formation
         terrain = terrain_interactif(formation, "terrain_create_compo")
-
         if st.button("Sauvegarder la composition"):
             if not nom_compo.strip():
                 st.warning("Veuillez donner un nom à la composition.")
@@ -244,6 +284,7 @@ elif menu == "Compositions":
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
+    # Liste/Edition
     with tab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
@@ -256,7 +297,11 @@ elif menu == "Compositions":
                             for j in compo['details'].get(poste, []) if j
                         ]
                         st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
-                    if st.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
+                    col1, col2 = st.columns(2)
+                    if col1.button(f"Éditer {nom}", key=f"edit_{nom}"):
+                        st.session_state["edit_compo"] = (nom, compo)
+                        st.experimental_rerun()
+                    if col2.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
                         del st.session_state.lineups[nom]
                         save_all()
                         st.experimental_rerun()
@@ -267,12 +312,24 @@ elif menu == "Matchs":
     tab1, tab2 = st.tabs(["Créer un match", "Mes matchs"])
 
     with tab1:
-        st.subheader("Créer un nouveau match")
+        if st.button("Réinitialiser la création du match"):
+            for k in [
+                "terrain_new_match", "formation_new_match",
+                "remp_new_match", "nom_match_sugg", "adversaire", "lieu"
+            ]:
+                if k in st.session_state:
+                    del st.session_state[k]
+            st.experimental_rerun()
+
         type_match = st.selectbox("Type de match", ["Championnat", "Coupe"])
-        adversaire = st.text_input("Nom de l'adversaire")
+        adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
         date = st.date_input("Date du match", value=datetime.today())
         heure = st.time_input("Heure du match")
-        lieu = st.text_input("Lieu")
+        lieu = st.text_input("Lieu", key="lieu")
+        # Suggestion automatique du nom
+        nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
+        nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
+
         use_compo = st.checkbox("Utiliser une composition enregistrée ?")
         if use_compo and st.session_state.lineups:
             compo_choice = st.selectbox("Choisir la composition", list(st.session_state.lineups.keys()))
@@ -287,10 +344,24 @@ elif menu == "Matchs":
             st.session_state["formation_new_match"] = formation
             terrain = terrain_interactif(formation, "terrain_new_match")
 
-        remplaçants = st.multiselect("Remplaçants", st.session_state.players["Nom"].tolist())
+        # Titulaires pour éviter doublons remplaçants
+        tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in st.session_state.get("terrain_new_match", terrain).get(p, []) if j]
+        remplaçants = remplaçants_interactif("new_match", tous_titulaires)
+
+        # Enregistrer la compo depuis la création d'un match
+        if st.button("Enregistrer cette compo"):
+            name_compo = st.text_input("Nom pour la compo à enregistrer", value=nom_match)
+            if name_compo:
+                lineup = {
+                    "formation": formation,
+                    "details": st.session_state.get("terrain_new_match", terrain)
+                }
+                st.session_state.lineups[name_compo] = lineup
+                save_all()
+                st.success("Composition sauvegardée !")
 
         if st.button("Enregistrer le match"):
-            match_id = f"{str(date)}_{adversaire}_{str(heure)}"
+            match_id = nom_match
             st.session_state.matches[match_id] = {
                 "type": type_match,
                 "adversaire": adversaire,
@@ -307,6 +378,7 @@ elif menu == "Matchs":
             }
             save_all()
             st.success("Match enregistré !")
+            st.experimental_rerun()
 
     with tab2:
         if not st.session_state.matches:
@@ -347,8 +419,10 @@ elif menu == "Matchs":
                         st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
                         st.session_state[f"terrain_match_{mid}"] = match["details"]
                         terrain = terrain_interactif(match["formation"], f"terrain_match_{mid}")
+                        remp_edit = remplaçants_interactif(f"edit_match_{mid}", [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j])
                         if st.button("Mettre à jour la compo", key=f"maj_compo_{mid}"):
                             match["details"] = st.session_state.get(f"terrain_match_{mid}", match["details"])
+                            match["remplacants"] = remp_edit
                             save_all()
                             st.success("Composition du match mise à jour.")
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
