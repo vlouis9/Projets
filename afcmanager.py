@@ -255,7 +255,7 @@ def terrain_interactif(formation, terrain_key):
     """, height=0)
 
     # Use Streamlit event handling for player edit
-    edit = st.query_params().get("edit", [None])[0]
+    edit = st.query_params.get("edit", [None])[0]
     if edit and edit_key in st.session_state:
         poste, idx = edit.split("_")
         idx = int(idx)
