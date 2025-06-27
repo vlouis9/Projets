@@ -564,5 +564,4 @@ with tab3:
 
                         if st.button("Valider le match", key=f"valide_{mid}"):
                             match["score"] = score
-                            match["events"] = {
-                                "
+                            match["events"] =
