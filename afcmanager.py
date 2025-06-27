@@ -49,7 +49,7 @@ def compute_player_stats(joueur_nom):
         details = match.get("details", {})
         joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and j.get("Nom") == joueur_nom]
         is_titulaire = bool(joueurs)
-        if is_titulaire or joueur_nom in [r.get("Nom") for r in match.get("remplacants", []) if r]:
+        if is_titulaire or joueur_nom in [r.get("Nom") for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]:
             selections += 1
         if is_titulaire:
             titularisations += 1
