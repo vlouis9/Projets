@@ -20,7 +20,6 @@ POSTES_ORDER = ["G", "D", "M", "MO", "A"]
 DEFAULT_FORMATION = "4-4-2"
 MAX_REMPLACANTS = 5
 
-# ---------- SAUVEGARDE/CHARGEMENT ----------
 def save_all():
     data = {
         "players": st.session_state.players.to_dict(orient="records"),
@@ -42,7 +41,6 @@ def reload_all():
         st.session_state.lineups = {}
         st.session_state.matches = {}
 
-# ---------- CALCUL STATS ----------
 def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     for match in st.session_state.matches.values():
@@ -89,7 +87,6 @@ if "matches" not in st.session_state:
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
-# ---------- TELECHARGEMENT / IMPORT ----------
 def download_upload_buttons():
     st.markdown("### 📥 Sauvegarde/Import global (tout-en-un)")
     st.download_button(
@@ -113,7 +110,6 @@ def download_upload_buttons():
         except Exception as e:
             st.error(f"Erreur à l'import : {e}")
 
-# ---------- VISUEL TERRAIN NON INTERACTIF ----------
 def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
     titulaires = titulaires or []
     remplaçants = remplaçants or []
@@ -156,7 +152,7 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
     idx = 0
     for poste, x, y in postes:
         joueur = titulaires[idx] if idx < len(titulaires) else None
-        if joueur and joueur.get("Nom"):
+        if joueur and isinstance(joueur, dict) and joueur.get("Nom"):
             left = int(x * 4.1)
             top = int(y * 6.1)
             is_cap = joueur.get("Nom") == captain_name
@@ -170,8 +166,12 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
         idx += 1
     html += "</div>"
     st.markdown(html, unsafe_allow_html=True)
-    if remplaçants:
-        st.markdown("**Remplaçants** : " + ", ".join(f'{r.get("Nom")} (#{r.get("Numero")})' for r in remplaçants if r and r.get("Nom")))
+    # --- Correction ici : vérifie que r est bien un dict ---
+    remp_aff = [f'{r.get("Nom")} (#{r.get("Numero")})'
+                for r in remplaçants
+                if isinstance(r, dict) and r.get("Nom")]
+    if remp_aff:
+        st.markdown("**Remplaçants** : " + ", ".join(remp_aff))
 
 def choix_joueurs_interface(formation, key_prefix):
     postes = []
@@ -199,28 +199,30 @@ def choix_joueurs_interface(formation, key_prefix):
         remplaçants.append({"Nom": choix, "Numero": numero} if choix else None)
     return titulaires, remplaçants, capitaine
 
-# ----------- TABS PRINCIPAUX -----------
 tab_labels = ["Database", "Compositions", "Matchs", "Sauvegarde"]
 tab_database, tab_compositions, tab_matchs, tab_sauvegarde = st.tabs(tab_labels)
 
 with tab_database:
     st.title("Base de données joueurs (édition + stats)")
-    # Build stats dataframe
+    # On regroupe édition et stats dans un seul tableau dynamique
+    base_df = st.session_state.players.copy()
     stats_cols = [
-        "Nom", "Poste", "Infos", "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
+        "Buts", "Passes décisives", "Buts + Passes", "Décisif par match",
         "Cartons jaunes", "Cartons rouges", "Sélections", "Titularisations", "Note générale", "Homme du match"
     ]
-    base_df = st.session_state.players.copy()
-    stats_data = []
+    all_rows = []
     for _, row in base_df.iterrows():
         s = compute_player_stats(row["Nom"])
-        stats_data.append({**row, **s})
-    merged_df = pd.DataFrame(stats_data, columns=stats_cols)
+        all_rows.append({**row, **s})
+    merged_df = pd.DataFrame(all_rows)
+    # Séparation entre colonnes éditables (Nom, Poste, Infos) et stats pures
     edited_df = st.data_editor(
-        merged_df[["Nom", "Poste", "Infos"]],  # Only allow editing of player "core" columns
-        num_rows="dynamic", use_container_width=True, key="data_edit"
+        merged_df[["Nom", "Poste", "Infos"]],
+        num_rows="dynamic",
+        use_container_width=True,
+        key="data_edit"
     )
-    # Show full stats table below for visualization only
+    # Affichage des stats en colonnes (non éditables)
     st.dataframe(merged_df, use_container_width=True)
     if st.button("Sauvegarder les modifications"):
         edited_df = edited_df.fillna("")
