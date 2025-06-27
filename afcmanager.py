@@ -51,7 +51,6 @@ def compute_player_stats(joueur_nom):
         details = match.get("details", {})
         joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and isinstance(j, dict) and j.get("Nom") == joueur_nom]
         is_titulaire = bool(joueurs)
-        # Correction: vérifier que r est un dict
         if is_titulaire or joueur_nom in [r.get("Nom") for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]:
             selections += 1
         if is_titulaire:
@@ -112,7 +111,13 @@ def download_upload_buttons():
             st.session_state.lineups = data.get("lineups", {})
             st.session_state.matches = data.get("matches", {})
             st.success("Données importées !")
-            st.experimental_rerun()  # <- la table se met à jour immédiatement
+            # retire st.experimental_rerun() si ta version de streamlit ne le supporte pas
+            if hasattr(st, "experimental_rerun"):
+                st.experimental_rerun()
+            elif hasattr(st, "rerun"):
+                st.rerun()
+            else:
+                st.info("Recharge la page pour voir les données importées.")
         except Exception as e:
             st.error(f"Erreur à l'import : {e}")
 
@@ -163,6 +168,8 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
             top = int(y * 6.1)
             is_cap = joueur.get("Nom") == captain_name
             html += f'<div style="position:absolute;top:{top}px;left:{left}px;width:74px;text-align:center">'
+            # Affichage du poste (en jaune)
+            html += f'<div style="font-size:0.85em;color:#FFD700;text-shadow:0 1px 2px #000a;">{poste}</div>'
             html += f'<div style="background:#1976D2;color:#fff;width:54px;height:54px;border-radius:10px;border:3px solid {"#FFD700" if is_cap else "#fff"};display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:17px;margin:auto;position:relative;">'
             html += f'{joueur.get("Numero", "")}'
             if is_cap:
@@ -204,33 +211,32 @@ def choix_joueurs_interface(formation, key_prefix):
         remplaçants.append({"Nom": choix, "Numero": numero} if choix else None)
     return titulaires, remplaçants, capitaine
 
-# ----------- TABS PRINCIPAUX -----------
 tab_labels = ["Database", "Compositions", "Matchs", "Sauvegarde"]
 tab_database, tab_compositions, tab_matchs, tab_sauvegarde = st.tabs(tab_labels)
 
 with tab_database:
     st.title("Base de données joueurs (édition + stats)")
-    # Un seul tableau : édition et stats en colonnes
     base_df = st.session_state.players.copy()
     all_rows = []
     for _, row in base_df.iterrows():
         s = compute_player_stats(row["Nom"])
         all_rows.append({**row, **s})
     merged_df = pd.DataFrame(all_rows)
-    # On garantit la présence des colonnes attendues
     for col in PLAYER_COLS + STATS_COLS:
         if col not in merged_df.columns:
             merged_df[col] = ""
     if merged_df.empty:
         merged_df = pd.DataFrame(columns=ALL_COLS)
+    # Edition seulement des colonnes joueurs, stats désactivées
+    editable_cols = PLAYER_COLS
+    disabled_cols = [col for col in merged_df.columns if col not in editable_cols]
     edited_df = st.data_editor(
-        merged_df[PLAYER_COLS],
+        merged_df,
+        column_config={col: st.column_config.Column(disabled=True) for col in disabled_cols},
         num_rows="dynamic",
         use_container_width=True,
         key="data_edit"
     )
-    # Affichage des stats dynamiques (colonnes non éditables)
-    st.dataframe(merged_df, use_container_width=True)
     if st.button("Sauvegarder les modifications"):
         edited_df = edited_df.fillna("")
         edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
