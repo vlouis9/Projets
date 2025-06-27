@@ -5,7 +5,6 @@ import os
 from datetime import datetime
 import plotly.graph_objects as go
 
-# --- CONSTANTES ---
 DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Numero", "Poste", "Capitaine", "Infos"]
 PLAYER_DEFAULTS = {"Nom": "", "Numero": "", "Poste": "G", "Capitaine": False, "Infos": ""}
@@ -22,69 +21,67 @@ POSTES_ORDER = ["G", "D", "M", "A"]
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
 
-# --- Fonctions terrain Plotly ---
-def draw_football_pitch():
+# --- Plotly functions for vertical pitch ---
+def draw_football_pitch_vertical():
     fig = go.Figure()
-    fig.add_shape(type="rect", x0=0, y0=0, x1=105, y1=68, line=dict(width=2, color="darkgreen"))
-    fig.add_shape(type="rect", x0=0, y0=13.84, x1=16.5, y1=68-13.84, line=dict(width=1, color="darkgreen"))
-    fig.add_shape(type="rect", x0=105-16.5, y0=13.84, x1=105, y1=68-13.84, line=dict(width=1, color="darkgreen"))
-    fig.add_shape(type="circle", x0=52.5-9.15, y0=34-9.15, x1=52.5+9.15, y1=34+9.15, line=dict(width=1, color="darkgreen"))
-    fig.add_shape(type="circle", x0=52.5-0.4, y0=34-0.4, x1=52.5+0.4, y1=34+0.4, fillcolor="darkgreen", line=dict(color="darkgreen"))
-    fig.update_xaxes(showticklabels=False, range=[-5, 120], visible=False)
-    fig.update_yaxes(showticklabels=False, range=[-5, 73], visible=False)
+    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="darkgreen"))
+    fig.add_shape(type="rect", x0=13.84, y0=0, x1=68-13.84, y1=16.5, line=dict(width=1, color="darkgreen"))
+    fig.add_shape(type="rect", x0=13.84, y0=105-16.5, x1=68-13.84, y1=105, line=dict(width=1, color="darkgreen"))
+    fig.add_shape(type="circle", x0=34-9.15, y0=52.5-9.15, x1=34+9.15, y1=52.5+9.15, line=dict(width=1, color="darkgreen"))
+    fig.add_shape(type="circle", x0=34-0.4, y0=52.5-0.4, x1=34+0.4, y1=52.5+0.4, fillcolor="darkgreen", line=dict(color="darkgreen"))
+    fig.update_xaxes(showticklabels=False, range=[-5, 73], visible=False)
+    fig.update_yaxes(showticklabels=False, range=[-8, 125], visible=False)
     fig.update_layout(
-        width=760, height=500, plot_bgcolor="mediumseagreen", margin=dict(l=10,r=10,t=10,b=10), showlegend=False
+        width=460, height=800, plot_bgcolor="mediumseagreen", margin=dict(l=10,r=10,t=10,b=10), showlegend=False
     )
     return fig
 
-def positions_for_formation(formation):
-    # Tu peux personnaliser chaque formation ici si tu veux
+def positions_for_formation_vertical(formation):
     presets = {
         "4-2-3-1": {
-            "G": [(6,34)],
-            "D": [(20,10), (20,24), (20,44), (20,58)],
-            "M": [(40,22), (40,46), (60,15), (60,34), (60,53)],
-            "A": [(85,34)],
+            "G": [(34, 8)],
+            "D": [(10, 22), (22, 22), (46, 22), (58, 22)],
+            "M": [(18, 40), (50, 40), (10, 60), (34, 60), (58, 60)],
+            "A": [(34, 88)],
         },
         "4-3-3": {
-            "G": [(6,34)],
-            "D": [(20,10), (20,24), (20,44), (20,58)],
-            "M": [(50,17), (50,34), (50,51)],
-            "A": [(85,15), (100,34), (85,53)],
+            "G": [(34, 8)],
+            "D": [(10, 22), (22, 22), (46, 22), (58, 22)],
+            "M": [(18, 46), (34, 52.5), (50, 46)],
+            "A": [(18, 80), (34, 92), (50, 80)],
         },
         "4-4-2": {
-            "G": [(6,34)],
-            "D": [(20,10), (20,24), (20,44), (20,58)],
-            "M": [(50,10), (50,24), (50,44), (50,58)],
-            "A": [(85,25), (85,43)],
+            "G": [(34, 8)],
+            "D": [(10, 22), (22, 22), (46, 22), (58, 22)],
+            "M": [(10, 48), (22, 48), (46, 48), (58, 48)],
+            "A": [(24, 85), (44, 85)],
         },
         "3-5-2": {
-            "G": [(6,34)],
-            "D": [(17,17), (17,34), (17,51)],
-            "M": [(40,10), (40,24), (52.5,34), (65,44), (65,58)],
-            "A": [(90,27), (90,41)],
+            "G": [(34, 8)],
+            "D": [(17, 17), (34, 17), (51, 17)],
+            "M": [(10, 40), (22, 50), (34, 60), (46, 50), (58, 40)],
+            "A": [(24, 88), (44, 88)],
         },
         "3-4-3": {
-            "G": [(6,34)],
-            "D": [(17,17), (17,34), (17,51)],
-            "M": [(40,15), (40,34), (40,53), (60,34)],
-            "A": [(85,15), (100,34), (85,53)],
+            "G": [(34, 8)],
+            "D": [(17, 17), (34, 17), (51, 17)],
+            "M": [(10, 46), (22, 56), (46, 56), (58, 46)],
+            "A": [(18, 80), (34, 92), (50, 80)],
         },
         "5-3-2": {
-            "G": [(6,34)],
-            "D": [(15,8), (15,20), (15,34), (15,48), (15,60)],
-            "M": [(52.5,17), (52.5,34), (52.5,51)],
-            "A": [(90,27), (90,41)],
+            "G": [(34, 8)],
+            "D": [(7, 20), (18, 20), (34, 20), (50, 20), (61, 20)],
+            "M": [(15, 52.5), (34, 60), (53, 52.5)],
+            "A": [(24, 88), (44, 88)],
         },
     }
     return presets.get(formation, presets["4-2-3-1"])
 
-def plot_lineup_on_pitch(fig, match):
+def plot_lineup_on_pitch_vertical(fig, match):
     formation = match["formation"]
     details = match["details"]
-    positions = positions_for_formation(formation)
+    positions = positions_for_formation_vertical(formation)
     color_map = {"G":"#ffe082", "D":"#90caf9", "M":"#b2dfdb", "A":"#ffab91"}
-    # Place titulaires
     for poste in POSTES_ORDER:
         for i, joueur in enumerate(details.get(poste, [])):
             if joueur:
@@ -99,7 +96,6 @@ def plot_lineup_on_pitch(fig, match):
                     hovertext=f"{joueur['Nom']}{' (C)' if joueur.get('Capitaine') else ''}",
                     hoverinfo="text"
                 ))
-                # Nom sous le cercle
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y-4],
                     mode="text",
@@ -107,27 +103,30 @@ def plot_lineup_on_pitch(fig, match):
                     textfont=dict(color="black", size=11),
                     showlegend=False
                 ))
-    # Place remplaçants à droite
     remplaçants = match.get("remplacants", [])
-    for idx, remp in enumerate(remplaçants):
-        fig.add_trace(go.Scatter(
-            x=[112], y=[68 - 6 - 8*idx],
-            mode="markers+text",
-            marker=dict(size=26, color="#bdbdbd", line=dict(width=2, color="black")),
-            text="",
-            hovertext=remp,
-            hoverinfo="text"
-        ))
-        fig.add_trace(go.Scatter(
-            x=[116], y=[68 - 6 - 8*idx],
-            mode="text",
-            text=[remp],
-            textfont=dict(color="black", size=12),
-            showlegend=False
-        ))
+    n = len(remplaçants)
+    if n:
+        x_start = 34 - 16*n/2 + 8
+        for idx, remp in enumerate(remplaçants):
+            x_r = x_start + idx*16
+            fig.add_trace(go.Scatter(
+                x=[x_r], y=[-6],
+                mode="markers+text",
+                marker=dict(size=26, color="#bdbdbd", line=dict(width=2, color="black")),
+                text="",
+                hovertext=remp,
+                hoverinfo="text"
+            ))
+            fig.add_trace(go.Scatter(
+                x=[x_r], y=[-11],
+                mode="text",
+                text=[remp],
+                textfont=dict(color="black", size=12),
+                showlegend=False
+            ))
     return fig
 
-# --- Utilitaires persistance ---
+# --- Persistance et utilitaires (inchangés) ---
 def save_all():
     data = {
         "players": st.session_state.players.to_dict(orient="records"),
@@ -282,7 +281,6 @@ with tab1:
     ])
     combined_df["Numero"] = combined_df["Numero"].astype(str).replace("nan", "")
     combined_df["Capitaine"] = combined_df["Capitaine"].fillna(False).astype(bool)
-
     edited_df = st.data_editor(
         combined_df,
         num_rows="dynamic",
@@ -489,9 +487,9 @@ with tab3:
                             for nom, nb in ev.get("cartons_rouges", {}).items():
                                 st.markdown(f"- {nom} ({nb})")
                         st.markdown("---")
-                        st.markdown("#### 📋 Composition (terrain)")
-                        fig = draw_football_pitch()
-                        fig = plot_lineup_on_pitch(fig, match)
+                        st.markdown("#### 📋 Composition (terrain vertical)")
+                        fig = draw_football_pitch_vertical()
+                        fig = plot_lineup_on_pitch_vertical(fig, match)
                         st.plotly_chart(fig, use_container_width=True)
                         st.write("**Remplaçants :** " + ", ".join(match.get("remplacants", [])))
                     else:
