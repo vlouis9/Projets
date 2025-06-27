@@ -54,8 +54,7 @@ def reload_all():
         st.session_state.lineups = data.get("lineups", {})
         st.session_state.matches = data.get("matches", {})
     else:
-        st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
-        st.session_state.lineups = {}
+        st.session_state.players = pd.DataFrame(columns=.lineups = {}
         st.session_state.matches = {}
 
 def compute_player_stats(joueur_nom):
@@ -132,12 +131,9 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
     titulaires = titulaires or []
     remplaçants = remplaçants or []
     postes = FORMATION[formation]
-    # Construction du HTML complet en une seule chaîne :
-    html = '''
-    <div style="position:relative;width:100%;max-width:480px;aspect-ratio:2/3;margin:auto;
-    background:linear-gradient(180deg,#4db367 0%,#245c32 100%);
-    border-radius:30px;border:3px solid #fff;overflow:hidden;">
-    '''
+    html = '<div style="position:relative;width:100%;max-width:480px;aspect-ratio:2/3;margin:auto;'
+    html += 'background:linear-gradient(180deg,#4db367 0%,#245c32 100%);'
+    html += 'border-radius:30px;border:3px solid #fff;overflow:hidden;">\n'
     idx = 0
     for poste, x, y in postes:
         joueur = titulaires[idx] if idx < len(titulaires) else None
@@ -154,7 +150,7 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
             </div>
             '''
         idx += 1
-    html += "</div>"  # fermeture du terrain
+    html += "</div>"  # fermeture finale du terrain
     st.markdown(html, unsafe_allow_html=True)
 
     remp_aff = [f'{r.get("Nom")} (#{r.get("Numero")})' for r in remplaçants if isinstance(r, dict) and r.get("Nom")]
@@ -162,13 +158,7 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
         st.markdown("**Remplaçants** : " + ", ".join(remp_aff))
 
 def choix_joueurs_interface(formation, key_prefix):
-    postes = []
-    if isinstance(FORMATION[formation], dict):
-        for poste, n in FORMATION[formation].items():
-            for i in range(n):
-                postes.append(f"{poste}{i+1}")
-    else:
-        postes = [p[0] for p in FORMATION[formation]]
+    postes = [p[0] for p in FORMATION[formation]]
     all_joueurs = st.session_state.players["Nom"].tolist()
     titulaires = []
     selected = set()
@@ -264,7 +254,7 @@ with tab_compositions:
                     if col1.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
                         del st.session_state.lineups[nom]
                         save_all()
-                        st.experimental_rerun()
+                        st.rerun()
 
 with tab_matchs:
     st.title("Gestion des matchs")
@@ -297,7 +287,7 @@ with tab_matchs:
             }
             save_all()
             st.success("Match enregistré !")
-            st.experimental_rerun()
+            st.rerun()
     with tab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
@@ -314,4 +304,4 @@ with tab_matchs:
                     if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
                         del st.session_state.matches[mid]
                         save_all()
-                        st.experimental_rerun()
+                        st.rerun()
