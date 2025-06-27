@@ -564,4 +564,20 @@ with tab3:
 
                         if st.button("Valider le match", key=f"valide_{mid}"):
                             match["score"] = score
-                            match["events"] =
+                                    match["events"] = {
+            "buteurs": buteurs_qte,
+            "passeurs": passeurs_qte,
+            "cartons_jaunes": cj_qte,
+            "cartons_rouges": cr_qte,
+            "notes": notes
+        }
+        match["noted"] = True
+        match["homme_du_match"] = homme_du_match
+        save_all()
+        st.success("Stats du match enregistrées !")
+        st.experimental_rerun()
+
+if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
+    del st.session_state.matches[mid]
+    save_all()
+    st.experimental_rerun() 
