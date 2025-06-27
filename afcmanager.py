@@ -131,10 +131,12 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
     titulaires = titulaires or []
     remplaçants = remplaçants or []
     postes = FORMATION[formation]
-    st.markdown('''
-    <div style="position:relative;width:100%;max-width:480px;aspect-ratio:2/3;margin:auto;background:linear-gradient(180deg,#4db367 0%,#245c32 100%);border-radius:30px;border:3px solid #fff;overflow:hidden;">
-    ''', unsafe_allow_html=True)
-    html = ""
+    # Construction de tout le HTML en un seul bloc pour éviter toute fuite.
+    html = '''
+    <div style="position:relative;width:100%;max-width:480px;aspect-ratio:2/3;margin:auto;
+    background:linear-gradient(180deg,#4db367 0%,#245c32 100%);
+    border-radius:30px;border:3px solid #fff;overflow:hidden;">
+    '''
     idx = 0
     for poste, x, y in postes:
         joueur = titulaires[idx] if idx < len(titulaires) else None
@@ -151,20 +153,21 @@ def terrain_viz_simple(formation, titulaires, remplaçants, captain_name):
             </div>
             '''
         idx += 1
-    html += "</div>"
+    html += "</div>"  # fermeture du terrain
     st.markdown(html, unsafe_allow_html=True)
-    remp_aff = [f'{r.get("Nom")} (#{r.get("Numero")})'
-                for r in remplaçants
-                if isinstance(r, dict) and r.get("Nom")]
+
+    remp_aff = [f'{r.get("Nom")} (#{r.get("Numero")})' for r in remplaçants if isinstance(r, dict) and r.get("Nom")]
     if remp_aff:
         st.markdown("**Remplaçants** : " + ", ".join(remp_aff))
 
 def choix_joueurs_interface(formation, key_prefix):
     postes = []
-    for poste, n in FORMATION[formation].items() if isinstance(FORMATION[formation], dict) else []:
-        for i in range(n):
-            postes.append(f"{poste}{i+1}")
-    if not postes:
+    # Pour compatibilité, on vérifie si FORMATION[formation] est bien une liste de tuples ou un dict :
+    if isinstance(FORMATION[formation], dict):
+        for poste, n in FORMATION[formation].items():
+            for i in range(n):
+                postes.append(f"{poste}{i+1}")
+    else:
         postes = [p[0] for p in FORMATION[formation]]
     all_joueurs = st.session_state.players["Nom"].tolist()
     titulaires = []
