@@ -10,6 +10,7 @@ PLAYER_COLS = ["Nom", "Poste", "Infos"]
 PLAYER_DEFAULTS = {"Nom": "", "Poste": "G", "Infos": ""}
 
 FORMATION = {
+    "4-2-3-1": {"G": 1, "D": 4, "M": 5, "A": 1},  # Nouvelle formation par défaut
     "4-4-2": {"G": 1, "D": 4, "M": 4, "A": 2},
     "4-3-3": {"G": 1, "D": 4, "M": 3, "A": 3},
     "3-5-2": {"G": 1, "D": 3, "M": 5, "A": 2},
@@ -17,11 +18,12 @@ FORMATION = {
     "5-3-2": {"G": 1, "D": 5, "M": 3, "A": 2},
 }
 POSTES_ORDER = ["G", "D", "M", "A"]
-DEFAULT_FORMATION = "4-4-2"
+DEFAULT_FORMATION = "4-2-3-1"  # Changement de la formation par défaut
 MAX_REMPLACANTS = 5
 
 # --- Utilitaires persistance ---
 def save_all():
+    """Sauvegarde toutes les données dans le fichier JSON"""
     data = {
         "players": st.session_state.players.to_dict(orient="records"),
         "lineups": st.session_state.lineups,
@@ -31,6 +33,7 @@ def save_all():
         json.dump(data, f, indent=2)
 
 def reload_all():
+    """Charge toutes les données depuis le fichier JSON"""
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as f:
             data = json.load(f)
@@ -42,8 +45,8 @@ def reload_all():
         st.session_state.lineups = {}
         st.session_state.matches = {}
 
-# --- Calcul dynamique des stats joueurs ---
 def compute_player_stats(joueur_nom):
+    """Calcule les statistiques d'un joueur"""
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     for match in st.session_state.matches.values():
         details = match.get("details", {})
@@ -91,9 +94,10 @@ if "formation" not in st.session_state:
 
 # --- Fonctions de download/upload ---
 def download_upload_buttons():
-    st.markdown("### 📥 Sauvegarde/Import global (tout-en-un)")
+    """Interface pour l'import/export des données"""
+    st.markdown("### 📥 Import/Export")
     st.download_button(
-        label="Télécharger toutes les données (JSON)",
+        label="Télécharger données (JSON)",
         data=json.dumps({
             "players": st.session_state.players.to_dict(orient="records"),
             "lineups": st.session_state.lineups,
@@ -102,7 +106,7 @@ def download_upload_buttons():
         file_name=DATA_FILE,
         mime="application/json"
     )
-    up_json = st.file_uploader("Importer un fichier complet (JSON)", type="json", key="upload_all")
+    up_json = st.file_uploader("Importer données (JSON)", type="json", key="upload_all")
     if up_json:
         try:
             data = json.load(up_json)
@@ -113,8 +117,8 @@ def download_upload_buttons():
         except Exception as e:
             st.error(f"Erreur à l'import : {e}")
 
-# --- Sélection Remplaçants Interactifs ---
 def remplaçants_interactif(key, titulaires):
+    """Interface pour la sélection des remplaçants"""
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [None] * MAX_REMPLACANTS
     remps = st.session_state[f"remp_{key}"]
@@ -134,11 +138,12 @@ def remplaçants_interactif(key, titulaires):
     st.session_state[f"remp_{key}"] = remps
     return [r for r in remps if r]
 
-# --- Terrain interactif (titulaires) ---
 def terrain_init(formation):
+    """Initialise un terrain vide avec une formation donnée"""
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
 def terrain_interactif(formation, terrain_key):
+    """Interface pour la gestion du terrain et des joueurs"""
     if terrain_key not in st.session_state or st.session_state.get(f"formation_{terrain_key}", None) != formation:
         st.session_state[terrain_key] = terrain_init(formation)
         st.session_state[f"formation_{terrain_key}"] = formation
