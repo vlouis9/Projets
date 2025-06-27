@@ -1,4 +1,5 @@
 import streamlit as st
+import json
 
 FORMATION = {
     "4-4-2": [
@@ -340,9 +341,19 @@ def tab_joueurs(data):
 
 def main():
     st.title("AFC Manager")
+
     # Initialize the session state
     if "data" not in st.session_state:
         st.session_state["data"] = {}
+
+    # File upload
+    uploaded_file = st.file_uploader("Importer un fichier JSON", type=["json"])
+    if uploaded_file is not None:
+        try:
+            st.session_state["data"] = json.load(uploaded_file)
+            st.success("Données importées avec succès!")
+        except json.JSONDecodeError:
+            st.error("Erreur: Fichier JSON invalide.")
 
     # Sidebar for navigation
     tabs = ["Joueurs", "Compositions", "Matchs"]
