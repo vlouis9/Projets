@@ -18,7 +18,7 @@ FORMATION = {
     "5-3-2": {"G": 1, "D": 5, "M": 3, "A": 2},
 }
 POSTES_ORDER = ["G", "D", "M", "A"]
-DEFAULT_FORMATION = "4-2-3-1"  # Changement de la formation par défaut
+DEFAULT_FORMATION = "4-2-3-1"  # Formation par défaut
 MAX_REMPLACANTS = 5
 
 # --- Utilitaires persistance ---
@@ -81,62 +81,6 @@ def compute_player_stats(joueur_nom):
         "Note générale": note,
         "Homme du match": hdm
     }
-
-# --- Initialisation session ---
-if "players" not in st.session_state:
-    reload_all()
-if "lineups" not in st.session_state:
-    reload_all()
-if "matches" not in st.session_state:
-    reload_all()
-if "formation" not in st.session_state:
-    st.session_state.formation = DEFAULT_FORMATION
-
-# --- Fonctions de download/upload ---
-def download_upload_buttons():
-    """Interface pour l'import/export des données"""
-    st.markdown("### 📥 Import/Export")
-    st.download_button(
-        label="Télécharger données (JSON)",
-        data=json.dumps({
-            "players": st.session_state.players.to_dict(orient="records"),
-            "lineups": st.session_state.lineups,
-            "matches": st.session_state.matches,
-        }, indent=2),
-        file_name=DATA_FILE,
-        mime="application/json"
-    )
-    up_json = st.file_uploader("Importer données (JSON)", type="json", key="upload_all")
-    if up_json:
-        try:
-            data = json.load(up_json)
-            st.session_state.players = pd.DataFrame(data.get("players", []))
-            st.session_state.lineups = data.get("lineups", {})
-            st.session_state.matches = data.get("matches", {})
-            st.success("Données importées !")
-        except Exception as e:
-            st.error(f"Erreur à l'import : {e}")
-
-def remplaçants_interactif(key, titulaires):
-    """Interface pour la sélection des remplaçants"""
-    if f"remp_{key}" not in st.session_state:
-        st.session_state[f"remp_{key}"] = [None] * MAX_REMPLACANTS
-    remps = st.session_state[f"remp_{key}"]
-
-    dispo = [n for n in st.session_state.players["Nom"] if n not in titulaires and n not in remps if n]
-    for i in range(MAX_REMPLACANTS):
-        current = remps[i]
-        options = dispo + ([current] if current and current not in dispo else [])
-        choix = st.selectbox(
-            f"Remplaçant {i+1}",
-            [""] + options,
-            index=(options.index(current)+1) if current in options else 0,
-            key=f"remp_choice_{key}_{i}"
-        )
-        remps[i] = choix if choix else None
-        dispo = [n for n in dispo if n != choix]
-    st.session_state[f"remp_{key}"] = remps
-    return [r for r in remps if r]
 
 def terrain_init(formation):
     """Initialise un terrain vide avec une formation donnée"""
@@ -220,10 +164,69 @@ def terrain_interactif(formation, terrain_key):
     st.session_state[f"formation_{terrain_key}"] = formation
     return terrain
 
+def remplaçants_interactif(key, titulaires):
+    """Interface pour la sélection des remplaçants"""
+    if f"remp_{key}" not in st.session_state:
+        st.session_state[f"remp_{key}"] = [None] * MAX_REMPLACANTS
+    remps = st.session_state[f"remp_{key}"]
+
+    dispo = [n for n in st.session_state.players["Nom"] if n not in titulaires and n not in remps if n]
+    for i in range(MAX_REMPLACANTS):
+        current = remps[i]
+        options = dispo + ([current] if current and current not in dispo else [])
+        choix = st.selectbox(
+            f"Remplaçant {i+1}",
+            [""] + options,
+            index=(options.index(current)+1) if current in options else 0,
+            key=f"remp_choice_{key}_{i}"
+        )
+        remps[i] = choix if choix else None
+        dispo = [n for n in dispo if n != choix]
+    st.session_state[f"remp_{key}"] = remps
+    return [r for r in remps if r]
+
+# --- Initialisation session ---
+if "players" not in st.session_state:
+    reload_all()
+if "lineups" not in st.session_state:
+    reload_all()
+if "matches" not in st.session_state:
+    reload_all()
+if "formation" not in st.session_state:
+    st.session_state.formation = DEFAULT_FORMATION
+
+def download_upload_buttons():
+    """Interface pour l'import/export des données"""
+    st.download_button(
+        label="📥 Télécharger données (JSON)",
+        data=json.dumps({
+            "players": st.session_state.players.to_dict(orient="records"),
+            "lineups": st.session_state.lineups,
+            "matches": st.session_state.matches,
+        }, indent=2),
+        file_name=DATA_FILE,
+        mime="application/json"
+    )
+    up_json = st.file_uploader("📤 Importer données (JSON)", type="json", key="upload_all")
+    if up_json:
+        try:
+            data = json.load(up_json)
+            st.session_state.players = pd.DataFrame(data.get("players", []))
+            st.session_state.lineups = data.get("lineups", {})
+            st.session_state.matches = data.get("matches", {})
+            st.success("✅ Données importées avec succès!")
+        except Exception as e:
+            st.error(f"❌ Erreur à l'import : {e}")
+
 # --- INTERFACE PRINCIPALE ---
 st.sidebar.title("⚽ Gestion Équipe AFC")
-# Import/Export dans la barre latérale
-download_upload_buttons()
+
+# Import/Export exclusivement dans la barre latérale
+with st.sidebar:
+    st.markdown("---")
+    with st.expander("📥 Import/Export des données"):
+        download_upload_buttons()
+    st.markdown("---")
 
 # Corps principal avec onglets
 tab1, tab2, tab3 = st.tabs(["Database", "Compositions", "Matchs"])
@@ -425,22 +428,78 @@ with tab3:
                     statut = "Terminé" if match.get("noted", False) else "En cours"
                     st.write(f"**Statut :** {statut}")
                     if match.get("noted", False):
-                        st.success("Match terminé")
-                        st.write(f"**Score :** {match.get('score','')}")
-                        ev = match.get("events", {})
-                        st.write("**Buteurs :**")
-                        for nom, nb in ev.get("buteurs", {}).items():
-                            st.write(f"- {nom} : {nb}")
-                        st.write("**Passeurs :**")
-                        for nom, nb in ev.get("passeurs", {}).items():
-                            st.write(f"- {nom} : {nb}")
-                        st.write("**Cartons jaunes :**")
-                        for nom, nb in ev.get("cartons_jaunes", {}).items():
-                            st.write(f"- {nom} : {nb}")
-                        st.write("**Cartons rouges :**")
-                        for nom, nb in ev.get("cartons_rouges", {}).items():
-                            st.write(f"- {nom} : {nb}")
-                        st.write(f"**Homme du match :** {match.get('homme_du_match','')}")
+                        # En-tête avec score
+                        score_col1, score_col2, score_col3 = st.columns([2,1,2])
+                        with score_col1:
+                            st.markdown(f"### {match['adversaire']}")
+                        with score_col2:
+                            st.markdown(f"### {match.get('score','')}")
+                        with score_col3:
+                            st.markdown("### AFC")
+                        
+                        st.markdown("---")
+                        
+                        # Statistiques du match en colonnes
+                        col1, col2 = st.columns(2)
+                        
+                        with col1:
+                            st.markdown("#### 📊 Stats du match")
+                            ev = match.get("events", {})
+                            
+                            # Buteurs et passeurs côte à côte
+                            but_col, pass_col = st.columns(2)
+                            with but_col:
+                                st.markdown("**⚽ Buteurs**")
+                                for nom, nb in ev.get("buteurs", {}).items():
+                                    st.markdown(f"- {nom} ({nb})")
+                            with pass_col:
+                                st.markdown("**👟 Passeurs**")
+                                for nom, nb in ev.get("passeurs", {}).items():
+                                    st.markdown(f"- {nom} ({nb})")
+                        
+                        with col2:
+                            st.markdown("#### 🎯 Performance")
+                            # Homme du match avec mise en valeur
+                            st.markdown(f"**🏆 Homme du match :** {match.get('homme_du_match','')}")
+                            
+                            # Notes moyennes triées
+                            notes = ev.get("notes", {})
+                            if notes:
+                                st.markdown("**⭐ Meilleures notes:**")
+                                sorted_notes = sorted(notes.items(), key=lambda x: x[1], reverse=True)
+                                for nom, note in sorted_notes[:3]:  # Top 3 des notes
+                                    st.markdown(f"- {nom}: {note}/10")
+                        
+                        # Section discipline en bas
+                        st.markdown("#### 📋 Discipline")
+                        disc_col1, disc_col2 = st.columns(2)
+                        with disc_col1:
+                            st.markdown("**🟨 Cartons jaunes**")
+                            for nom, nb in ev.get("cartons_jaunes", {}).items():
+                                st.markdown(f"- {nom} ({nb})")
+                        with disc_col2:
+                            st.markdown("**🟥 Cartons rouges**")
+                            for nom, nb in ev.get("cartons_rouges", {}).items():
+                                st.markdown(f"- {nom} ({nb})")
+                        
+                        st.markdown("---")
+                        
+                        # Composition du match
+                        st.markdown("#### 📋 Composition")
+                        compo_col1, compo_col2 = st.columns(2)
+                        with compo_col1:
+                            st.write(f"**Formation:** {match['formation']}")
+                            for poste in POSTES_ORDER:
+                                joueurs = [
+                                    f"{j['Nom']}{' (C)' if j.get('Capitaine') else ''}"
+                                    for j in match["details"].get(poste, []) if j
+                                ]
+                                st.write(f"**{poste}** : {', '.join(joueurs) if joueurs else 'Aucun'}")
+                        with compo_col2:
+                            st.write("**Remplaçants:**")
+                            for remp in match.get("remplacants", []):
+                                st.markdown(f"- {remp}")
+
                     st.write(f"**Lieu :** {match['lieu']}")
                     st.write(f"**Formation :** {match['formation']}")
                     for poste in POSTES_ORDER:
@@ -506,19 +565,4 @@ with tab3:
                         if st.button("Valider le match", key=f"valide_{mid}"):
                             match["score"] = score
                             match["events"] = {
-                                "buteurs": buteurs_qte,
-                                "passeurs": passeurs_qte,
-                                "cartons_jaunes": cj_qte,
-                                "cartons_rouges": cr_qte,
-                                "notes": notes
-                            }
-                            match["noted"] = True
-                            match["homme_du_match"] = homme_du_match
-                            save_all()
-                            st.success("Stats du match enregistrées !")
-                            st.experimental_rerun()
-                    
-                    if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
-                        del st.session_state.matches[mid]
-                        save_all()
-                        st.experimental_rerun()
+                                "
