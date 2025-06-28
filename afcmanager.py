@@ -148,20 +148,21 @@ def reload_all():
 def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
-# --- Correction robuste de terrain_interactif ---
+# Correction robuste de la structure du terrain :
 def terrain_interactif(formation, terrain_key):
     if terrain_key not in st.session_state:
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
+    # Répare la structure si corrompue ou formation changée
+    for poste in POSTES_ORDER:
+        attendu = FORMATION[formation][poste]
+        if poste not in terrain or not isinstance(terrain[poste], list) or len(terrain[poste]) != attendu:
+            terrain[poste] = [None for _ in range(attendu)]
     for poste in POSTES_ORDER:
         col = st.columns(FORMATION[formation][poste])
         for i in range(FORMATION[formation][poste]):
-            # Correction robuste
-            if poste in terrain and isinstance(terrain[poste], list) and i < len(terrain[poste]):
-                val = terrain[poste][i]
-                current_joueur = val if (isinstance(val, dict) and val and "Nom" in val) else None
-            else:
-                current_joueur = None
+            val = terrain[poste][i]
+            current_joueur = val if (isinstance(val, dict) and val and "Nom" in val) else None
             all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and "Nom" in j and j]
             current_nom = current_joueur["Nom"] if current_joueur else ""
             label = f"{POSTES_LONG[poste]} {i+1}"
@@ -186,7 +187,6 @@ def terrain_interactif(formation, terrain_key):
                 terrain[poste][i] = None
     st.session_state[terrain_key] = terrain
     return terrain
-# --- Fin correction robuste ---
 
 def remplaçants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
