@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import json
 import os
+import copy
 from datetime import datetime
 import plotly.graph_objects as go
 
@@ -92,7 +93,6 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
                     hovertext=f"{joueur['Nom']}{' (C)' if joueur.get('Capitaine') else ''}",
                     hoverinfo="text"
                 ))
-                # Nom sous le cercle
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y-4],
                     mode="text",
@@ -154,7 +154,6 @@ def terrain_interactif(formation, terrain_key):
     for poste in POSTES_ORDER:
         col = st.columns(FORMATION[formation][poste])
         for i in range(FORMATION[formation][poste]):
-            # Sélection robuste, pas d'erreur si case vide, None, ou chaîne
             all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and "Nom" in j and j]
             current_joueur = terrain[poste][i] if (isinstance(terrain[poste][i], dict) and terrain[poste][i] and "Nom" in terrain[poste][i]) else None
             current_nom = current_joueur["Nom"] if current_joueur else ""
@@ -169,10 +168,8 @@ def terrain_interactif(formation, terrain_key):
                 index=joueur_options.index(current_nom) if current_nom in joueur_options else 0,
                 key=f"{terrain_key}_{poste}_{i}"
             )
-            # Numéro et Capitaine seulement au moment de la compo/match (pas en base)
             if choix:
                 joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
-                # Ajout des champs spécifiques à la compo/match
                 num = col[i].text_input(f"Numéro de {choix}", value=current_joueur.get("Numero","") if current_joueur else "", key=f"num_{terrain_key}_{poste}_{i}")
                 cap = col[i].checkbox(f"Capitaine ?", value=current_joueur.get("Capitaine", False) if current_joueur else False, key=f"cap_{terrain_key}_{poste}_{i}")
                 joueur_info["Numero"] = num
@@ -350,19 +347,21 @@ with tab2:
         remplaçants = remplaçants_interactif("create_compo", tous_titulaires)
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
-        st.plotly_chart(fig, use_container_width=True, key="fig_create_compo")
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
             if not nom_compo.strip():
                 st.warning("Veuillez donner un nom à la composition.")
             else:
+                # Correction : deepcopy pour garder l'instantané et éviter le bug de mutation
                 lineup = {
                     "formation": formation,
-                    "details": terrain,
-                    "remplacants": remplaçants
+                    "details": copy.deepcopy(terrain),
+                    "remplacants": copy.deepcopy(remplaçants)
                 }
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
+                st.experimental_rerun()
     with subtab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
@@ -371,7 +370,7 @@ with tab2:
                 with st.expander(f"{nom} – {compo['formation']}"):
                     fig = draw_football_pitch_vertical()
                     fig = plot_lineup_on_pitch_vertical(fig, compo["details"], compo["formation"], compo.get("remplacants", []))
-                    st.plotly_chart(fig, use_container_width=True, key=f"fig_compo_{nom}")
+                    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_compo_{nom}")
                     col1, col2 = st.columns(2)
                     if col1.button(f"Éditer {nom}", key=f"edit_{nom}"):
                         st.session_state["edit_compo"] = (nom, compo)
@@ -406,7 +405,6 @@ with tab3:
             compo_choice = st.selectbox("Choisir la composition", list(st.session_state.lineups.keys()))
             compo_data = st.session_state.lineups[compo_choice]
             formation = compo_data["formation"]
-            import copy
             terrain = copy.deepcopy(compo_data["details"])
             remplaçants = list(compo_data.get("remplacants", []))
             st.session_state["formation_new_match"] = formation
@@ -420,7 +418,7 @@ with tab3:
             remplaçants = remplaçants_interactif("new_match", tous_titulaires)
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
-        st.plotly_chart(fig, use_container_width=True, key="fig_create_match")
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
         if st.button("Enregistrer le match"):
             match_id = nom_match
             st.session_state.matches[match_id] = {
@@ -430,8 +428,8 @@ with tab3:
                 "heure": str(heure),
                 "lieu": lieu,
                 "formation": formation,
-                "details": terrain,
-                "remplacants": remplaçants,
+                "details": copy.deepcopy(terrain),
+                "remplacants": copy.deepcopy(remplaçants),
                 "events": {},
                 "score": "",
                 "score_afc": 0,
@@ -453,7 +451,7 @@ with tab3:
                     st.write(f"**Formation :** {match['formation']}")
                     fig = draw_football_pitch_vertical()
                     fig = plot_lineup_on_pitch_vertical(fig, match["details"], match["formation"], match.get("remplacants", []))
-                    st.plotly_chart(fig, use_container_width=True, key=f"fig_match_{mid}")
+                    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
                     if match.get("noted", False):
                         score_col1, score_col2, score_col3 = st.columns([2,1,2])
                         with score_col1:
