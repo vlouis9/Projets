@@ -19,10 +19,8 @@ POSTES_ORDER = ["G", "D", "M", "A"]
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
 
-# --- Plotly visual functions (terrain vertical, couleurs pros)
 def draw_football_pitch_vertical():
     fig = go.Figure()
-    # Terrain principal pelouse foncée
     fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#145A32"))
     fig.add_shape(type="rect", x0=13.84, y0=0, x1=68-13.84, y1=16.5, line=dict(width=1, color="#145A32"))
     fig.add_shape(type="rect", x0=13.84, y0=105-16.5, x1=68-13.84, y1=105, line=dict(width=1, color="#145A32"))
@@ -81,7 +79,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
     color_poste = "#0d47a1"
     for poste in POSTES_ORDER:
         for i, joueur in enumerate(details.get(poste, [])):
-            if joueur:
+            if joueur and isinstance(joueur, dict) and "Nom" in joueur:
                 x, y = positions[poste][i % len(positions[poste])]
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y],
@@ -123,7 +121,6 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
             ))
     return fig
 
-# --- Persistance et utilitaires
 def save_all():
     data = {
         "players": st.session_state.players.to_dict(orient="records"),
@@ -149,17 +146,25 @@ def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
 def terrain_interactif(formation, terrain_key):
-    # Persistance correcte, plus de reset
     if terrain_key not in st.session_state:
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
     for poste in POSTES_ORDER:
         col = st.columns(FORMATION[formation][poste])
         for i in range(FORMATION[formation][poste]):
-            all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
-            joueur_options = [""] + [n for n in st.session_state.players["Nom"] if n and (n == (terrain[poste][i]["Nom"] if terrain[poste][i] else "") or n not in all_selected)]
-            current = terrain[poste][i]["Nom"] if terrain[poste][i] else ""
-            choix = col[i].selectbox(f"{poste}{i+1}", joueur_options, index=joueur_options.index(current) if current in joueur_options else 0, key=f"{terrain_key}_{poste}_{i}")
+            all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and "Nom" in j and j]
+            current_joueur = terrain[poste][i] if (terrain[poste][i] and isinstance(terrain[poste][i], dict)) else None
+            current_nom = current_joueur["Nom"] if current_joueur else ""
+            joueur_options = [""] + [
+                n for n in st.session_state.players["Nom"]
+                if n and (n == current_nom or n not in all_selected)
+            ]
+            choix = col[i].selectbox(
+                f"{poste}{i+1}",
+                joueur_options,
+                index=joueur_options.index(current_nom) if current_nom in joueur_options else 0,
+                key=f"{terrain_key}_{poste}_{i}"
+            )
             if choix:
                 joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
                 terrain[poste][i] = joueur_info
@@ -191,7 +196,7 @@ def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     for match in st.session_state.matches.values():
         details = match.get("details", {})
-        joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and j["Nom"] == joueur_nom]
+        joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and isinstance(j, dict) and j.get("Nom") == joueur_nom]
         is_titulaire = bool(joueurs)
         if is_titulaire or joueur_nom in match.get("remplacants", []):
             selections += 1
@@ -319,7 +324,6 @@ with tab1:
 with tab2:
     st.title("Gestion des compositions")
     subtab1, subtab2 = st.tabs(["Créer une composition", "Mes compositions"])
-    # --- CREER UNE COMPOSITION ---
     with subtab1:
         edit_key = "edit_compo"
         edit_compo = st.session_state.get(edit_key, None)
@@ -336,7 +340,7 @@ with tab2:
         )
         st.session_state["formation_create_compo"] = formation
         terrain = terrain_interactif(formation, "terrain_create_compo")
-        tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+        tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
         remplaçants = remplaçants_interactif("create_compo", tous_titulaires)
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
@@ -353,7 +357,6 @@ with tab2:
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
-    # --- CONSULTER/EDITER UNE COMPO ---
     with subtab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
@@ -407,7 +410,7 @@ with tab3:
             formation = st.selectbox("Formation", list(FORMATION.keys()), key="match_formation")
             st.session_state["formation_new_match"] = formation
             terrain = terrain_interactif(formation, "terrain_new_match")
-            tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+            tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
             remplaçants = remplaçants_interactif("new_match", tous_titulaires)
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
@@ -433,7 +436,6 @@ with tab3:
             save_all()
             st.success("Match enregistré !")
             st.experimental_rerun()
-    # --- CONSULTATION DES MATCHS ---
     with subtab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
@@ -492,7 +494,7 @@ with tab3:
                         st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
                         st.session_state[f"terrain_match_{mid}"] = match["details"]
                         terrain = terrain_interactif(match["formation"], f"terrain_match_{mid}")
-                        remp_edit = remplaçants_interactif(f"edit_match_{mid}", [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j])
+                        remp_edit = remplaçants_interactif(f"edit_match_{mid}", [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j])
                         if st.button("Mettre à jour la compo", key=f"maj_compo_{mid}"):
                             match["details"] = st.session_state.get(f"terrain_match_{mid}", match["details"])
                             match["remplacants"] = remp_edit
@@ -501,7 +503,7 @@ with tab3:
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
                     if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
-                        joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
+                        joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j]
                         score_afc = st.number_input("Buts AFC", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
                         score_adv = st.number_input(f"Buts {match['adversaire']}", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
                         buteurs_qte = {}
