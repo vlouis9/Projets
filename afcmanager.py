@@ -19,11 +19,11 @@ POSTES_ORDER = ["G", "D", "M", "A"]
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
 
-### --- Plotly functions for vertical pitch with custom colors ---
+# --- Plotly visual functions (terrain vertical, couleurs pros)
 def draw_football_pitch_vertical():
     fig = go.Figure()
-    # Terrain principal
-    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#145A32"))  # dark green
+    # Terrain principal pelouse foncée
+    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#145A32"))
     fig.add_shape(type="rect", x0=13.84, y0=0, x1=68-13.84, y1=16.5, line=dict(width=1, color="#145A32"))
     fig.add_shape(type="rect", x0=13.84, y0=105-16.5, x1=68-13.84, y1=105, line=dict(width=1, color="#145A32"))
     fig.add_shape(type="circle", x0=34-9.15, y0=52.5-9.15, x1=34+9.15, y1=52.5+9.15, line=dict(width=1, color="#145A32"))
@@ -31,7 +31,7 @@ def draw_football_pitch_vertical():
     fig.update_xaxes(showticklabels=False, range=[-5, 73], visible=False)
     fig.update_yaxes(showticklabels=False, range=[-8, 125], visible=False)
     fig.update_layout(
-        width=460, height=800, plot_bgcolor="#145A32", margin=dict(l=10,r=10,t=10,b=10), showlegend=False
+        width=460, height=800, plot_bgcolor="#154734", margin=dict(l=10,r=10,t=10,b=10), showlegend=False
     )
     return fig
 
@@ -79,7 +79,6 @@ def positions_for_formation_vertical(formation):
 def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
     positions = positions_for_formation_vertical(formation)
     color_poste = "#0d47a1"
-    # Titulaires
     for poste in POSTES_ORDER:
         for i, joueur in enumerate(details.get(poste, [])):
             if joueur:
@@ -94,7 +93,6 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
                     hovertext=f"{joueur['Nom']}{' (C)' if joueur.get('Capitaine') else ''}",
                     hoverinfo="text"
                 ))
-                # Nom sous le cercle
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y-4],
                     mode="text",
@@ -102,7 +100,6 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
                     textfont=dict(color="white", size=13, family="Arial Black"),
                     showlegend=False
                 ))
-    # Remplaçants sous le terrain
     remplaçants = remplaçants or []
     n = len(remplaçants)
     if n:
@@ -112,7 +109,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[-6],
                 mode="markers+text",
-                marker=dict(size=28, color="#37474f", line=dict(width=2, color="white")),
+                marker=dict(size=28, color="#0d47a1", line=dict(width=2, color="white")),
                 text="",
                 hovertext=remp,
                 hoverinfo="text"
@@ -126,7 +123,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
             ))
     return fig
 
-# --- Persistance ---
+# --- Persistance et utilitaires
 def save_all():
     data = {
         "players": st.session_state.players.to_dict(orient="records"),
@@ -152,9 +149,9 @@ def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
 def terrain_interactif(formation, terrain_key):
-    # Corrige la persistance des sélections pour éviter la réinitialisation
+    # Persistance correcte, plus de reset
     if terrain_key not in st.session_state:
-        st.session_state[terrain_key] = terrain_init(formation)
+        st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
     for poste in POSTES_ORDER:
         col = st.columns(FORMATION[formation][poste])
@@ -341,10 +338,9 @@ with tab2:
         terrain = terrain_interactif(formation, "terrain_create_compo")
         tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
         remplaçants = remplaçants_interactif("create_compo", tous_titulaires)
-        st.markdown("#### Aperçu de la composition")
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
             if not nom_compo.strip():
                 st.warning("Veuillez donner un nom à la composition.")
@@ -364,10 +360,9 @@ with tab2:
         else:
             for nom, compo in st.session_state.lineups.items():
                 with st.expander(f"{nom} – {compo['formation']}"):
-                    st.markdown("#### Aperçu de la composition")
                     fig = draw_football_pitch_vertical()
                     fig = plot_lineup_on_pitch_vertical(fig, compo["details"], compo["formation"], compo.get("remplacants", []))
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True, key=f"fig_compo_{nom}")
                     col1, col2 = st.columns(2)
                     if col1.button(f"Éditer {nom}", key=f"edit_{nom}"):
                         st.session_state["edit_compo"] = (nom, compo)
@@ -414,10 +409,9 @@ with tab3:
             terrain = terrain_interactif(formation, "terrain_new_match")
             tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
             remplaçants = remplaçants_interactif("new_match", tous_titulaires)
-        st.markdown("#### Aperçu de la composition pour ce match")
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True, key="fig_create_match")
         if st.button("Enregistrer le match"):
             match_id = nom_match
             st.session_state.matches[match_id] = {
@@ -446,14 +440,12 @@ with tab3:
         else:
             for mid, match in st.session_state.matches.items():
                 with st.expander(f"{match['date']} {match['heure']} vs {match['adversaire']} ({match['type']})"):
-                    statut = "Terminé" if match.get("noted", False) else "En cours"
-                    st.write(f"**Statut :** {statut}")
+                    st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'En cours'}")
                     st.write(f"**Lieu :** {match['lieu']}")
                     st.write(f"**Formation :** {match['formation']}")
-                    st.markdown("#### Composition du match")
                     fig = draw_football_pitch_vertical()
                     fig = plot_lineup_on_pitch_vertical(fig, match["details"], match["formation"], match.get("remplacants", []))
-                    st.plotly_chart(fig, use_container_width=True)
+                    st.plotly_chart(fig, use_container_width=True, key=f"fig_match_{mid}")
                     if match.get("noted", False):
                         score_col1, score_col2, score_col3 = st.columns([2,1,2])
                         with score_col1:
