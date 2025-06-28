@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
 
-# Postes détaillés, ordre logique (gauche->centre->droit, de la défense à l’attaque)
+# Ordre logique des postes pour chaque formation
 POSTES_DETAILES = {
     "4-2-3-1": [
         ("Gardien", "G"),
@@ -94,20 +94,11 @@ POSTES_DETAILES = {
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
 
-# Positions (x,y) en ordre logique pour chaque formation (même ordre que POSTES_DETAILES)
 POSITIONS_DETAILLEES = {
     "4-2-3-1": [
-        (34, 8),      # G
-        (10, 22),     # DL
-        (22, 22),     # DCG
-        (46, 22),     # DCD
-        (58, 22),     # DR
-        (18, 40),     # MRG
-        (50, 40),     # MRD
-        (10, 60),     # MOG
-        (34, 60),     # MOA
-        (58, 60),     # MOD
-        (34, 88),     # AT
+        (34, 8), (10, 22), (22, 22), (46, 22), (58, 22),
+        (18, 40), (50, 40),
+        (10, 60), (34, 60), (58, 60), (34, 88)
     ],
     "4-4-2": [
         (34, 8), (10, 22), (22, 22), (46, 22), (58, 22),
@@ -175,7 +166,7 @@ def terrain_interactif_detaillé(formation, terrain_key):
         if abbr not in terrain:
             terrain[abbr] = None
     col1, col2 = st.columns(2)
-    all_selected = [v["Nom"] for v in terrain.values() if isinstance(v, dict) and "Nom" in v and v]
+    all_selected = [v["Nom"] for v in terrain.values() if isinstance(v, dict) and v.get("Nom")]
     for idx, (poste_label, abbr) in enumerate(postes):
         col = col1 if idx % 2 == 0 else col2
         current_joueur = terrain[abbr] if isinstance(terrain[abbr], dict) and "Nom" in terrain[abbr] else None
@@ -197,6 +188,7 @@ def terrain_interactif_detaillé(formation, terrain_key):
             terrain[abbr] = joueur_info
         else:
             terrain[abbr] = None
+        all_selected = [v["Nom"] for v in terrain.values() if isinstance(v, dict) and v.get("Nom")]
     st.session_state[terrain_key] = terrain
     return terrain
 
@@ -350,9 +342,9 @@ with tab1:
         s = compute_player_stats(row["Nom"])
         stats_data.append({**row, **s})
     combined_df = pd.DataFrame(stats_data, columns=[
-        "Nom", "Poste", "Infos", "Buts", "Passes décisives", 
-        "Buts + Passes", "Décisif par match", "Cartons jaunes", 
-        "Cartons rouges", "Sélections", "Titularisations", 
+        "Nom", "Poste", "Infos", "Buts", "Passes décisives",
+        "Buts + Passes", "Décisif par match", "Cartons jaunes",
+        "Cartons rouges", "Sélections", "Titularisations",
         "Note générale", "Homme du match"
     ])
     edited_df = st.data_editor(
@@ -389,34 +381,25 @@ with tab2:
     st.title("Gestion des compositions")
     subtab1, subtab2 = st.tabs(["Créer une composition", "Mes compositions"])
     with subtab1:
-        edit_key = "edit_compo"
-        edit_compo = st.session_state.get(edit_key, None)
-        if edit_compo:
-            nom_compo, loaded = edit_compo
-            st.info(f"Édition de la compo : {nom_compo}")
-            st.session_state["formation_create_compo"] = loaded["formation"]
-            st.session_state["terrain_create_compo"] = loaded["details"]
-            st.session_state["capitaine_create_compo"] = loaded.get("capitaine", "")
-            del st.session_state[edit_key]
-        nom_compo = st.text_input("Nom de la composition", value=nom_compo if edit_compo else "")
-        formation = st.selectbox(
-            "Formation", list(POSTES_DETAILES.keys()),
-            index=list(POSTES_DETAILES.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION))
-        )
-        st.session_state["formation_create_compo"] = formation
+        nom_compo = st.text_input("Nom de la composition")
+        formation = st.selectbox("Formation", list(POSTES_DETAILES.keys()), key="formation_create_compo")
         terrain = terrain_interactif_detaillé(formation, "terrain_create_compo")
-        tous_titulaires = [v["Nom"] for v in terrain.values() if isinstance(v, dict) and "Nom" in v and v]
+        tous_titulaires = [v["Nom"] for v in terrain.values() if isinstance(v, dict) and v.get("Nom")]
         remplaçants = remplaçants_interactif("create_compo", tous_titulaires)
         capitaine = st.selectbox("Sélectionner le capitaine", [""] + tous_titulaires, key="capitaine_create_compo")
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants, capitaine)
-        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
         if st.button("Sauvegarder la composition"):
             try:
                 if not nom_compo.strip():
                     st.warning("Veuillez donner un nom à la composition.")
                 elif nom_compo in st.session_state.lineups:
                     st.warning("Une composition avec ce nom existe déjà.")
+                elif any(terrain[abbr] is None for _, abbr in POSTES_DETAILES[formation]):
+                    st.warning("Tous les postes doivent être remplis.")
+                elif not capitaine:
+                    st.warning("Veuillez sélectionner le capitaine.")
                 else:
                     lineup = {
                         "formation": formation,
@@ -468,14 +451,13 @@ with tab3:
         nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
         formation = st.selectbox("Formation", list(POSTES_DETAILES.keys()), key="match_formation")
-        st.session_state["formation_new_match"] = formation
         terrain = terrain_interactif_detaillé(formation, "terrain_new_match")
-        tous_titulaires = [v["Nom"] for v in terrain.values() if isinstance(v, dict) and "Nom" in v and v]
+        tous_titulaires = [v["Nom"] for v in terrain.values() if isinstance(v, dict) and v.get("Nom")]
         remplaçants = remplaçants_interactif("new_match", tous_titulaires)
         capitaine = st.selectbox("Sélectionner le capitaine", [""] + tous_titulaires, key="capitaine_new_match")
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants, capitaine)
-        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
         if st.button("Enregistrer le match"):
             try:
                 if not nom_match.strip():
@@ -560,7 +542,7 @@ with tab3:
                                 st.markdown(f"- {nom} ({nb})")
                         st.markdown("---")
                     else:
-                        joueurs_all = [v["Nom"] for v in match["details"].values() if isinstance(v, dict) and "Nom" in v and v]
+                        joueurs_all = [v["Nom"] for v in match["details"].values() if isinstance(v, dict) and v.get("Nom")]
                         score_afc = st.number_input("Buts AFC", min_value=0, max_value=20, value=match.get("score_afc", 0), key=f"score_afc_{mid}")
                         score_adv = st.number_input(f"Buts {match['adversaire']}", min_value=0, max_value=20, value=match.get("score_adv", 0), key=f"score_adv_{mid}")
                         buteurs_qte = {}
