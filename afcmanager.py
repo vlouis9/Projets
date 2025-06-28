@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
 
-# Postes détaillés pour chaque formation
+# Postes détaillés, ordre logique (gauche->centre->droit, de la défense à l’attaque)
 POSTES_DETAILES = {
     "4-2-3-1": [
         ("Gardien", "G"),
@@ -94,7 +94,7 @@ POSTES_DETAILES = {
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
 
-# Mapping de positions (x, y) pour chaque poste détaillé dans l'ordre de POSTES_DETAILES
+# Positions (x,y) en ordre logique pour chaque formation (même ordre que POSTES_DETAILES)
 POSITIONS_DETAILLEES = {
     "4-2-3-1": [
         (34, 8),      # G
@@ -115,19 +115,19 @@ POSITIONS_DETAILLEES = {
     ],
     "4-3-3": [
         (34, 8), (10, 22), (22, 22), (46, 22), (58, 22),
-        (18, 46), (34, 52.5), (50, 46), (18, 80), (34, 92), (50, 80)
+        (18, 46), (34, 52), (50, 46), (18, 80), (34, 92), (50, 80)
     ],
     "3-5-2": [
-        (34, 8), (17, 17), (34, 17), (51, 17),
+        (34, 8), (13, 18), (34, 18), (55, 18),
         (10, 40), (22, 50), (34, 60), (46, 50), (58, 40), (24, 88), (44, 88)
     ],
     "3-4-3": [
-        (34, 8), (17, 17), (34, 17), (51, 17),
+        (34, 8), (13, 18), (34, 18), (55, 18),
         (10, 46), (22, 56), (46, 56), (58, 46), (18, 80), (34, 92), (50, 80)
     ],
     "5-3-2": [
         (34, 8), (7, 20), (18, 20), (34, 20), (50, 20), (61, 20),
-        (15, 52.5), (34, 60), (53, 52.5), (24, 88), (44, 88)
+        (15, 52), (34, 60), (53, 52), (24, 88), (44, 88)
     ]
 }
 
@@ -413,23 +413,23 @@ with tab2:
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
             try:
-                lineup = {
-                    "formation": formation,
-                    "details": copy.deepcopy(terrain),
-                    "remplacants": copy.deepcopy(remplaçants),
-                    "capitaine": capitaine
-                }
-                if nom_compo.strip():
+                if not nom_compo.strip():
+                    st.warning("Veuillez donner un nom à la composition.")
+                elif nom_compo in st.session_state.lineups:
+                    st.warning("Une composition avec ce nom existe déjà.")
+                else:
+                    lineup = {
+                        "formation": formation,
+                        "details": copy.deepcopy(terrain),
+                        "remplacants": copy.deepcopy(remplaçants),
+                        "capitaine": capitaine
+                    }
                     st.session_state.lineups[nom_compo] = lineup
                     save_all()
                     st.success("Composition sauvegardée !")
-                    # On ne touche plus à st.session_state["capitaine_create_compo"] pour éviter l'erreur Streamlit
                     st.rerun()
-                else:
-                    st.warning("Veuillez donner un nom à la composition.")
-            except Exception as e:
-                st.error(f"Erreur lors de la sauvegarde : {e}")
-                st.text(traceback.format_exc())
+            except Exception:
+                st.error(traceback.format_exc())
     with subtab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
@@ -478,9 +478,12 @@ with tab3:
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
         if st.button("Enregistrer le match"):
             try:
-                match_id = nom_match
-                if match_id.strip():
-                    st.session_state.matches[match_id] = {
+                if not nom_match.strip():
+                    st.warning("Veuillez donner un nom au match.")
+                elif nom_match in st.session_state.matches:
+                    st.warning("Un match avec ce nom existe déjà.")
+                else:
+                    st.session_state.matches[nom_match] = {
                         "type": type_match,
                         "adversaire": adversaire,
                         "date": str(date),
@@ -500,11 +503,8 @@ with tab3:
                     save_all()
                     st.success("Match enregistré !")
                     st.rerun()
-                else:
-                    st.warning("Veuillez donner un nom au match.")
-            except Exception as e:
-                st.error(f"Erreur lors de la sauvegarde : {e}")
-                st.text(traceback.format_exc())
+            except Exception:
+                st.error(traceback.format_exc())
     with subtab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
