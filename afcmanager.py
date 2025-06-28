@@ -3,6 +3,7 @@ import pandas as pd
 import json
 import os
 import copy
+import traceback
 from datetime import datetime
 import plotly.graph_objects as go
 
@@ -361,7 +362,6 @@ with tab2:
                 st.success("Composition sauvegardée !")
                 st.rerun()
             except Exception as e:
-                import traceback
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
     with subtab2:
