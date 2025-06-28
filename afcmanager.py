@@ -10,7 +10,6 @@ import plotly.graph_objects as go
 DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
 
-# Ordre logique des postes pour chaque formation
 POSTES_DETAILES = {
     "4-2-3-1": [
         ("Gardien", "G"),
@@ -389,7 +388,7 @@ with tab2:
         capitaine = st.selectbox("Sélectionner le capitaine", [""] + tous_titulaires, key="capitaine_create_compo")
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants, capitaine)
-        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="terrain_create_compo_plot")
         if st.button("Sauvegarder la composition"):
             try:
                 if not nom_compo.strip():
@@ -457,7 +456,7 @@ with tab3:
         capitaine = st.selectbox("Sélectionner le capitaine", [""] + tous_titulaires, key="capitaine_new_match")
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants, capitaine)
-        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True})
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="terrain_new_match_plot")
         if st.button("Enregistrer le match"):
             try:
                 if not nom_match.strip():
@@ -493,9 +492,6 @@ with tab3:
         else:
             for mid, match in st.session_state.matches.items():
                 with st.expander(f"{match['date']} {match['heure']} vs {match['adversaire']} ({match['type']})"):
-                    st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'En cours'}")
-                    st.write(f"**Lieu :** {match['lieu']}")
-                    st.write(f"**Formation :** {match['formation']}")
                     fig = draw_football_pitch_vertical()
                     fig = plot_lineup_on_pitch_vertical(fig, match["details"], match["formation"], match.get("remplacants", []), match.get("capitaine"))
                     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
