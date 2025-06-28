@@ -6,7 +6,7 @@ from datetime import datetime
 import plotly.graph_objects as go
 
 DATA_FILE = "afcdata.json"
-PLAYER_COLS = ["Nom", "Numero", "Poste", "Capitaine", "Infos"]
+PLAYER_COLS = ["Nom", "Poste", "Infos"]
 FORMATION = {
     "4-2-3-1": {"G": 1, "D": 4, "M": 5, "A": 1},
     "4-4-2": {"G": 1, "D": 4, "M": 4, "A": 2},
@@ -15,6 +15,7 @@ FORMATION = {
     "3-4-3": {"G": 1, "D": 3, "M": 4, "A": 3},
     "5-3-2": {"G": 1, "D": 5, "M": 3, "A": 2},
 }
+POSTES_LONG = {"G": "Gardien", "D": "Défenseur", "M": "Milieu", "A": "Attaquant"}
 POSTES_ORDER = ["G", "D", "M", "A"]
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
@@ -85,12 +86,13 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
                     x=[x], y=[y],
                     mode="markers+text",
                     marker=dict(size=38, color=color_poste, line=dict(width=2, color="white")),
-                    text=f"{joueur.get('Numero', '')}".strip(),
+                    text=f"{joueur.get('Numero', '')}".strip() if "Numero" in joueur else "",
                     textposition="middle center",
                     textfont=dict(color="white", size=17, family="Arial Black"),
                     hovertext=f"{joueur['Nom']}{' (C)' if joueur.get('Capitaine') else ''}",
                     hoverinfo="text"
                 ))
+                # Nom sous le cercle
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y-4],
                     mode="text",
@@ -152,21 +154,29 @@ def terrain_interactif(formation, terrain_key):
     for poste in POSTES_ORDER:
         col = st.columns(FORMATION[formation][poste])
         for i in range(FORMATION[formation][poste]):
+            # Sélection robuste, pas d'erreur si case vide, None, ou chaîne
             all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and "Nom" in j and j]
-            current_joueur = terrain[poste][i] if (terrain[poste][i] and isinstance(terrain[poste][i], dict)) else None
+            current_joueur = terrain[poste][i] if (isinstance(terrain[poste][i], dict) and terrain[poste][i] and "Nom" in terrain[poste][i]) else None
             current_nom = current_joueur["Nom"] if current_joueur else ""
+            label = f"{POSTES_LONG[poste]} {i+1}"
             joueur_options = [""] + [
                 n for n in st.session_state.players["Nom"]
                 if n and (n == current_nom or n not in all_selected)
             ]
             choix = col[i].selectbox(
-                f"{poste}{i+1}",
+                label,
                 joueur_options,
                 index=joueur_options.index(current_nom) if current_nom in joueur_options else 0,
                 key=f"{terrain_key}_{poste}_{i}"
             )
+            # Numéro et Capitaine seulement au moment de la compo/match (pas en base)
             if choix:
                 joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
+                # Ajout des champs spécifiques à la compo/match
+                num = col[i].text_input(f"Numéro de {choix}", value=current_joueur.get("Numero","") if current_joueur else "", key=f"num_{terrain_key}_{poste}_{i}")
+                cap = col[i].checkbox(f"Capitaine ?", value=current_joueur.get("Capitaine", False) if current_joueur else False, key=f"cap_{terrain_key}_{poste}_{i}")
+                joueur_info["Numero"] = num
+                joueur_info["Capitaine"] = cap
                 terrain[poste][i] = joueur_info
             else:
                 terrain[poste][i] = None
@@ -266,7 +276,7 @@ with st.sidebar:
         download_upload_buttons()
     st.markdown("---")
 
-tab1, tab2, tab3 = st.tabs(["Database", "Compositions", "Matchs"])
+tab1, tab2, tab3 = st.tabs(["Base joueurs", "Compositions", "Matchs"])
 
 # --- DATABASE ---
 with tab1:
@@ -277,26 +287,22 @@ with tab1:
         s = compute_player_stats(row["Nom"])
         stats_data.append({**row, **s})
     combined_df = pd.DataFrame(stats_data, columns=[
-        "Nom", "Numero", "Poste", "Capitaine", "Infos", "Buts", "Passes décisives", 
+        "Nom", "Poste", "Infos", "Buts", "Passes décisives", 
         "Buts + Passes", "Décisif par match", "Cartons jaunes", 
         "Cartons rouges", "Sélections", "Titularisations", 
         "Note générale", "Homme du match"
     ])
-    combined_df["Numero"] = combined_df["Numero"].astype(str).replace("nan", "")
-    combined_df["Capitaine"] = combined_df["Capitaine"].fillna(False).astype(bool)
     edited_df = st.data_editor(
         combined_df,
         num_rows="dynamic",
         use_container_width=True,
         column_config={
             "Nom": st.column_config.TextColumn(required=True),
-            "Numero": st.column_config.TextColumn(),
             "Poste": st.column_config.SelectboxColumn(
                 options=POSTES_ORDER,
                 required=True,
                 default="G"
             ),
-            "Capitaine": st.column_config.CheckboxColumn(),
             "Infos": st.column_config.TextColumn(),
             "Buts": st.column_config.NumberColumn(disabled=True),
             "Passes décisives": st.column_config.NumberColumn(disabled=True),
