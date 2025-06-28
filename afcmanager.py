@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
 
+# Postes détaillés pour chaque formation
 POSTES_DETAILES = {
     "4-2-3-1": [
         ("Gardien", "G"),
@@ -92,6 +93,43 @@ POSTES_DETAILES = {
 }
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
+
+# Mapping de positions (x, y) pour chaque poste détaillé dans l'ordre de POSTES_DETAILES
+POSITIONS_DETAILLEES = {
+    "4-2-3-1": [
+        (34, 8),      # G
+        (10, 22),     # DL
+        (22, 22),     # DCG
+        (46, 22),     # DCD
+        (58, 22),     # DR
+        (18, 40),     # MRG
+        (50, 40),     # MRD
+        (10, 60),     # MOG
+        (34, 60),     # MOA
+        (58, 60),     # MOD
+        (34, 88),     # AT
+    ],
+    "4-4-2": [
+        (34, 8), (10, 22), (22, 22), (46, 22), (58, 22),
+        (10, 48), (22, 48), (46, 48), (58, 48), (24, 85), (44, 85)
+    ],
+    "4-3-3": [
+        (34, 8), (10, 22), (22, 22), (46, 22), (58, 22),
+        (18, 46), (34, 52.5), (50, 46), (18, 80), (34, 92), (50, 80)
+    ],
+    "3-5-2": [
+        (34, 8), (17, 17), (34, 17), (51, 17),
+        (10, 40), (22, 50), (34, 60), (46, 50), (58, 40), (24, 88), (44, 88)
+    ],
+    "3-4-3": [
+        (34, 8), (17, 17), (34, 17), (51, 17),
+        (10, 46), (22, 56), (46, 56), (58, 46), (18, 80), (34, 92), (50, 80)
+    ],
+    "5-3-2": [
+        (34, 8), (7, 20), (18, 20), (34, 20), (50, 20), (61, 20),
+        (15, 52.5), (34, 60), (53, 52.5), (24, 88), (44, 88)
+    ]
+}
 
 def draw_football_pitch_vertical():
     fig = go.Figure()
@@ -183,12 +221,10 @@ def remplaçants_interactif(key, titulaires):
 
 def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None, capitaine=None):
     postes = POSTES_DETAILES[formation]
-    n = len(postes)
-    for idx, (poste_label, abbr) in enumerate(postes):
+    positions = POSITIONS_DETAILLEES[formation]
+    for idx, ((poste_label, abbr), (x, y)) in enumerate(zip(postes, positions)):
         joueur = details.get(abbr)
         if joueur and isinstance(joueur, dict) and "Nom" in joueur:
-            x = 10 + 48 * (idx % 2)
-            y = 10 + (idx * (75 // n))
             color = "#ffd700" if capitaine and (joueur["Nom"] == capitaine) else "#0d47a1"
             fig.add_trace(go.Scatter(
                 x=[x], y=[y],
@@ -306,7 +342,6 @@ with st.sidebar:
 
 tab1, tab2, tab3 = st.tabs(["Base joueurs", "Compositions", "Matchs"])
 
-# --- BASE DE JOUEURS ---
 with tab1:
     st.title("Base de données joueurs")
     st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous.")
@@ -350,7 +385,6 @@ with tab1:
         st.success("Base de joueurs mise à jour !")
     st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
 
-# --- COMPOSITIONS ---
 with tab2:
     st.title("Gestion des compositions")
     subtab1, subtab2 = st.tabs(["Créer une composition", "Mes compositions"])
@@ -389,9 +423,7 @@ with tab2:
                     st.session_state.lineups[nom_compo] = lineup
                     save_all()
                     st.success("Composition sauvegardée !")
-                    st.session_state["terrain_create_compo"] = {abbr: None for _, abbr in POSTES_DETAILES[formation]}
-                    st.session_state["remp_create_compo"] = [None] * MAX_REMPLACANTS
-                    st.session_state["capitaine_create_compo"] = ""
+                    # On ne touche plus à st.session_state["capitaine_create_compo"] pour éviter l'erreur Streamlit
                     st.rerun()
                 else:
                     st.warning("Veuillez donner un nom à la composition.")
@@ -416,7 +448,6 @@ with tab2:
                         save_all()
                         st.rerun()
 
-# --- MATCHS ---
 with tab3:
     st.title("Gestion des matchs")
     subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
@@ -468,9 +499,6 @@ with tab3:
                     }
                     save_all()
                     st.success("Match enregistré !")
-                    st.session_state["terrain_new_match"] = {abbr: None for _, abbr in POSTES_DETAILES[formation]}
-                    st.session_state["remp_new_match"] = [None] * MAX_REMPLACANTS
-                    st.session_state["capitaine_new_match"] = ""
                     st.rerun()
                 else:
                     st.warning("Veuillez donner un nom au match.")
