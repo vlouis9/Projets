@@ -148,6 +148,7 @@ def reload_all():
 def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
+# --- Correction robuste de terrain_interactif ---
 def terrain_interactif(formation, terrain_key):
     if terrain_key not in st.session_state:
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
@@ -155,8 +156,13 @@ def terrain_interactif(formation, terrain_key):
     for poste in POSTES_ORDER:
         col = st.columns(FORMATION[formation][poste])
         for i in range(FORMATION[formation][poste]):
+            # Correction robuste
+            if poste in terrain and isinstance(terrain[poste], list) and i < len(terrain[poste]):
+                val = terrain[poste][i]
+                current_joueur = val if (isinstance(val, dict) and val and "Nom" in val) else None
+            else:
+                current_joueur = None
             all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and "Nom" in j and j]
-            current_joueur = terrain[poste][i] if (isinstance(terrain[poste][i], dict) and terrain[poste][i] and "Nom" in terrain[poste][i]) else None
             current_nom = current_joueur["Nom"] if current_joueur else ""
             label = f"{POSTES_LONG[poste]} {i+1}"
             joueur_options = [""] + [
@@ -180,6 +186,7 @@ def terrain_interactif(formation, terrain_key):
                 terrain[poste][i] = None
     st.session_state[terrain_key] = terrain
     return terrain
+# --- Fin correction robuste ---
 
 def remplaçants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
@@ -351,7 +358,6 @@ with tab2:
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
             try:
-                import copy
                 lineup = {
                     "formation": formation,
                     "details": copy.deepcopy(terrain),
@@ -444,7 +450,6 @@ with tab3:
                 st.success("Match enregistré !")
                 st.rerun()
             except Exception as e:
-                import traceback
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
     with subtab2:
