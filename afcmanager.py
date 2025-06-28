@@ -349,10 +349,8 @@ with tab2:
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
-            if not nom_compo.strip():
-                st.warning("Veuillez donner un nom à la composition.")
-            else:
-                # Correction : deepcopy pour garder l'instantané et éviter le bug de mutation
+            try:
+                import copy
                 lineup = {
                     "formation": formation,
                     "details": copy.deepcopy(terrain),
@@ -361,7 +359,11 @@ with tab2:
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
-                st.experimental_rerun()
+                st.rerun()
+            except Exception as e:
+                import traceback
+                st.error(f"Erreur lors de la sauvegarde : {e}")
+                st.text(traceback.format_exc())
     with subtab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
@@ -374,11 +376,11 @@ with tab2:
                     col1, col2 = st.columns(2)
                     if col1.button(f"Éditer {nom}", key=f"edit_{nom}"):
                         st.session_state["edit_compo"] = (nom, compo)
-                        st.experimental_rerun()
+                        st.rerun()
                     if col2.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
                         del st.session_state.lineups[nom]
                         save_all()
-                        st.experimental_rerun()
+                        st.rerun()
 
 # --- MATCHS ---
 with tab3:
@@ -392,7 +394,7 @@ with tab3:
             ]:
                 if k in st.session_state:
                     del st.session_state[k]
-            st.experimental_rerun()
+            st.rerun()
         type_match = st.selectbox("Type de match", ["Championnat", "Coupe"])
         adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
         date = st.date_input("Date du match", value=datetime.today())
@@ -420,26 +422,31 @@ with tab3:
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
         if st.button("Enregistrer le match"):
-            match_id = nom_match
-            st.session_state.matches[match_id] = {
-                "type": type_match,
-                "adversaire": adversaire,
-                "date": str(date),
-                "heure": str(heure),
-                "lieu": lieu,
-                "formation": formation,
-                "details": copy.deepcopy(terrain),
-                "remplacants": copy.deepcopy(remplaçants),
-                "events": {},
-                "score": "",
-                "score_afc": 0,
-                "score_adv": 0,
-                "noted": False,
-                "homme_du_match": ""
-            }
-            save_all()
-            st.success("Match enregistré !")
-            st.experimental_rerun()
+            try:
+                match_id = nom_match
+                st.session_state.matches[match_id] = {
+                    "type": type_match,
+                    "adversaire": adversaire,
+                    "date": str(date),
+                    "heure": str(heure),
+                    "lieu": lieu,
+                    "formation": formation,
+                    "details": copy.deepcopy(terrain),
+                    "remplacants": copy.deepcopy(remplaçants),
+                    "events": {},
+                    "score": "",
+                    "score_afc": 0,
+                    "score_adv": 0,
+                    "noted": False,
+                    "homme_du_match": ""
+                }
+                save_all()
+                st.success("Match enregistré !")
+                st.rerun()
+            except Exception as e:
+                import traceback
+                st.error(f"Erreur lors de la sauvegarde : {e}")
+                st.text(traceback.format_exc())
     with subtab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
@@ -504,6 +511,7 @@ with tab3:
                             match["remplacants"] = remp_edit
                             save_all()
                             st.success("Composition du match mise à jour.")
+                            st.rerun()
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
                     if match_ended and not match.get("noted", False):
                         st.write("### Saisie des stats du match")
@@ -556,8 +564,8 @@ with tab3:
                             match["homme_du_match"] = homme_du_match
                             save_all()
                             st.success("Stats du match enregistrées !")
-                            st.experimental_rerun()
+                            st.rerun()
                     if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
                         del st.session_state.matches[mid]
                         save_all()
-                        st.experimental_rerun()
+                        st.rerun()
