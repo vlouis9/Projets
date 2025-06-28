@@ -1,4 +1,5 @@
 streamlit
+--upgrade streamlit
 pandas
 numpy
 openpyxl
