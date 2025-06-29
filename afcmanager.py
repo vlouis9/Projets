@@ -578,114 +578,114 @@ with tab3_2:
                             match["goals"][i] = {"scorer": scorer, "assist": assist if assist else None}
                         else:
                             match["goals"].append({"scorer": scorer, "assist": assist if assist else None})
-
-    # Cards
-    st.subheader("Cards")
-    card_cols = st.columns(2)
-    with card_cols[0]:
-        if st.button("Add Yellow Card", key=f"add_yellow_{idx}"):
-            match["cards"].append({"type": "yellow", "player": None})
-    with card_cols[1]:
-        if st.button("Add Red Card", key=f"add_red_{idx}"):
-            match["cards"].append({"type": "red", "player": None})
-    
-    for i, card in enumerate(match["cards"]):
-        card["player"] = st.selectbox(
-            f"{card['type'].title()} Card",
-            options=[""] + all_players,
-            key=f"card_{idx}_{i}",
-            index=all_players.index(card["player"])+1 if card["player"] else 0
-        )
-    
-    # Player ratings
-    st.subheader("Player Ratings")
-    rating_cols = st.columns(3)
-    for i, player in enumerate(all_players):
-        with rating_cols[i % 3]:
-            match["ratings"][player] = st.slider(
-                f"{player} Rating",
-                min_value=0.0,
-                max_value=10.0,
-                value=match["ratings"].get(player, 5.0),
-                step=0.5,
-                key=f"rating_{idx}_{i}"
-            )
-    
-    # Man of the Match
-    match["motm"] = st.selectbox(
-        "Man of the Match",
-        options=[""] + all_players,
-        index=all_players.index(match["motm"])+1 if match["motm"] else 0,
-        key=f"motm_{idx}"
-    )
-    
-    # Update match status
-    match["score"]["AFC"] = afc_score
-    match["score"]["opponent"] = opp_score
-    
-    # Complete match button
-    if st.button("Mark as Completed", key=f"complete_{idx}"):
-        match["completed"] = True
-        with open('afcdata.json', 'w', encoding='utf-8') as f:
-            json.dump(st.session_state.data, f, indent=2, ensure_ascii=False)
-        st.rerun()
-
-else:
-    # Display match summary
-    st.subheader("Match Summary")
-    st.write(f"Score: AFC {match['score']['AFC']} - {match['score']['opponent']} {match['opponent']}")
-    
-    # Goals and assists
-    if match["goals"]:
-        st.subheader("Goals")
-        for goal in match["goals"]:
-            assist_text = f" (assist: {goal['assist']})" if goal['assist'] else ""
-            st.write(f"⚽ {goal['scorer']}{assist_text}")
-    
-    # Cards
-    if match["cards"]:
-        st.subheader("Cards")
-        for card in match["cards"]:
-            emoji = "🟨" if card["type"] == "yellow" else "🟥"
-            st.write(f"{emoji} {card['player']}")
-    
-    # Best performers
-    st.subheader("Best Performers")
-    top_ratings = sorted(
-        match["ratings"].items(),
-        key=lambda x: x[1],
-        reverse=True
-    )[:3]
-    for player, rating in top_ratings:
-        st.write(f"{player}: {rating}/10")
-    
-    if match["motm"]:
-        st.write(f"👑 Man of the Match: {match['motm']}")
-
-# Display lineup
-st.subheader("Lineup")
-pitch = draw_football_pitch(match["formation"])
-positions = FORMATIONS[match["formation"]]["positions"]
-coordinates = FORMATIONS[match["formation"]]["coordinates"]
-
-for pos, coord in zip(positions, coordinates):
-    player = match["players"].get(pos, "")
-    if player:
-        text = f"{player} ({match['numbers'][player]})"
-        if player == match["captain"]:
-            text += " ©️"
-        pitch.add_annotation(
-            x=coord[0], y=coord[1],
-            text=text,
-            showarrow=False,
-            font=dict(color="white"),
-            bgcolor="rgba(0,0,139,0.7)"
-        )
-st.plotly_chart(pitch, use_container_width=True)
-
-# Delete match button
-if st.button("Delete Match", key=f"delete_match_{idx}"):
-    st.session_state.data["matches"].pop(idx)
-    with open('afcdata.json', 'w', encoding='utf-8') as f:
-        json.dump(st.session_state.data, f, indent=2, ensure_ascii=False)
-    st.rerun()
+                
+                # Cards
+                st.subheader("Cards")
+                card_cols = st.columns(2)
+                with card_cols[0]:
+                    if st.button("Add Yellow Card", key=f"add_yellow_{idx}"):
+                        match["cards"].append({"type": "yellow", "player": None})
+                with card_cols[1]:
+                    if st.button("Add Red Card", key=f"add_red_{idx}"):
+                        match["cards"].append({"type": "red", "player": None})
+                
+                for i, card in enumerate(match["cards"]):
+                    card["player"] = st.selectbox(
+                        f"{card['type'].title()} Card",
+                        options=[""] + all_players,
+                        key=f"card_{idx}_{i}",
+                        index=all_players.index(card["player"])+1 if card["player"] else 0
+                    )
+                
+                # Player ratings
+                st.subheader("Player Ratings")
+                rating_cols = st.columns(3)
+                for i, player in enumerate(all_players):
+                    with rating_cols[i % 3]:
+                        match["ratings"][player] = st.slider(
+                            f"{player} Rating",
+                            min_value=0.0,
+                            max_value=10.0,
+                            value=match["ratings"].get(player, 5.0),
+                            step=0.5,
+                            key=f"rating_{idx}_{i}"
+                        )
+                
+                # Man of the Match
+                match["motm"] = st.selectbox(
+                    "Man of the Match",
+                    options=[""] + all_players,
+                    index=all_players.index(match["motm"])+1 if match["motm"] else 0,
+                    key=f"motm_{idx}"
+                )
+                
+                # Update match status
+                match["score"]["AFC"] = afc_score
+                match["score"]["opponent"] = opp_score
+                
+                # Complete match button
+                if st.button("Mark as Completed", key=f"complete_{idx}"):
+                    match["completed"] = True
+                    with open('afcdata.json', 'w', encoding='utf-8') as f:
+                        json.dump(st.session_state.data, f, indent=2, ensure_ascii=False)
+                    st.rerun()
+            
+            else:
+                # Display match summary
+                st.subheader("Match Summary")
+                st.write(f"Score: AFC {match['score']['AFC']} - {match['score']['opponent']} {match['opponent']}")
+                
+                # Goals and assists
+                if match["goals"]:
+                    st.subheader("Goals")
+                    for goal in match["goals"]:
+                        assist_text = f" (assist: {goal['assist']})" if goal['assist'] else ""
+                        st.write(f"⚽ {goal['scorer']}{assist_text}")
+                
+                # Cards
+                if match["cards"]:
+                    st.subheader("Cards")
+                    for card in match["cards"]:
+                        emoji = "🟨" if card["type"] == "yellow" else "🟥"
+                        st.write(f"{emoji} {card['player']}")
+                
+                # Best performers
+                st.subheader("Best Performers")
+                top_ratings = sorted(
+                    match["ratings"].items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                )[:3]
+                for player, rating in top_ratings:
+                    st.write(f"{player}: {rating}/10")
+                
+                if match["motm"]:
+                    st.write(f"👑 Man of the Match: {match['motm']}")
+            
+            # Display lineup
+            st.subheader("Lineup")
+            pitch = draw_football_pitch(match["formation"])
+            positions = FORMATIONS[match["formation"]]["positions"]
+            coordinates = FORMATIONS[match["formation"]]["coordinates"]
+            
+            for pos, coord in zip(positions, coordinates):
+                player = match["players"].get(pos, "")
+                if player:
+                    text = f"{player} ({match['numbers'][player]})"
+                    if player == match["captain"]:
+                        text += " ©️"
+                    pitch.add_annotation(
+                        x=coord[0], y=coord[1],
+                        text=text,
+                        showarrow=False,
+                        font=dict(color="white"),
+                        bgcolor="rgba(0,0,139,0.7)"
+                    )
+            st.plotly_chart(pitch, use_container_width=True)
+            
+            # Delete match button
+            if st.button("Delete Match", key=f"delete_match_{idx}"):
+                st.session_state.data["matches"].pop(idx)
+                with open('afcdata.json', 'w', encoding='utf-8') as f:
+                    json.dump(st.session_state.data, f, indent=2, ensure_ascii=False)
+                st.rerun()
