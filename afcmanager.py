@@ -329,52 +329,52 @@ with tab2:
     st.title("Gestion des compositions")
     subtab1, subtab2 = st.tabs(["Créer une composition", "Mes compositions"])
     with subtab1:
-   	edit_key = "edit_compo"
-   	edit_compo = st.session_state.get(edit_key, None)
-   	if edit_compo:
-       	nom_compo, loaded = edit_compo
-       	st.info(f"Édition de la compo : {nom_compo}")
-       	st.session_state["formation_create_compo"] = loaded["formation"]
-       	st.session_state["terrain_create_compo"] = loaded["details"]
-       	del st.session_state[edit_key]
-   	nom_compo = st.text_input("Nom de la composition", value=nom_compo if edit_compo else "")
-   	formation = st.selectbox(
-       	"Formation", list(FORMATION.keys()),
-       	index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION))
-   	)
-   	st.session_state["formation_create_compo"] = formation
-   	terrain = terrain_interactif(formation, "terrain_create_compo")
-   	tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-   	nb_titulaires_attendus = sum(FORMATION[formation].values())
-   	remplaçants = remplaçants_interactif("create_compo", tous_titulaires)
-   	fig = draw_football_pitch_vertical()
-   	fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
-   	st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
-   	if st.button("Sauvegarder la composition"):
-       	try:
-           	import copy
-           	# Sécurité sur nom vide
-           	if not nom_compo.strip():
-               	st.error("Le nom de la composition ne doit pas être vide.")
-               	st.stop()
-           	# Sécurité sur complétude
-           	if len(tous_titulaires) != nb_titulaires_attendus:
-               	st.error(f"Vous devez sélectionner {nb_titulaires_attendus} titulaires (un par poste).")
-               	st.stop()
-           	lineup = {
-               	"formation": formation,
-               	"details": copy.deepcopy(terrain),
-               	"remplacants": copy.deepcopy(remplaçants)
-           	}
-           	if nom_compo in st.session_state.lineups:
-               	st.warning("Une composition porte déjà ce nom. Elle va être écrasée.")
-           	st.session_state.lineups[nom_compo] = lineup
-           	save_all()
-           	st.success("Composition sauvegardée !")
-           	st.rerun()
-       	except Exception as e:
-           	st.error(f"Erreur lors de la sauvegarde : {e}")
-           	st.text(traceback.format_exc())
+        edit_key = "edit_compo"
+        edit_compo = st.session_state.get(edit_key, None)
+        if edit_compo:
+            nom_compo, loaded = edit_compo
+            st.info(f"Édition de la compo : {nom_compo}")
+            st.session_state["formation_create_compo"] = loaded["formation"]
+            st.session_state["terrain_create_compo"] = loaded["details"]
+            del st.session_state[edit_key]
+        nom_compo = st.text_input("Nom de la composition", value=nom_compo if edit_compo else "")
+        formation = st.selectbox(
+            "Formation", list(FORMATION.keys()),
+            index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION))
+        )
+        st.session_state["formation_create_compo"] = formation
+        terrain = terrain_interactif(formation, "terrain_create_compo")
+        tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
+        nb_titulaires_attendus = sum(FORMATION[formation].values())
+        remplaçants = remplaçants_interactif("create_compo", tous_titulaires)
+        fig = draw_football_pitch_vertical()
+        fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
+        if st.button("Sauvegarder la composition"):
+            try:
+                import copy
+                # Sécurité sur nom vide
+                if not nom_compo.strip():
+                    st.error("Le nom de la composition ne doit pas être vide.")
+                    st.stop()
+                # Sécurité sur complétude
+                if len(tous_titulaires) != nb_titulaires_attendus:
+                    st.error(f"Vous devez sélectionner {nb_titulaires_attendus} titulaires (un par poste).")
+                    st.stop()
+                lineup = {
+                    "formation": formation,
+                    "details": copy.deepcopy(terrain),
+                    "remplacants": copy.deepcopy(remplaçants)
+                }
+                if nom_compo in st.session_state.lineups:
+                    st.warning("Une composition porte déjà ce nom. Elle va être écrasée.")
+                st.session_state.lineups[nom_compo] = lineup
+                save_all()
+                st.success("Composition sauvegardée !")
+                st.rerun()
+            except Exception as e:
+                st.error(f"Erreur lors de la sauvegarde : {e}")
+                st.text(traceback.format_exc())
     with subtab2:
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
