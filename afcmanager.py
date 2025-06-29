@@ -379,6 +379,7 @@ with open(DATA_FILE, "r") as f:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
     with subtab2:
+        st.write("DEBUG – Affichage des lineups :", st.session_state.lineups) 
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
         else:
