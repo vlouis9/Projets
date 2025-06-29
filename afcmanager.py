@@ -370,7 +370,9 @@ with tab2:
                     st.warning("Une composition porte déjà ce nom. Elle va être écrasée.")
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
-                reload_all()
+                st.write("DEBUG – Lineups in memory:", st.session_state.lineups)
+with open(DATA_FILE, "r") as f:
+    st.write("DEBUG – Lineups in file:", json.load(f)["lineups"])
                 st.success("Composition sauvegardée !")
                 st.rerun()
             except Exception as e:
