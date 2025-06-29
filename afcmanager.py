@@ -370,6 +370,7 @@ with tab2:
                     st.warning("Une composition porte déjà ce nom. Elle va être écrasée.")
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
+                reload_all()
                 st.success("Composition sauvegardée !")
                 st.rerun()
             except Exception as e:
