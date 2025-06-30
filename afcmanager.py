@@ -401,6 +401,7 @@ with tab2:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
     with subtab2:
+        st.write("DEBUG Mes compos:", list(st.session_state.lineups.keys()))
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
         else:
@@ -421,6 +422,7 @@ with tab2:
 
 # --- MATCHS ---
 with tab3:
+    st.write("DEBUG Compos pour match:", list(st.session_state.lineups.keys()))
     st.title("Gestion des matchs")
     subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
     with subtab1:
