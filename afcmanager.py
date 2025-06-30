@@ -118,7 +118,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
                 mode="markers+text",
                 marker=dict(size=28, color="#0d47a1", line=dict(width=2, color="white")),
                 text=[str(numero)],
-                texposition="middle center",
+                textposition="middle center",
                 textfont=dict(color="white", size=16, family="Arial Black"),
                 hovertext=[str(nom)],
                 hoverinfo="text"
