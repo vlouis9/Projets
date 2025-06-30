@@ -380,7 +380,6 @@ with tab2:
             index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION)),
             key="formation_create_compo"
         )
-        st.session_state["formation_create_compo"] = formation
         terrain = terrain_interactif(formation, "terrain_create_compo")
         tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
         remplacants = remplacants_interactif("create_compo", tous_titulaires)
