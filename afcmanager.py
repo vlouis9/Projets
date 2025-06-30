@@ -106,19 +106,27 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
     if n:
         x_start = 34 - 16*n/2 + 8
         for idx, remp in enumerate(remplaçants):
-            x_r = x_start + idx*16
+            if isinstance(remp, dict):
+            nom = remp.get("Nom", "")
+            numero = remp.get("Numero", "")
+        else:
+            nom = remp
+            numero = ""
+        x_r = x_start + idx*16
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[-6],
                 mode="markers+text",
                 marker=dict(size=28, color="#0d47a1", line=dict(width=2, color="white")),
-                text="",
-                hovertext=remp,
+                text=numero,
+                texposition="middle center",
+                textfont=dict(color="white", size=16, family="Arial Black"),
+                hovertext=nom,
                 hoverinfo="text"
             ))
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[-11],
                 mode="text",
-                text=[remp],
+                text=[f"{nom}"],
                 textfont=dict(color="white", size=12, family="Arial Black"),
                 showlegend=False
             ))
@@ -191,11 +199,11 @@ def terrain_interactif(formation, terrain_key):
 
 def remplaçants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
-        st.session_state[f"remp_{key}"] = [None] * MAX_REMPLACANTS
+        st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
-    dispo = [n for n in st.session_state.players["Nom"] if n not in titulaires and n not in remps if n]
+    dispo = [n for n in st.session_state.players["Nom"] if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]] if n]
     for i in range(MAX_REMPLACANTS):
-        current = remps[i]
+        current = remps[i]["Nom"]
         options = dispo + ([current] if current and current not in dispo else [])
         choix = st.selectbox(
             f"Remplaçant {i+1}",
@@ -203,10 +211,16 @@ def remplaçants_interactif(key, titulaires):
             index=(options.index(current)+1) if current in options else 0,
             key=f"remp_choice_{key}_{i}"
         )
-        remps[i] = choix if choix else None
+        if choix:
+            joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
+            num = st.text_input(f"Numéro de {choix}", value=remps[i].get("Numero",""), key=f"num_remp_{key}_{i}")
+            remps[i] = {"Nom": choix, "Numero": num}
+        else:
+            remps[i] = {"Nom": None, "Numero": ""}
         dispo = [n for n in dispo if n != choix]
     st.session_state[f"remp_{key}"] = remps
-    return [r for r in remps if r]
+    # On renvoie la liste filtrée des remplaçants valides
+    return [r for r in remps if r["Nom"]]
 
 def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
@@ -385,6 +399,7 @@ with tab2:
                     if col2.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
                         del st.session_state.lineups[nom]
                         save_all()
+                        st.success("Composition supprimée !")
                         st.rerun()
 
 # --- MATCHS ---
