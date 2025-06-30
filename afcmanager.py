@@ -214,12 +214,14 @@ def terrain_interactif(formation, terrain_key):
     st.session_state[terrain_key] = terrain
     return terrain
 
-def remplacants_interactif(key, titulaires):
+def remplaçants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
-    if "Nom" in st.session_state.players.columns:
-    noms_joueurs = st.session_state.players["Nom"].dropna().astype(str).tolist()
+
+    # Patch robustesse colonne Nom
+    if hasattr(st.session_state.players, "columns") and "Nom" in st.session_state.players.columns:
+        noms_joueurs = st.session_state.players["Nom"].dropna().astype(str).tolist()
     else:
         noms_joueurs = []
     dispo = [n for n in noms_joueurs if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]] if n]
@@ -227,7 +229,7 @@ def remplacants_interactif(key, titulaires):
         current = remps[i]["Nom"]
         options = dispo + ([current] if current and current not in dispo else [])
         choix = st.selectbox(
-            f"remplacant {i+1}",
+            f"Remplaçant {i+1}",
             [""] + options,
             index=(options.index(current)+1) if current in options else 0,
             key=f"remp_choice_{key}_{i}"
@@ -240,7 +242,7 @@ def remplacants_interactif(key, titulaires):
             remps[i] = {"Nom": None, "Numero": ""}
         dispo = [n for n in dispo if n != choix]
     st.session_state[f"remp_{key}"] = remps
-    # On renvoie la liste filtrée des remplacants valides
+    # On renvoie la liste filtrée des remplaçants valides
     return [r for r in remps if r["Nom"]]
 
 def compute_player_stats(joueur_nom):
@@ -283,6 +285,11 @@ if ("players" not in st.session_state or
     "lineups" not in st.session_state or
     "matches" not in st.session_state):
     reload_all()
+if not isinstance(st.session_state.players, pd.DataFrame):
+    st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
+for col in PLAYER_COLS:
+    if col not in st.session_state.players.columns:
+        st.session_state.players[col] = ""
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
