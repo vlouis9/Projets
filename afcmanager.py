@@ -447,7 +447,6 @@ with tab3:
                 }
                 save_all()
                 st.success("Match enregistré !")
-                st.rerun()
             except Exception as e:
                 import traceback
                 st.error(f"Erreur lors de la sauvegarde : {e}")
