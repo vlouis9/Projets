@@ -218,7 +218,11 @@ def remplacants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
-    dispo = [n for n in st.session_state.players["Nom"] if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]] if n]
+    if "Nom" in st.session_state.players.columns:
+    noms_joueurs = st.session_state.players["Nom"].dropna().astype(str).tolist()
+    else:
+        noms_joueurs = []
+    dispo = [n for n in noms_joueurs if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]] if n]
     for i in range(MAX_REMPLACANTS):
         current = remps[i]["Nom"]
         options = dispo + ([current] if current and current not in dispo else [])
