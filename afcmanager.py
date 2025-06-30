@@ -377,7 +377,8 @@ with tab2:
         nom_compo = st.text_input("Nom de la composition", value=nom_compo if edit_compo else "")
         formation = st.selectbox(
             "Formation", list(FORMATION.keys()),
-            index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION))
+            index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION)),
+            key="formation_create_compo"
         )
         st.session_state["formation_create_compo"] = formation
         terrain = terrain_interactif(formation, "terrain_create_compo")
@@ -442,21 +443,31 @@ with tab3:
         nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
         use_compo = st.checkbox("Utiliser une composition enregistrée ?")
+        use_compo = st.checkbox("Utiliser une composition enregistrée ?", key="use_compo_match")
         if use_compo and st.session_state.lineups:
-            compo_choice = st.selectbox("Choisir la composition", list(st.session_state.lineups.keys()))
+            compo_keys = list(st.session_state.lineups.keys())
+            # Initialisation de la sélection si besoin
+            if "compo_choice_match" not in st.session_state:
+                st.session_state.compo_choice_match = compo_keys[0] if compo_keys else ""
+            compo_choice = st.selectbox(
+                "Choisir la composition",
+                compo_keys,
+                index=compo_keys.index(st.session_state.get("compo_choice_match", compo_keys[0])) if compo_keys else 0,
+                key="compo_choice_match"
+            )
             compo_data = st.session_state.lineups[compo_choice]
             formation = compo_data["formation"]
             terrain = copy.deepcopy(compo_data["details"])
-            remplacants = list(compo_data.get("remplacants", []))
+            remplaçants = list(compo_data.get("remplacants", []))
             st.session_state["formation_new_match"] = formation
             st.session_state["terrain_new_match"] = terrain
-            st.session_state["remp_new_match"] = remplacants
+            st.session_state["remp_new_match"] = remplaçants
         else:
             formation = st.selectbox("Formation", list(FORMATION.keys()), key="match_formation")
             st.session_state["formation_new_match"] = formation
             terrain = terrain_interactif(formation, "terrain_new_match")
             tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-            remplacants = remplacants_interactif("new_match", tous_titulaires)
+            remplaçants = remplaçants_interactif("new_match", tous_titulaires)
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
