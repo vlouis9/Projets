@@ -107,12 +107,12 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
         x_start = 34 - 16*n/2 + 8
         for idx, remp in enumerate(remplaçants):
             if isinstance(remp, dict):
-            nom = remp.get("Nom", "")
-            numero = remp.get("Numero", "")
-        else:
-            nom = remp
-            numero = ""
-        x_r = x_start + idx*16
+                nom = remp.get("Nom", "")
+                numero = remp.get("Numero", "")
+            else:
+                nom = remp
+                numero = ""
+            x_r = x_start + idx*16
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[-6],
                 mode="markers+text",
