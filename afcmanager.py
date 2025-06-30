@@ -77,7 +77,7 @@ def positions_for_formation_vertical(formation):
     }
     return presets.get(formation, presets["4-2-3-1"])
 
-def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
+def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None):
     positions = positions_for_formation_vertical(formation)
     color_poste = "#0d47a1"
     for poste in POSTES_ORDER:
@@ -101,11 +101,11 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
                     textfont=dict(color="white", size=13, family="Arial Black"),
                     showlegend=False
                 ))
-    remplaçants = remplaçants or []
-    n = len(remplaçants)
+    remplacants = remplacants or []
+    n = len(remplacants)
     if n:
         x_start = 34 - 16*n/2 + 8
-        for idx, remp in enumerate(remplaçants):
+        for idx, remp in enumerate(remplacants):
             if isinstance(remp, dict):
                 nom = remp.get("Nom", "")
                 numero = remp.get("Numero", "")
@@ -214,7 +214,7 @@ def terrain_interactif(formation, terrain_key):
     st.session_state[terrain_key] = terrain
     return terrain
 
-def remplaçants_interactif(key, titulaires):
+def remplacants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
@@ -223,7 +223,7 @@ def remplaçants_interactif(key, titulaires):
         current = remps[i]["Nom"]
         options = dispo + ([current] if current and current not in dispo else [])
         choix = st.selectbox(
-            f"Remplaçant {i+1}",
+            f"remplacant {i+1}",
             [""] + options,
             index=(options.index(current)+1) if current in options else 0,
             key=f"remp_choice_{key}_{i}"
@@ -236,7 +236,7 @@ def remplaçants_interactif(key, titulaires):
             remps[i] = {"Nom": None, "Numero": ""}
         dispo = [n for n in dispo if n != choix]
     st.session_state[f"remp_{key}"] = remps
-    # On renvoie la liste filtrée des remplaçants valides
+    # On renvoie la liste filtrée des remplacants valides
     return [r for r in remps if r["Nom"]]
 
 def compute_player_stats(joueur_nom):
@@ -382,9 +382,9 @@ with tab2:
         st.session_state["formation_create_compo"] = formation
         terrain = terrain_interactif(formation, "terrain_create_compo")
         tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-        remplaçants = remplaçants_interactif("create_compo", tous_titulaires)
+        remplacants = remplacants_interactif("create_compo", tous_titulaires)
         fig = draw_football_pitch_vertical()
-        fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
+        fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
             try:
@@ -392,7 +392,7 @@ with tab2:
                 lineup = {
                     "formation": formation,
                     "details": copy.deepcopy(terrain),
-                    "remplacants": copy.deepcopy(remplaçants)
+                    "remplacants": copy.deepcopy(remplacants)
                 }
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
@@ -445,18 +445,18 @@ with tab3:
             compo_data = st.session_state.lineups[compo_choice]
             formation = compo_data["formation"]
             terrain = copy.deepcopy(compo_data["details"])
-            remplaçants = list(compo_data.get("remplacants", []))
+            remplacants = list(compo_data.get("remplacants", []))
             st.session_state["formation_new_match"] = formation
             st.session_state["terrain_new_match"] = terrain
-            st.session_state["remp_new_match"] = remplaçants
+            st.session_state["remp_new_match"] = remplacants
         else:
             formation = st.selectbox("Formation", list(FORMATION.keys()), key="match_formation")
             st.session_state["formation_new_match"] = formation
             terrain = terrain_interactif(formation, "terrain_new_match")
             tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-            remplaçants = remplaçants_interactif("new_match", tous_titulaires)
+            remplacants = remplacants_interactif("new_match", tous_titulaires)
         fig = draw_football_pitch_vertical()
-        fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
+        fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
         if st.button("Enregistrer le match"):
             try:
@@ -469,7 +469,7 @@ with tab3:
                     "lieu": lieu,
                     "formation": formation,
                     "details": copy.deepcopy(terrain),
-                    "remplacants": copy.deepcopy(remplaçants),
+                    "remplacants": copy.deepcopy(remplacants),
                     "events": {},
                     "score": "",
                     "score_afc": 0,
@@ -541,7 +541,7 @@ with tab3:
                         st.session_state[f"formation_terrain_match_{mid}"] = match["formation"]
                         st.session_state[f"terrain_match_{mid}"] = match["details"]
                         terrain = terrain_interactif(match["formation"], f"terrain_match_{mid}")
-                        remp_edit = remplaçants_interactif(f"edit_match_{mid}", [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j])
+                        remp_edit = remplacants_interactif(f"edit_match_{mid}", [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j])
                         if st.button("Mettre à jour la compo", key=f"maj_compo_{mid}"):
                             match["details"] = st.session_state.get(f"terrain_match_{mid}", match["details"])
                             match["remplacants"] = remp_edit
