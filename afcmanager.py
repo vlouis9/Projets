@@ -117,10 +117,10 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplaçants=None):
                 x=[x_r], y=[-6],
                 mode="markers+text",
                 marker=dict(size=28, color="#0d47a1", line=dict(width=2, color="white")),
-                text=numero,
+                text=[str(numero)],
                 texposition="middle center",
                 textfont=dict(color="white", size=16, family="Arial Black"),
-                hovertext=nom,
+                hovertext=[str(nom)],
                 hoverinfo="text"
             ))
             fig.add_trace(go.Scatter(
