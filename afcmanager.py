@@ -345,7 +345,6 @@ with tab2:
         st.session_state["formation_create_compo"] = formation
         terrain = terrain_interactif(formation, "terrain_create_compo")
         tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-        nb_titulaires_attendus = sum(FORMATION[formation].values())
         remplaçants = remplaçants_interactif("create_compo", tous_titulaires)
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplaçants)
@@ -353,34 +352,19 @@ with tab2:
         if st.button("Sauvegarder la composition"):
             try:
                 import copy
-                # Sécurité sur nom vide
-                if not nom_compo.strip():
-                    st.error("Le nom de la composition ne doit pas être vide.")
-                    st.stop()
-                # Sécurité sur complétude
-                if len(tous_titulaires) != nb_titulaires_attendus:
-                    st.error(f"Vous devez sélectionner {nb_titulaires_attendus} titulaires (un par poste).")
-                    st.stop()
                 lineup = {
                     "formation": formation,
                     "details": copy.deepcopy(terrain),
                     "remplacants": copy.deepcopy(remplaçants)
                 }
-                if nom_compo in st.session_state.lineups:
-                    st.warning("Une composition porte déjà ce nom. Elle va être écrasée.")
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
-                st.write("DEBUG – Lineups in memory:", st.session_state.lineups)
-with open(DATA_FILE, "r") as f:
-    st.write("DEBUG – Lineups in file:", json.load(f)["lineups"])
-            except Exception as e:
                 st.success("Composition sauvegardée !")
                 st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
     with subtab2:
-        st.write("DEBUG – Affichage des lineups :", st.session_state.lineups) 
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
         else:
