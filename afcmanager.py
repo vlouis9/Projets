@@ -130,6 +130,14 @@ def save_all():
         "lineups": st.session_state.lineups,
         "matches": st.session_state.matches,
     }
+    try:
+        with open(DATA_FILE, "w") as f:
+            json.dump(data, f, indent=2)
+        print("Données sauvegardées dans le fichier JSON !")
+    except Exception as e:
+        st.error(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
+        import traceback
+        st.text(traceback.format_exc())
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
