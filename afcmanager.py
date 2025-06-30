@@ -236,11 +236,9 @@ def compute_player_stats(joueur_nom):
         "Homme du match": hdm
     }
 
-if "players" not in st.session_state:
-    reload_all()
-if "lineups" not in st.session_state:
-    reload_all()
-if "matches" not in st.session_state:
+if ("players" not in st.session_state or
+    "lineups" not in st.session_state or
+    "matches" not in st.session_state):
     reload_all()
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
@@ -360,7 +358,6 @@ with tab2:
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
-                st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
