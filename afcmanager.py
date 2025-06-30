@@ -149,13 +149,30 @@ def save_all():
     with open(DATA_FILE, "w") as f:
         json.dump(data, f, indent=2)
 
+def fusion_dictionnaires(json_dict, session_dict):
+    fusion = dict(json_dict)
+    fusion.update(session_dict)
+    return fusion
+
 def reload_all():
     if os.path.exists(DATA_FILE):
         with open(DATA_FILE, "r") as f:
             data = json.load(f)
-        st.session_state.players = pd.DataFrame(data.get("players", []))
-        st.session_state.lineups = data.get("lineups", {})
-        st.session_state.matches = data.get("matches", {})
+        session_players = st.session_state.get("players", pd.DataFrame(columns=PLAYER_COLS))
+        json_players = pd.DataFrame(data.get("players", []))
+        if not session_players.empty:
+            merged_players = pd.concat([json_players, session_players]).drop_duplicates(subset="Nom", keep="last")
+        else:
+            merged_players = json_players
+        st.session_state.players = merged_players
+
+        session_lineups = st.session_state.get("lineups", {})
+        json_lineups = data.get("lineups", {})
+        st.session_state.lineups = fusion_dictionnaires(json_lineups, session_lineups)
+
+        session_matches = st.session_state.get("matches", {})
+        json_matches = data.get("matches", {})
+        st.session_state.matches = fusion_dictionnaires(json_matches, session_matches)
     else:
         st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
         st.session_state.lineups = {}
