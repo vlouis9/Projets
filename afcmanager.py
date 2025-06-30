@@ -412,7 +412,6 @@ with tab2:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
     with subtab2:
-        st.write("DEBUG Mes compos:", list(st.session_state.lineups.keys()))
         if not st.session_state.lineups:
             st.info("Aucune composition enregistrée.")
         else:
@@ -433,7 +432,6 @@ with tab2:
 
 # --- MATCHS ---
 with tab3:
-    st.write("DEBUG Compos pour match:", list(st.session_state.lineups.keys()))
     st.title("Gestion des matchs")
     subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
     with subtab1:
@@ -452,7 +450,6 @@ with tab3:
         lieu = st.text_input("Lieu", key="lieu")
         nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
-        use_compo = st.checkbox("Utiliser une composition enregistrée ?")
         use_compo = st.checkbox("Utiliser une composition enregistrée ?", key="use_compo_match")
         if use_compo and st.session_state.lineups:
             compo_keys = list(st.session_state.lineups.keys())
