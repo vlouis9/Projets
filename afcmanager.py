@@ -800,69 +800,69 @@ with tab4:
     if df.empty or df.shape[1] == 0:
         st.info("Aucun joueur ou aucune donnée de stats à afficher.")
     else:
-    clean_sheets = compute_clean_sheets()
-    df["Clean sheets"] = df.apply(
-        lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
-    # ... rest of your stats code ...
-    clean_sheets = compute_clean_sheets()
-    df["Clean sheets"] = df.apply(
-        lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
-    df["Bouchers"] = df["Cartons rouges"].fillna(0) + df["Cartons jaunes"].fillna(0)
-
-    # Top 5 by rating
-    top_rating = df[df["Note générale"] > 0].sort_values("Note générale", ascending=False).head(5)
-    # Top 5 scorers
-    top_buts = df[df["Buts"] > 0].sort_values("Buts", ascending=False).head(5)
-    # Top 5 passers
-    top_passes = df[df["Passes décisives"] > 0].sort_values("Passes décisives", ascending=False).head(5)
-    # Top 5 decisive
-    top_decisive = df[df["Buts + Passes"] > 0].sort_values("Buts + Passes", ascending=False).head(5)
-    # Top 5 clean sheets (goalkeepers only)
-    top_clean = df[df["Poste"] == "G"].sort_values("Clean sheets", ascending=False).head(5)
-    # Top 5 ratio
-    top_ratio = df[df["Décisif par match"] > 0].sort_values("Décisif par match", ascending=False).head(5)
-    # Top 5 used
-    top_used = df[df["Titularisations"] > 0].sort_values("Titularisations", ascending=False).head(5)
-    # Top 5 bouchers (by red, then yellow)
-    top_bouchers = df[(df["Cartons rouges"] > 0) | (df["Cartons jaunes"] > 0)].sort_values(
-        by=["Cartons rouges", "Cartons jaunes"], ascending=[False, False]).head(5)
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        st.subheader("⭐ Top 5 Notes")
-        st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True)
-        st.subheader("⚽ Top 5 Buteurs")
-        st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True)
-        st.subheader("🎯 Top 5 Passeurs")
-        st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True)
-        st.subheader("🔥 Top 5 Décisifs (Buts+Passes)")
-        st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True)
-        st.subheader("🧤 Top 5 Clean Sheets (Gardiens)")
-        st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True)
-
-    with col2:
-        st.subheader("⚡ Top 5 Ratio Décisif/Match")
-        st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True)
-        st.subheader("🔁 Top 5 Plus Utilisés")
-        st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True)
-        st.subheader("🟥🟨 Top 5 Bouchers")
-        st.dataframe(top_bouchers[["Nom", "Cartons rouges", "Cartons jaunes"]], use_container_width=True)
-
-    # Team stats
-    total_goals = df["Buts"].sum()
-    total_conceded = sum(
-        match.get("score_adv", 0)
-        for match in st.session_state.matches.values()
-        if match.get("noted", False)
-    )
-    diff_scorers = df[df["Buts"] > 0]["Nom"].nunique()
-
-    st.markdown("---")
-    col3, col4, col5 = st.columns(3)
-    with col3:
-        st.metric("Buts marqués", int(total_goals))
-    with col4:
-        st.metric("Buts encaissés", int(total_conceded))
-    with col5:
-        st.metric("Nombre de buteurs différents", int(diff_scorers))
+        clean_sheets = compute_clean_sheets()
+        df["Clean sheets"] = df.apply(
+            lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
+        # ... rest of your stats code ...
+        clean_sheets = compute_clean_sheets()
+        df["Clean sheets"] = df.apply(
+            lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
+        df["Bouchers"] = df["Cartons rouges"].fillna(0) + df["Cartons jaunes"].fillna(0)
+    
+        # Top 5 by rating
+        top_rating = df[df["Note générale"] > 0].sort_values("Note générale", ascending=False).head(5)
+        # Top 5 scorers
+        top_buts = df[df["Buts"] > 0].sort_values("Buts", ascending=False).head(5)
+        # Top 5 passers
+        top_passes = df[df["Passes décisives"] > 0].sort_values("Passes décisives", ascending=False).head(5)
+        # Top 5 decisive
+        top_decisive = df[df["Buts + Passes"] > 0].sort_values("Buts + Passes", ascending=False).head(5)
+        # Top 5 clean sheets (goalkeepers only)
+        top_clean = df[df["Poste"] == "G"].sort_values("Clean sheets", ascending=False).head(5)
+        # Top 5 ratio
+        top_ratio = df[df["Décisif par match"] > 0].sort_values("Décisif par match", ascending=False).head(5)
+        # Top 5 used
+        top_used = df[df["Titularisations"] > 0].sort_values("Titularisations", ascending=False).head(5)
+        # Top 5 bouchers (by red, then yellow)
+        top_bouchers = df[(df["Cartons rouges"] > 0) | (df["Cartons jaunes"] > 0)].sort_values(
+            by=["Cartons rouges", "Cartons jaunes"], ascending=[False, False]).head(5)
+    
+        col1, col2 = st.columns(2)
+    
+        with col1:
+            st.subheader("⭐ Top 5 Notes")
+            st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True)
+            st.subheader("⚽ Top 5 Buteurs")
+            st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True)
+            st.subheader("🎯 Top 5 Passeurs")
+            st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True)
+            st.subheader("🔥 Top 5 Décisifs (Buts+Passes)")
+            st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True)
+            st.subheader("🧤 Top 5 Clean Sheets (Gardiens)")
+            st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True)
+    
+        with col2:
+            st.subheader("⚡ Top 5 Ratio Décisif/Match")
+            st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True)
+            st.subheader("🔁 Top 5 Plus Utilisés")
+            st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True)
+            st.subheader("🟥🟨 Top 5 Bouchers")
+            st.dataframe(top_bouchers[["Nom", "Cartons rouges", "Cartons jaunes"]], use_container_width=True)
+    
+        # Team stats
+        total_goals = df["Buts"].sum()
+        total_conceded = sum(
+            match.get("score_adv", 0)
+            for match in st.session_state.matches.values()
+            if match.get("noted", False)
+        )
+        diff_scorers = df[df["Buts"] > 0]["Nom"].nunique()
+    
+        st.markdown("---")
+        col3, col4, col5 = st.columns(3)
+        with col3:
+            st.metric("Buts marqués", int(total_goals))
+        with col4:
+            st.metric("Buts encaissés", int(total_conceded))
+        with col5:
+            st.metric("Nombre de buteurs différents", int(diff_scorers))
