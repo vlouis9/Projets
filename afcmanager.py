@@ -200,7 +200,7 @@ def terrain_interactif(formation, terrain_key):
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
     for poste in POSTES_ORDER:
-        col = st.columns(FORMATION[formation][poste])
+        st.markdown(f"**{POSTES_LONG[poste]}{'s' if FORMATION[formation][poste] > 1 else ''}**")
         for i in range(FORMATION[formation][poste]):
             all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and "Nom" in j and j]
             current_joueur = terrain[poste][i] if (isinstance(terrain[poste][i], dict) and terrain[poste][i] and "Nom" in terrain[poste][i]) else None
@@ -210,7 +210,8 @@ def terrain_interactif(formation, terrain_key):
                 n for n in st.session_state.players["Nom"]
                 if n and (n == current_nom or n not in all_selected)
             ]
-            choix = col[i].selectbox(
+            # 1 seul select par ligne, puis le numéro et capitaine si besoin
+            choix = st.selectbox(
                 label,
                 joueur_options,
                 index=joueur_options.index(current_nom) if current_nom in joueur_options else 0,
@@ -218,8 +219,8 @@ def terrain_interactif(formation, terrain_key):
             )
             if choix:
                 joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
-                num = col[i].text_input(f"Numéro de {choix}", value=current_joueur.get("Numero","") if current_joueur else "", key=f"num_{terrain_key}_{poste}_{i}")
-                cap = col[i].checkbox(f"Capitaine ?", value=current_joueur.get("Capitaine", False) if current_joueur else False, key=f"cap_{terrain_key}_{poste}_{i}")
+                num = st.text_input(f"Numéro de {choix}", value=current_joueur.get("Numero","") if current_joueur else "", key=f"num_{terrain_key}_{poste}_{i}")
+                cap = st.checkbox(f"Capitaine ?", value=current_joueur.get("Capitaine", False) if current_joueur else False, key=f"cap_{terrain_key}_{poste}_{i}")
                 joueur_info["Numero"] = num
                 joueur_info["Capitaine"] = cap
                 terrain[poste][i] = joueur_info
@@ -227,7 +228,6 @@ def terrain_interactif(formation, terrain_key):
                 terrain[poste][i] = None
     st.session_state[terrain_key] = terrain
     return terrain
-
 def remplacants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
