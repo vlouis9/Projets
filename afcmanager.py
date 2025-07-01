@@ -453,8 +453,8 @@ with tab2:
         if st.button("Sauvegarder la composition"):
             st.write("BOUTON ENREGISTREMENT CLIQUE")
             if not nom_compo.strip():
-            st.error("Merci d'indiquer un nom pour la composition.")
-            st.stop()
+                st.error("Merci d'indiquer un nom pour la composition.")
+                st.stop()
             try:
                 lineup = {
                     "formation": formation,
