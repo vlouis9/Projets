@@ -194,6 +194,11 @@ def save_all():
         with open(DATA_FILE, "w") as f:
             json.dump(data, f, indent=2)
         print("Données sauvegardées dans le fichier JSON !")
+        with open(DATA_FILE, "r") as f:
+            data = json.load(f)
+        st.session_state.players = pd.DataFrame(data.get("players", []))
+        st.session_state.lineups = data.get("lineups", {})
+        st.session_state.matches = data.get("matches", {})
     except Exception as e:
         st.error(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
         st.text(traceback.format_exc())
@@ -469,7 +474,6 @@ with tab2:
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
-                st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
