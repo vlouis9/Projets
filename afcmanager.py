@@ -648,85 +648,69 @@ with tab3:
         if edit_match_lineup:
             match_id = edit_match_lineup["id"]
             match_data = st.session_state.matches[match_id]
-    
-            # Pre-fill session state only once
-            field_defaults = {
-                "adversaire_edit": match_data["adversaire"],
-                "date_edit": pd.to_datetime(match_data["date"]).date(),
-                "heure_edit": pd.to_datetime(match_data["heure"]).time(),
-                "lieu_edit": match_data["lieu"],
-                "type_match_edit": match_data.get("type", "Championnat"),
-                "nom_match_edit": match_id,
-                "formation_new_match": match_data["formation"],
-                "terrain_new_match": copy.deepcopy(match_data["details"]),
-                "remp_new_match": copy.deepcopy(match_data.get("remplacants", [])),
-            }
-            for k, v in field_defaults.items():
-                if k not in st.session_state:
-                    st.session_state[k] = v
-    
-            adversaire = st.text_input("Nom de l'adversaire", key="adversaire_edit")
-            date = st.date_input("Date du match", value=st.session_state["date_edit"], key="date_edit")
-            heure = st.time_input("Heure du match", value=st.session_state["heure_edit"], key="heure_edit")
-            lieu = st.text_input("Lieu", key="lieu_edit")
-            type_match = st.selectbox("Type de match", ["Championnat", "Coupe"],
-                                      index=0 if st.session_state["type_match_edit"] == "Championnat" else 1,
-                                      key="type_match_edit")
-            nom_match = st.text_input("Nom du match", value=st.session_state["nom_match_edit"], key="nom_match_edit")
-            st.info(f"Édition complète du match : {match_id}")
-    
-            # Show original lineup as reference
-            with st.expander("Voir la composition d'origine"):
-                fig_original = draw_football_pitch_vertical()
-                fig_original = plot_lineup_on_pitch_vertical(
-                    fig_original,
-                    match_data["details"],
-                    match_data["formation"],
-                    match_data.get("remplacants", [])
-                )
-                st.plotly_chart(fig_original, use_container_width=True, config={"staticPlot": True}, key="fig_original_lineup")
-    
+            adversaire = st.text_input(
+                "Nom de l'adversaire", value=match_data["adversaire"], key=f"adversaire_{match_id}"
+            )
+            date = st.date_input(
+                "Date du match", value=pd.to_datetime(match_data["date"]).date(), key=f"date_{match_id}"
+            )
+            heure = st.time_input(
+                "Heure du match", value=pd.to_datetime(match_data["heure"]).time(), key=f"heure_{match_id}"
+            )
+            lieu = st.text_input(
+                "Lieu", value=match_data["lieu"], key=f"lieu_{match_id}"
+            )
+            nom_match = st.text_input(
+                "Nom du match", value=match_id, key=f"nom_match_{match_id}"
+            )
+            type_match = st.selectbox(
+                "Type de match", ["Championnat", "Coupe"],
+                index=0 if match_data["type"] == "Championnat" else 1,
+                key=f"type_match_{match_id}"
+            )
+            # Setup lineup info for editing
+            formation = st.selectbox(
+                "Formation", list(FORMATION.keys()),
+                index=list(FORMATION.keys()).index(match_data["formation"]),
+                key=f"formation_{match_id}"
+            )
+            terrain = terrain_interactif(formation, f"terrain_{match_id}")
+            tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
+            remplacants = remplacants_interactif(f"{match_id}", tous_titulaires)
         else:
-            adversaire = st.text_input("Nom de l'adversaire", key="adversaire_create")
-            date = st.date_input("Date du match", value=datetime.today(), key="date_create")
-            heure = st.time_input("Heure du match", key="heure_create")
-            lieu = st.text_input("Lieu", key="lieu_create")
-            type_match = st.selectbox("Type de match", ["Championnat", "Coupe"], key="type_match_create")
+            # New match form
+            unique_id = f"new_{len(st.session_state.matches)}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            adversaire = st.text_input("Nom de l'adversaire", key=f"adversaire_{unique_id}")
+            date = st.date_input("Date du match", value=datetime.today(), key=f"date_{unique_id}")
+            heure = st.time_input("Heure du match", key=f"heure_{unique_id}")
+            lieu = st.text_input("Lieu", key=f"lieu_{unique_id}")
             nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
-            nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
-    
-        # Reset
-        if st.button("Réinitialiser la création du match"):
-            for k in [
-                "terrain_new_match", "formation_new_match", "remp_new_match",
-                "nom_match_sugg", "adversaire_create", "lieu_create", "date_create", "heure_create", "type_match_create",
-                "adversaire_edit", "lieu_edit", "date_edit", "heure_edit", "type_match_edit", "nom_match_edit"
-            ]:
-                if k in st.session_state:
-                    del st.session_state[k]
-            if "edit_match_lineup" in st.session_state:
-                del st.session_state["edit_match_lineup"]
-            st.rerun()
-    
-        # Interactive lineup editor
-        formation = st.selectbox(
-            "Formation",
-            list(FORMATION.keys()),
-            index=list(FORMATION.keys()).index(st.session_state.get("formation_new_match", DEFAULT_FORMATION)),
-            key="formation_new_match"
-        )
-        terrain = terrain_interactif(formation, "terrain_new_match")
-        tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-        remplacants = remplacants_interactif("new_match", tous_titulaires)
-    
+            nom_match = st.text_input("Nom du match", value=nom_sugg, key=f"nom_match_{unique_id}")
+            type_match = st.selectbox("Type de match", ["Championnat", "Coupe"], key=f"type_match_{unique_id}")
+            use_compo = st.checkbox("Utiliser une composition enregistrée ?", key=f"use_compo_{unique_id}")
+            if use_compo and st.session_state.lineups:
+                compo_keys = list(st.session_state.lineups.keys())
+                compo_choice = st.selectbox(
+                    "Choisir la composition", compo_keys, key=f"compo_choice_{unique_id}"
+                )
+                compo_data = st.session_state.lineups[compo_choice]
+                formation = compo_data["formation"]
+                terrain = copy.deepcopy(compo_data["details"])
+                remplacants = list(compo_data.get("remplacants", []))
+            else:
+                formation = st.selectbox("Formation", list(FORMATION.keys()), key=f"match_formation_{unique_id}")
+                terrain = terrain_interactif(formation, f"terrain_{unique_id}")
+                tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
+                remplacants = remplacants_interactif(f"{unique_id}", tous_titulaires)
+
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
-    
-        # Save logic
-        if st.button("Enregistrer le match"):
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{nom_match}")
+
+        if st.button("Enregistrer le match", key=f"save_match_{nom_match}"):
             try:
-                match_info = {
+                match_id_to_save = nom_match
+                st.session_state.matches[match_id_to_save] = {
                     "type": type_match,
                     "adversaire": adversaire,
                     "date": str(date),
@@ -735,37 +719,33 @@ with tab3:
                     "formation": formation,
                     "details": copy.deepcopy(terrain),
                     "remplacants": copy.deepcopy(remplacants),
+                    "events": st.session_state.matches.get(match_id_to_save, {}).get("events", {}),
+                    "score": st.session_state.matches.get(match_id_to_save, {}).get("score", ""),
+                    "score_afc": st.session_state.matches.get(match_id_to_save, {}).get("score_afc", 0),
+                    "score_adv": st.session_state.matches.get(match_id_to_save, {}).get("score_adv", 0),
+                    "noted": st.session_state.matches.get(match_id_to_save, {}).get("noted", False),
+                    "homme_du_match": st.session_state.matches.get(match_id_to_save, {}).get("homme_du_match", "")
                 }
-                if edit_match_lineup:
-                    old = st.session_state.matches[match_id]
-                    for k in ["events", "score", "score_afc", "score_adv", "noted", "homme_du_match"]:
-                        match_info[k] = old.get(k, "" if k == "score" else 0 if "score" in k else False)
-                    if nom_match != match_id:
-                        st.session_state.matches[nom_match] = match_info
-                        del st.session_state.matches[match_id]
-                    else:
-                        st.session_state.matches[nom_match] = match_info
-                else:
-                    match_info.update({
-                        "events": {},
-                        "score": "",
-                        "score_afc": 0,
-                        "score_adv": 0,
-                        "noted": False,
-                        "homme_du_match": ""
-                    })
-                    st.session_state.matches[nom_match] = match_info
                 save_all()
-                st.success("Match enregistré !")
-                for k in [
-                    "edit_match_lineup", "adversaire_edit", "lieu_edit", "date_edit", "heure_edit", "type_match_edit", "nom_match_edit"
-                ]:
-                    if k in st.session_state:
-                        del st.session_state[k]
+                st.success("Composition du match mise à jour !" if edit_match_lineup else "Match enregistré !")
+                if "edit_match_lineup" in st.session_state:
+                    del st.session_state["edit_match_lineup"]
                 st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
+
+        if st.button("Réinitialiser la création du match", key=f"reset_match_{nom_match}"):
+            for k in [
+                f"terrain_{nom_match}", f"formation_{nom_match}",
+                f"remp_{nom_match}", f"nom_match_{nom_match}", f"adversaire_{nom_match}", f"lieu_{nom_match}"
+            ]:
+                if k in st.session_state:
+                    del st.session_state[k]
+            if "edit_match_lineup" in st.session_state:
+                del st.session_state["edit_match_lineup"]
+            st.rerun()
+
     with subtab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
@@ -784,7 +764,6 @@ with tab3:
                     st.write(f"**Lieu :** {match['lieu']}")
                     st.markdown("---")
                     fig = draw_football_pitch_vertical()
-                    # Prepare player stats for display
                     ev = match.get("events", {})
                     joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j]
                     player_stats = {}
@@ -841,7 +820,6 @@ with tab3:
                                 st.markdown(f"- {nom} ({nb})")
                         st.markdown("---")
                     if st.button("Éditer la compo", key=f"edit_lineup_{mid}"):
-                        # Store match lineup/edit info in session
                         st.session_state["edit_match_lineup"] = {
                             "id": mid,
                             "formation": match["formation"],
@@ -855,7 +833,7 @@ with tab3:
                         st.write("### Saisie des stats du match")
                         titularies = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j]
                         remplaçants = [r["Nom"] for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]
-                        joueurs_all = list(dict.fromkeys(titularies + remplaçants))  # Keeps order, removes duplicates
+                        joueurs_all = list(dict.fromkeys(titularies + remplaçants))
                         score_afc = st.number_input("Buts AFC", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
                         score_adv = st.number_input(f"Buts {match['adversaire']}", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
                         buteurs_qte = {}
