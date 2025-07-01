@@ -665,7 +665,7 @@ with tab3:
                         player_stats=player_stats
                     )
                     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
-                        st.markdown("---")
+                    st.markdown("---")
                     if match.get("noted", False):    
                         col1, col2 = st.columns(2)
                         with col1:
