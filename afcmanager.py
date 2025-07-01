@@ -30,7 +30,7 @@ def draw_football_pitch_vertical():
     fig.add_shape(type="circle", x0=34-9.15, y0=52.5-9.15, x1=34+9.15, y1=52.5+9.15, line=dict(width=1, color="#145A32"))
     fig.add_shape(type="circle", x0=34-0.4, y0=52.5-0.4, x1=34+0.4, y1=52.5+0.4, fillcolor="#145A32", line=dict(color="#145A32"))
     fig.update_xaxes(showticklabels=False, range=[-5, 73], visible=False)
-    fig.update_yaxes(showticklabels=False, range=[-8, 125], visible=False)
+    fig.update_yaxes(showticklabels=False, range=[-25, 125], visible=False)
     fig.update_layout(
         width=460, height=800, plot_bgcolor="#154734", margin=dict(l=10,r=10,t=10,b=10), showlegend=False
     )
