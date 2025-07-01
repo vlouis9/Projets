@@ -476,6 +476,7 @@ with tab2:
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
+                st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
