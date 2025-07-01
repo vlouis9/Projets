@@ -559,93 +559,63 @@ with tab3:
     with subtab1:
         edit_match_lineup = st.session_state.get("edit_match_lineup", None)
         if edit_match_lineup:
-            # Use existing values for editing
-            adversaire = st.session_state.matches[edit_match_lineup["id"]]["adversaire"]
-            date = pd.to_datetime(st.session_state.matches[edit_match_lineup["id"]]["date"]).date()
-            heure = pd.to_datetime(st.session_state.matches[edit_match_lineup["id"]]["heure"]).time()
-            lieu = st.session_state.matches[edit_match_lineup["id"]]["lieu"]
-            nom_match = edit_match_lineup["id"]  # Use match name/id for saving
+            match_id = edit_match_lineup["id"]
+            match_data = st.session_state.matches[match_id]
+            adversaire = match_data["adversaire"]
+            date = pd.to_datetime(match_data["date"]).date()
+            heure = pd.to_datetime(match_data["heure"]).time()
+            lieu = match_data["lieu"]
+            nom_match = match_id
+            type_match = match_data.get("type", "Championnat")
+            # Set up lineup for editing
             st.info(f"Édition de la compo pour le match : {nom_match}")
+            st.write(f"**Adversaire :** {adversaire}")
+            st.write(f"**Date :** {date}  **Heure :** {heure}  **Lieu :** {lieu}")
         else:
-            # Prompt for new values
-            adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
-            date = st.date_input("Date du match", value=datetime.today())
-            heure = st.time_input("Heure du match")
-            lieu = st.text_input("Lieu", key="lieu")
+            adversaire = st.text_input("Nom de l'adversaire", key="adversaire_create")
+            date = st.date_input("Date du match", value=datetime.today(), key="date_create")
+            heure = st.time_input("Heure du match", key="heure_create")
+            lieu = st.text_input("Lieu", key="lieu_create")
             nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
             nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
+            type_match = st.selectbox("Type de match", ["Championnat", "Coupe"], key="type_match_create")
+
+        # Reset button (works for both create/edit)
         if st.button("Réinitialiser la création du match"):
             for k in [
                 "terrain_new_match", "formation_new_match",
-                "remp_new_match", "nom_match_sugg", "adversaire", "lieu"
+                "remp_new_match", "nom_match_sugg", "adversaire_create", "lieu_create", "date_create", "heure_create", "type_match_create"
             ]:
                 if k in st.session_state:
                     del st.session_state[k]
+            if "edit_match_lineup" in st.session_state:
+                del st.session_state["edit_match_lineup"]
             st.rerun()
-        type_match = st.selectbox("Type de match", ["Championnat", "Coupe"])
-        adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
-        date = st.date_input("Date du match", value=datetime.today())
-        heure = st.time_input("Heure du match")
-        lieu = st.text_input("Lieu", key="lieu")
-        nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
-        nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
-        use_compo = st.checkbox("Utiliser une composition enregistrée ?", key="use_compo_match")
-        if use_compo and st.session_state.lineups:
-            compo_keys = list(st.session_state.lineups.keys())
-            # Initialisation de la sélection si besoin
-            if "compo_choice_match" not in st.session_state:
-                st.session_state.compo_choice_match = compo_keys[0] if compo_keys else ""
-            compo_choice = st.selectbox(
-                "Choisir la composition",
-                compo_keys,
-                index=compo_keys.index(st.session_state.get("compo_choice_match", compo_keys[0])) if compo_keys else 0,
-                key="compo_choice_match"
-            )
-            compo_data = st.session_state.lineups[compo_choice]
-            formation = compo_data["formation"]
-            terrain = copy.deepcopy(compo_data["details"])
-            remplacants = list(compo_data.get("remplacants", []))
+
+        # Lineup and remplaçants
+        if edit_match_lineup:
+            # Use the match's saved formation/details for editing
+            formation = match_data["formation"]
+            terrain = copy.deepcopy(match_data["details"])
+            remplacants = copy.deepcopy(match_data.get("remplacants", []))
             st.session_state["formation_new_match"] = formation
             st.session_state["terrain_new_match"] = terrain
             st.session_state["remp_new_match"] = remplacants
         else:
-            formation = st.selectbox("Formation", list(FORMATION.keys()), key="match_formation")
-            st.session_state["formation_new_match"] = formation
-            terrain = terrain_interactif(formation, "terrain_new_match")
-            tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-            remplacants = remplacants_interactif("new_match", tous_titulaires)
-        fig = draw_football_pitch_vertical()
-        fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
-        if st.button("Enregistrer le match"):
-            try:
-                match_id = nom_match
-                st.session_state.matches[match_id] = {
-                    "type": type_match if not edit_match_lineup else st.session_state.matches[match_id]["type"],
-                    "adversaire": adversaire if not edit_match_lineup else st.session_state.matches[match_id]["adversaire"],
-                    "date": str(date) if not edit_match_lineup else st.session_state.matches[match_id]["date"],
-                    "heure": str(heure) if not edit_match_lineup else st.session_state.matches[match_id]["heure"],
-                    "lieu": lieu if not edit_match_lineup else st.session_state.matches[match_id]["lieu"],
-                    "formation": formation,
-                    "details": copy.deepcopy(terrain),
-                    "remplacants": copy.deepcopy(remplacants),
-                    "events": st.session_state.matches[match_id].get("events", {}),
-                    "score": st.session_state.matches[match_id].get("score", ""),
-                    "score_afc": st.session_state.matches[match_id].get("score_afc", 0),
-                    "score_adv": st.session_state.matches[match_id].get("score_adv", 0),
-                    "noted": st.session_state.matches[match_id].get("noted", False),
-                    "homme_du_match": st.session_state.matches[match_id].get("homme_du_match", "")
-                }
-                save_all()
-                st.success("Composition du match mise à jour !" if edit_match_lineup else "Match enregistré !")
-                # Clean up edit state and rerun
-                if "edit_match_lineup" in st.session_state:
-                    del st.session_state["edit_match_lineup"]
-                st.rerun()
-            except Exception as e:
-                st.error(f"Erreur lors de la sauvegarde : {e}")
-                st.text(traceback.format_exc())
-    with subtab2:
+            use_compo = st.checkbox("Utiliser une composition enregistrée ?", key="use_compo_match")
+            if use_compo and st.session_state.lineups:
+                compo_keys = list(st.session_state.lineups.keys())
+                # Initialisation de la sélection si besoin
+                if "compo_choice_match" not in st.session_state:
+                    st.session_state.compo_choice_match = compo_keys[0] if compo_keys else ""
+                compo_choice = st.selectbox(
+                    "Choisir la composition",
+                    compo_keys,
+                    index=compo_keys.index(st.session_state.get("compo_choice_match", compo_keys[0])) if compo_keys else 0,
+                    key="compo_choice_match"
+                )
+                compo_data = st
+    with subtab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
         else:
