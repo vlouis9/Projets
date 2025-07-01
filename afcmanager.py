@@ -451,18 +451,22 @@ with tab2:
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
+            st.write("BOUTON ENREGISTREMENT CLIQUE")
+            if not nom_compo.strip():
+            st.error("Merci d'indiquer un nom pour la composition.")
+            st.stop()
             try:
-                if not nom_compo.strip():
-                    st.error("⚠️ Merci d'indiquer un nom pour la composition.")
-                else:
-                    lineup = {
-                        "formation": formation,
-                        "details": copy.deepcopy(terrain),
-                        "remplacants": copy.deepcopy(remplacants)
-                    }
-                    st.session_state.lineups[nom_compo] = lineup
-                    save_all()
-                    st.success("Composition sauvegardée !")
+                lineup = {
+                    "formation": formation,
+                    "details": copy.deepcopy(terrain),
+                    "remplacants": copy.deepcopy(remplacants)
+                }
+                st.write("NOM COMPO :", nom_compo)
+                st.write("LINEUPS AVANT :", st.session_state.lineups)
+                st.session_state.lineups[nom_compo] = lineup
+                save_all()
+                st.write("LINEUPS APRES :", st.session_state.lineups)
+                st.success("Composition sauvegardée !")
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
