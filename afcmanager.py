@@ -19,6 +19,44 @@ FORMATION = {
 }
 POSTES_LONG = {"G": "Gardien", "D": "Défenseur", "M": "Milieu", "A": "Attaquant"}
 POSTES_ORDER = ["G", "D", "M", "A"]
+POSTES_NOMS = {
+    "4-2-3-1": {
+        "G": ["Gardien"],
+        "D": ["Latéral gauche", "Défenseur central gauche", "Défenseur central droit", "Latéral droit"],
+        "M": ["Milieu défensif gauche", "Milieu défensif droit", "Ailier gauche", "Milieu offensif", "Ailier droit"],
+        "A": ["Avant-centre"]
+    },
+    "4-3-3": {
+        "G": ["Gardien"],
+        "D": ["Latéral gauche", "Défenseur central gauche", "Défenseur central droit", "Latéral droit"],
+        "M": ["Milieu gauche", "Milieu axial", "Milieu droit"],
+        "A": ["Ailier gauche", "Avant-centre", "Ailier droit"]
+    },
+    "4-4-2": {
+        "G": ["Gardien"],
+        "D": ["Latéral gauche", "Défenseur central gauche", "Défenseur central droit", "Latéral droit"],
+        "M": ["Milieu gauche", "Milieu axial gauche", "Milieu axial droit", "Milieu droit"],
+        "A": ["Attaquant gauche", "Attaquant droit"]
+    },
+    "3-5-2": {
+        "G": ["Gardien"],
+        "D": ["Défenseur gauche", "Défenseur axial", "Défenseur droit"],
+        "M": ["Ailier gauche", "Milieu axial gauche", "Milieu axial", "Milieu axial droit", "Ailier droit"],
+        "A": ["Attaquant gauche", "Attaquant droit"]
+    },
+    "3-4-3": {
+        "G": ["Gardien"],
+        "D": ["Défenseur gauche", "Défenseur axial", "Défenseur droit"],
+        "M": ["Milieu gauche", "Milieu axial gauche", "Milieu axial droit", "Milieu droit"],
+        "A": ["Ailier gauche", "Avant-centre", "Ailier droit"]
+    },
+    "5-3-2": {
+        "G": ["Gardien"],
+        "D": ["Latéral gauche", "Stoppeur gauche", "Libéro", "Stoppeur droit", "Latéral droit"],
+        "M": ["Milieu gauche", "Milieu axial", "Milieu droit"],
+        "A": ["Attaquant gauche", "Attaquant droit"]
+    }
+}
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
 
@@ -199,18 +237,21 @@ def terrain_interactif(formation, terrain_key):
     if terrain_key not in st.session_state:
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
+    # Affichage vertical par poste, compatible mobile
     for poste in POSTES_ORDER:
-        st.markdown(f"**{POSTES_LONG[poste]}{'s' if FORMATION[formation][poste] > 1 else ''}**")
+        if formation in POSTES_NOMS and poste in POSTES_NOMS[formation]:
+            noms_postes = POSTES_NOMS[formation][poste]
+        else:
+            noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
         for i in range(FORMATION[formation][poste]):
             all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and "Nom" in j and j]
             current_joueur = terrain[poste][i] if (isinstance(terrain[poste][i], dict) and terrain[poste][i] and "Nom" in terrain[poste][i]) else None
             current_nom = current_joueur["Nom"] if current_joueur else ""
-            label = f"{POSTES_LONG[poste]} {i+1}"
+            label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
             joueur_options = [""] + [
                 n for n in st.session_state.players["Nom"]
                 if n and (n == current_nom or n not in all_selected)
             ]
-            # 1 seul select par ligne, puis le numéro et capitaine si besoin
             choix = st.selectbox(
                 label,
                 joueur_options,
@@ -228,7 +269,8 @@ def terrain_interactif(formation, terrain_key):
                 terrain[poste][i] = None
     st.session_state[terrain_key] = terrain
     return terrain
-def remplacants_interactif(key, titulaires):
+    
+    def remplacants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
