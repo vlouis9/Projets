@@ -452,15 +452,17 @@ with tab2:
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
             try:
-                import copy
-                lineup = {
-                    "formation": formation,
-                    "details": copy.deepcopy(terrain),
-                    "remplacants": copy.deepcopy(remplacants)
-                }
-                st.session_state.lineups[nom_compo] = lineup
-                save_all()
-                st.success("Composition sauvegardée !")
+                if not nom_compo.strip():
+                    st.error("⚠️ Merci d'indiquer un nom pour la composition.")
+                else:
+                    lineup = {
+                        "formation": formation,
+                        "details": copy.deepcopy(terrain),
+                        "remplacants": copy.deepcopy(remplacants)
+                    }
+                    st.session_state.lineups[nom_compo] = lineup
+                    save_all()
+                    st.success("Composition sauvegardée !")
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
