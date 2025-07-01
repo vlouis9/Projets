@@ -347,17 +347,8 @@ if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
 def download_upload_buttons():
-    import io
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            data = f.read()
-    else:
-        # Génère un JSON par défaut pour éviter l'erreur
-        data = json.dumps({
-            "players": [],
-            "lineups": {},
-            "matches": {},
-        }, indent=2)
+    with open(DATA_FILE, "r") as f:
+        data = f.read()
     st.download_button(
         label="📥 Télécharger données (JSON)",
         data=data,
