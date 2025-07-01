@@ -115,13 +115,36 @@ def positions_for_formation_vertical(formation):
     }
     return presets.get(formation, presets["4-2-3-1"])
 
-def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None):
+def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, player_stats=None):
     positions = positions_for_formation_vertical(formation)
     color_poste = "#0d47a1"
     for poste in POSTES_ORDER:
         for i, joueur in enumerate(details.get(poste, [])):
             if joueur and isinstance(joueur, dict) and "Nom" in joueur:
                 x, y = positions[poste][i % len(positions[poste])]
+                nom = joueur["Nom"]
+                # Gather stats
+                stats = ""
+                if player_stats and nom in player_stats:
+                    s = player_stats[nom]
+                    parts = []
+                    if s.get("buts"):
+                        parts.append(f"⚽ {s['buts']}")
+                    if s.get("passes"):
+                        parts.append(f"🎯 {s['passes']}")
+                    if s.get("cj"):
+                        parts.append(f"🟨 {s['cj']}")
+                    if s.get("cr"):
+                        parts.append(f"🟥 {s['cr']}")
+                    if s.get("note"):
+                        parts.append(f"⭐ {s['note']}")
+                    if s.get("hdm"):
+                        parts.append("🏆")
+                    stats = " | ".join(parts)
+                # Hovertext with stats
+                hovertext = f"{nom}{' (C)' if joueur.get('Capitaine') else ''}"
+                if stats:
+                    hovertext += f"<br/>{stats}"
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y],
                     mode="markers+text",
@@ -129,13 +152,22 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None):
                     text=f"{joueur.get('Numero', '')}".strip() if "Numero" in joueur else "",
                     textposition="middle center",
                     textfont=dict(color="white", size=17, family="Arial Black"),
-                    hovertext=f"{joueur['Nom']}{' (C)' if joueur.get('Capitaine') else ''}",
+                    hovertext=hovertext,
                     hoverinfo="text"
                 ))
+                # Show stats as subtitle below player
+                if stats:
+                    fig.add_trace(go.Scatter(
+                        x=[x], y=[y-7],
+                        mode="text",
+                        text=[stats],
+                        textfont=dict(color="yellow", size=12, family="Arial Black"),
+                        showlegend=False
+                    ))
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y-4],
                     mode="text",
-                    text=[joueur['Nom'] + (" (C)" if joueur.get("Capitaine") else "")],
+                    text=[nom + (" (C)" if joueur.get("Capitaine") else "")],
                     textfont=dict(color="white", size=13, family="Arial Black"),
                     showlegend=False
                 ))
@@ -584,7 +616,26 @@ with tab3:
                     st.write(f"**Lieu :** {match['lieu']}")
                     st.write(f"**Formation :** {match['formation']}")
                     fig = draw_football_pitch_vertical()
-                    fig = plot_lineup_on_pitch_vertical(fig, match["details"], match["formation"], match.get("remplacants", []))
+                    # Prepare player stats for display
+                    ev = match.get("events", {})
+                    joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j]
+                    player_stats = {}
+                    for nom in joueurs_all:
+                        player_stats[nom] = {
+                            "buts": ev.get("buteurs", {}).get(nom, 0),
+                            "passes": ev.get("passeurs", {}).get(nom, 0),
+                            "cj": ev.get("cartons_jaunes", {}).get(nom, 0),
+                            "cr": ev.get("cartons_rouges", {}).get(nom, 0),
+                            "note": ev.get("notes", {}).get(nom, None),
+                            "hdm": match.get("homme_du_match", "") == nom
+                        }
+                    fig = plot_lineup_on_pitch_vertical(
+                        fig,
+                        match["details"],
+                        match["formation"],
+                        match.get("remplacants", []),
+                        player_stats=player_stats
+                    )
                     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
                     if match.get("noted", False):
                         score_col1, score_col2, score_col3 = st.columns([2,1,2])
