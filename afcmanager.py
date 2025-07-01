@@ -356,16 +356,18 @@ def download_upload_buttons():
     st.warning("⚠️ Importer un fichier JSON écrasera toutes vos données actuelles non sauvegardées ou non exportées.")
 
     # -- Import JSON --
-    up_json = st.file_uploader("Importer un fichier JSON", type="json", key="upload_all")
-    if up_json:
-        try:
-            data = json.load(up_json)
-            st.session_state.players = pd.DataFrame(data.get("players", []))
-            st.session_state.lineups = data.get("lineups", {})
-            st.session_state.matches = data.get("matches", {})
-            st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
-        except Exception as e:
-            st.error(f"❌ Erreur à l'import : {e}")
+    with st.form("import_json_form"):
+        up_json = st.file_uploader("Importer un fichier JSON", type="json", key="upload_all")
+        submitted = st.form_submit_button("Importer ce fichier")
+        if submitted and up_json:
+            try:
+                data = json.load(up_json)
+                st.session_state.players = pd.DataFrame(data.get("players", []))
+                st.session_state.lineups = data.get("lineups", {})
+                st.session_state.matches = data.get("matches", {})
+                st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
+            except Exception as e:
+                st.error(f"❌ Erreur à l'import : {e}")
 
     # -- Export JSON (depuis la session courante) --
     st.download_button(
