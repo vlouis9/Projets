@@ -645,13 +645,12 @@ with tab3:
     subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
     with subtab1:
         edit_match_lineup = st.session_state.get("edit_match_lineup", None)
-        # --- Initialize fields for edit or create ---
         if edit_match_lineup:
             match_id = edit_match_lineup["id"]
             match_data = st.session_state.matches[match_id]
     
-            # Only pre-fill session state fields once per edit session
-            default_fields = {
+            # Pre-fill session state only once
+            field_defaults = {
                 "adversaire_edit": match_data["adversaire"],
                 "date_edit": pd.to_datetime(match_data["date"]).date(),
                 "heure_edit": pd.to_datetime(match_data["heure"]).time(),
@@ -662,7 +661,7 @@ with tab3:
                 "terrain_new_match": copy.deepcopy(match_data["details"]),
                 "remp_new_match": copy.deepcopy(match_data.get("remplacants", [])),
             }
-            for k, v in default_fields.items():
+            for k, v in field_defaults.items():
                 if k not in st.session_state:
                     st.session_state[k] = v
     
@@ -676,7 +675,7 @@ with tab3:
             nom_match = st.text_input("Nom du match", value=st.session_state["nom_match_edit"], key="nom_match_edit")
             st.info(f"Édition complète du match : {match_id}")
     
-            # Show original lineup before editing
+            # Show original lineup as reference
             with st.expander("Voir la composition d'origine"):
                 fig_original = draw_football_pitch_vertical()
                 fig_original = plot_lineup_on_pitch_vertical(
@@ -696,7 +695,7 @@ with tab3:
             nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
             nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
     
-        # --- RESET button works for both create and edit ---
+        # Reset
         if st.button("Réinitialiser la création du match"):
             for k in [
                 "terrain_new_match", "formation_new_match", "remp_new_match",
@@ -709,7 +708,7 @@ with tab3:
                 del st.session_state["edit_match_lineup"]
             st.rerun()
     
-        # --- Interactive lineup editor ---
+        # Interactive lineup editor
         formation = st.selectbox(
             "Formation",
             list(FORMATION.keys()),
@@ -724,7 +723,7 @@ with tab3:
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
     
-        # --- Save logic ---
+        # Save logic
         if st.button("Enregistrer le match"):
             try:
                 match_info = {
@@ -739,10 +738,8 @@ with tab3:
                 }
                 if edit_match_lineup:
                     old = st.session_state.matches[match_id]
-                    # Preserve events/stats
                     for k in ["events", "score", "score_afc", "score_adv", "noted", "homme_du_match"]:
                         match_info[k] = old.get(k, "" if k == "score" else 0 if "score" in k else False)
-                    # Rename match key if changed
                     if nom_match != match_id:
                         st.session_state.matches[nom_match] = match_info
                         del st.session_state.matches[match_id]
