@@ -557,15 +557,21 @@ with tab3:
     st.title("Gestion des matchs")
     subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
     with subtab1:
-        # If editing an existing match lineup
         edit_match_lineup = st.session_state.get("edit_match_lineup", None)
         if edit_match_lineup:
-            st.info(f"Édition de la compo pour le match : {edit_match_lineup['id']}")
-            st.session_state["formation_new_match"] = edit_match_lineup["formation"]
-            st.session_state["terrain_new_match"] = edit_match_lineup["details"]
-            st.session_state["remp_new_match"] = edit_match_lineup["remplacants"]
+            # Use existing values for editing
+            adversaire = st.session_state.matches[edit_match_lineup["id"]]["adversaire"]
+            date = pd.to_datetime(st.session_state.matches[edit_match_lineup["id"]]["date"]).date()
+            heure = pd.to_datetime(st.session_state.matches[edit_match_lineup["id"]]["heure"]).time()
+            lieu = st.session_state.matches[edit_match_lineup["id"]]["lieu"]
             nom_match = edit_match_lineup["id"]  # Use match name/id for saving
+            st.info(f"Édition de la compo pour le match : {nom_match}")
         else:
+            # Prompt for new values
+            adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
+            date = st.date_input("Date du match", value=datetime.today())
+            heure = st.time_input("Heure du match")
+            lieu = st.text_input("Lieu", key="lieu")
             nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
             nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
         if st.button("Réinitialiser la création du match"):
