@@ -796,10 +796,14 @@ with tab4:
         s = compute_player_stats(row["Nom"])
         stats_data.append({**row, **s})
 
+    df = pd.DataFrame(stats_data)
     if df.empty or df.shape[1] == 0:
         st.info("Aucun joueur ou aucune donnée de stats à afficher.")
-        return
-    df = pd.DataFrame(stats_data)
+    else:
+    clean_sheets = compute_clean_sheets()
+    df["Clean sheets"] = df.apply(
+        lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
+    # ... rest of your stats code ...
     clean_sheets = compute_clean_sheets()
     df["Clean sheets"] = df.apply(
         lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
