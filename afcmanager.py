@@ -104,17 +104,31 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None):
     remplacants = remplacants or []
     n = len(remplacants)
     if n:
-        x_start = 34 - 16*n/2 + 8
+        # Définition des positions pour 2 lignes : 3 en haut, 2 en bas (max 5 remplaçants)
+        positions = []
+        if n == 1:
+            positions = [(34, -10)]
+        elif n == 2:
+            positions = [(28, -10), (40, -10)]
+        elif n == 3:
+            positions = [(22, -10), (34, -10), (46, -10)]
+        elif n == 4:
+            positions = [(22, -8), (34, -8), (46, -8), (34, -17)]
+        else:
+            # Cas général (n>=5) : 3 en haut, 2 en bas
+            positions = [(18, -8), (34, -8), (50, -8), (26, -17), (42, -17)]
         for idx, remp in enumerate(remplacants):
+            if idx >= len(positions):
+                break  # N'afficher que 5 remplaçants max
+            x_r, y_r = positions[idx]
             if isinstance(remp, dict):
                 nom = remp.get("Nom", "")
                 numero = remp.get("Numero", "")
             else:
                 nom = remp
                 numero = ""
-            x_r = x_start + idx*16
             fig.add_trace(go.Scatter(
-                x=[x_r], y=[-6],
+                x=[x_r], y=[y_r],
                 mode="markers+text",
                 marker=dict(size=28, color="#0d47a1", line=dict(width=2, color="white")),
                 text=[str(numero)],
@@ -124,7 +138,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None):
                 hoverinfo="text"
             ))
             fig.add_trace(go.Scatter(
-                x=[x_r], y=[-11],
+                x=[x_r], y=[y_r-5],
                 mode="text",
                 text=[f"{nom}"],
                 textfont=dict(color="white", size=12, family="Arial Black"),
