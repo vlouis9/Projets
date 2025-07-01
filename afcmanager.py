@@ -270,7 +270,7 @@ def terrain_interactif(formation, terrain_key):
     st.session_state[terrain_key] = terrain
     return terrain
     
-    def remplacants_interactif(key, titulaires):
+def remplacants_interactif(key, titulaires):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
