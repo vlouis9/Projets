@@ -84,7 +84,7 @@ def positions_for_formation_vertical(formation):
         },
         "4-3-3": {
             "G": [(34, 8)],
-            "D": [(10, 22), (22, 15), (46, 15), (58, 22)],
+            "D": [(10, 30), (22, 22), (46, 22), (58, 30)],
             "M": [(18, 46), (34, 52.5), (50, 46)],
             "A": [(18, 80), (34, 92), (50, 80)],
         },
@@ -632,9 +632,17 @@ with tab3:
         else:
             for mid, match in st.session_state.matches.items():
                 with st.expander(f"{match['date']} {match['heure']} vs {match['adversaire']} ({match['type']})"):
-                    st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'En cours'}")
+                    st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
+                    if match.get("noted", False):
+                        score_col1, score_col2, score_col3 = st.columns([2,1,2])
+                        with score_col1:
+                            st.markdown(f"### {match['adversaire']}")
+                        with score_col2:
+                            st.markdown(f"### {match.get('score_afc', 0)} - {match.get('score_adv', 0)}")
+                        with score_col3:
+                            st.markdown("### AFC")
                     st.write(f"**Lieu :** {match['lieu']}")
-                    st.write(f"**Formation :** {match['formation']}")
+                    st.markdown("---")
                     fig = draw_football_pitch_vertical()
                     # Prepare player stats for display
                     ev = match.get("events", {})
@@ -657,14 +665,6 @@ with tab3:
                         player_stats=player_stats
                     )
                     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
-                    if match.get("noted", False):
-                        score_col1, score_col2, score_col3 = st.columns([2,1,2])
-                        with score_col1:
-                            st.markdown(f"### {match['adversaire']}")
-                        with score_col2:
-                            st.markdown(f"### {match.get('score_afc', 0)} - {match.get('score_adv', 0)}")
-                        with score_col3:
-                            st.markdown("### AFC")
                         st.markdown("---")
                         col1, col2 = st.columns(2)
                         with col1:
