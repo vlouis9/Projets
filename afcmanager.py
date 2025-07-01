@@ -444,7 +444,7 @@ with tab2:
             st.session_state["formation_create_compo"] = loaded["formation"]
             st.session_state["terrain_create_compo"] = loaded["details"]
             del st.session_state[edit_key]
-        nom_compo = st.text_input("Nom de la composition", value=nom_compo if edit_compo else "")
+        nom_compo = st.text_input("Nom de la composition", key="nom_compo_create", value=nom_compo if edit_compo else "")
         formation = st.selectbox(
             "Formation", list(FORMATION.keys()),
             index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION)),
@@ -469,6 +469,7 @@ with tab2:
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
                 st.success("Composition sauvegardée !")
+                st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
