@@ -347,13 +347,12 @@ if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
 def download_upload_buttons():
+    # Télécharger le fichier json existant (qui a été mis à jour par save_all)
+    with open(DATA_FILE, "r") as f:
+        data = f.read()
     st.download_button(
         label="📥 Télécharger données (JSON)",
-        data=json.dumps({
-            "players": st.session_state.players.to_dict(orient="records"),
-            "lineups": st.session_state.lineups,
-            "matches": st.session_state.matches,
-        }, indent=2),
+        data=data,
         file_name=DATA_FILE,
         mime="application/json"
     )
@@ -451,7 +450,6 @@ with tab2:
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
-            st.write("BOUTON ENREGISTREMENT CLIQUE")
             if not nom_compo.strip():
                 st.error("Merci d'indiquer un nom pour la composition.")
                 st.stop()
@@ -461,11 +459,8 @@ with tab2:
                     "details": copy.deepcopy(terrain),
                     "remplacants": copy.deepcopy(remplacants)
                 }
-                st.write("NOM COMPO :", nom_compo)
-                st.write("LINEUPS AVANT :", st.session_state.lineups)
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
-                st.write("LINEUPS APRES :", st.session_state.lineups)
                 st.success("Composition sauvegardée !")
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
