@@ -4,6 +4,7 @@ import json
 import os
 import copy
 import traceback
+import uuid
 from datetime import datetime
 import plotly.graph_objects as go
 
@@ -643,11 +644,20 @@ with tab2:
 with tab3:
     st.title("Gestion des matchs")
     subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
+
+    # --- CRÉER UN MATCH ---
     with subtab1:
+        # Persistent and unique UUID for new match creation session
+        if "create_match_uuid" not in st.session_state:
+            st.session_state.create_match_uuid = str(uuid.uuid4())
+
         edit_match_lineup = st.session_state.get("edit_match_lineup", None)
+
         if edit_match_lineup:
+            # --- Editing existing match ---
             match_id = edit_match_lineup["id"]
             match_data = st.session_state.matches[match_id]
+
             adversaire = st.text_input(
                 "Nom de l'adversaire", value=match_data["adversaire"], key=f"adversaire_{match_id}"
             )
@@ -668,7 +678,6 @@ with tab3:
                 index=0 if match_data["type"] == "Championnat" else 1,
                 key=f"type_match_{match_id}"
             )
-            # Setup lineup info for editing
             formation = st.selectbox(
                 "Formation", list(FORMATION.keys()),
                 index=list(FORMATION.keys()).index(match_data["formation"]),
@@ -677,9 +686,10 @@ with tab3:
             terrain = terrain_interactif(formation, f"terrain_{match_id}")
             tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
             remplacants = remplacants_interactif(f"{match_id}", tous_titulaires)
+            unique_form_key = match_id
         else:
-            # New match form
-            unique_id = f"new_{len(st.session_state.matches)}_{datetime.now().strftime('%Y%m%d%H%M%S')}"
+            # --- Creating a new match ---
+            unique_id = st.session_state.create_match_uuid
             adversaire = st.text_input("Nom de l'adversaire", key=f"adversaire_{unique_id}")
             date = st.date_input("Date du match", value=datetime.today(), key=f"date_{unique_id}")
             heure = st.time_input("Heure du match", key=f"heure_{unique_id}")
@@ -702,14 +712,16 @@ with tab3:
                 terrain = terrain_interactif(formation, f"terrain_{unique_id}")
                 tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
                 remplacants = remplacants_interactif(f"{unique_id}", tous_titulaires)
+            unique_form_key = unique_id
 
         fig = draw_football_pitch_vertical()
         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{nom_match}")
+        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{unique_form_key}")
 
-        if st.button("Enregistrer le match", key=f"save_match_{nom_match}"):
+        if st.button("Enregistrer le match", key=f"save_match_{unique_form_key}"):
             try:
                 match_id_to_save = nom_match
+                match_prev = st.session_state.matches.get(match_id_to_save, {})
                 st.session_state.matches[match_id_to_save] = {
                     "type": type_match,
                     "adversaire": adversaire,
@@ -719,33 +731,38 @@ with tab3:
                     "formation": formation,
                     "details": copy.deepcopy(terrain),
                     "remplacants": copy.deepcopy(remplacants),
-                    "events": st.session_state.matches.get(match_id_to_save, {}).get("events", {}),
-                    "score": st.session_state.matches.get(match_id_to_save, {}).get("score", ""),
-                    "score_afc": st.session_state.matches.get(match_id_to_save, {}).get("score_afc", 0),
-                    "score_adv": st.session_state.matches.get(match_id_to_save, {}).get("score_adv", 0),
-                    "noted": st.session_state.matches.get(match_id_to_save, {}).get("noted", False),
-                    "homme_du_match": st.session_state.matches.get(match_id_to_save, {}).get("homme_du_match", "")
+                    "events": match_prev.get("events", {}),
+                    "score": match_prev.get("score", ""),
+                    "score_afc": match_prev.get("score_afc", 0),
+                    "score_adv": match_prev.get("score_adv", 0),
+                    "noted": match_prev.get("noted", False),
+                    "homme_du_match": match_prev.get("homme_du_match", "")
                 }
                 save_all()
                 st.success("Composition du match mise à jour !" if edit_match_lineup else "Match enregistré !")
                 if "edit_match_lineup" in st.session_state:
                     del st.session_state["edit_match_lineup"]
+                if not edit_match_lineup and "create_match_uuid" in st.session_state:
+                    del st.session_state["create_match_uuid"]
                 st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
 
-        if st.button("Réinitialiser la création du match", key=f"reset_match_{nom_match}"):
+        if st.button("Réinitialiser la création du match", key=f"reset_match_{unique_form_key}"):
             for k in [
-                f"terrain_{nom_match}", f"formation_{nom_match}",
-                f"remp_{nom_match}", f"nom_match_{nom_match}", f"adversaire_{nom_match}", f"lieu_{nom_match}"
+                f"terrain_{unique_form_key}", f"formation_{unique_form_key}",
+                f"remp_{unique_form_key}", f"nom_match_{unique_form_key}", f"adversaire_{unique_form_key}", f"lieu_{unique_form_key}"
             ]:
                 if k in st.session_state:
                     del st.session_state[k]
             if "edit_match_lineup" in st.session_state:
                 del st.session_state["edit_match_lineup"]
+            if not edit_match_lineup and "create_match_uuid" in st.session_state:
+                del st.session_state["create_match_uuid"]
             st.rerun()
 
+    # --- MES MATCHS ---
     with subtab2:
         if not st.session_state.matches:
             st.info("Aucun match enregistré.")
