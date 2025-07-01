@@ -658,6 +658,12 @@ with tab3:
             match_id = edit_match_lineup["id"]
             match_data = st.session_state.matches[match_id]
 
+            # Only set initial values if not already present (prevents overwriting user edits during rerun)
+            if f"terrain_{match_id}" not in st.session_state:
+                st.session_state[f"terrain_{match_id}"] = copy.deepcopy(match["details"])
+            if f"remp_{match_id}" not in st.session_state:
+                st.session_state[f"remp_{match_id}"] = copy.deepcopy(match.get("remplacants", []))
+                
             adversaire = st.text_input(
                 "Nom de l'adversaire", value=match_data["adversaire"], key=f"adversaire_{match_id}"
             )
