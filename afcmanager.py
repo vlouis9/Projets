@@ -347,14 +347,6 @@ if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
 def download_upload_buttons():
-    with open(DATA_FILE, "r") as f:
-        data = f.read()
-    st.download_button(
-        label="📥 Télécharger données (JSON)",
-        data=data,
-        file_name=DATA_FILE,
-        mime="application/json"
-    )
     up_json = st.file_uploader("📤 Importer données (JSON)", type="json", key="upload_all")
     if up_json:
         try:
@@ -365,6 +357,16 @@ def download_upload_buttons():
             st.success("✅ Données importées avec succès!")
         except Exception as e:
             st.error(f"❌ Erreur à l'import : {e}")
+    
+        with open(DATA_FILE, "r") as f:
+            data = f.read()
+        st.download_button(
+            label="📥 Télécharger données (JSON)",
+            data=data,
+            file_name=DATA_FILE,
+            mime="application/json"
+        )
+    
 
 st.sidebar.title("⚽ Gestion Équipe AFC")
 with st.sidebar:
