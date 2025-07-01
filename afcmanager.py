@@ -196,10 +196,7 @@ def save_all():
         print("Données sauvegardées dans le fichier JSON !")
     except Exception as e:
         st.error(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
-        import traceback
         st.text(traceback.format_exc())
-    with open(DATA_FILE, "w") as f:
-        json.dump(data, f, indent=2)
 
 def fusion_dictionnaires(json_dict, session_dict):
     fusion = dict(json_dict)
