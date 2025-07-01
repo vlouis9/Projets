@@ -347,25 +347,32 @@ if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
 def download_upload_buttons():
-    up_json = st.file_uploader("📤 Importer données (JSON)", type="json", key="upload_all")
+    st.markdown("### 📥 Import/Export des données")
+    st.warning("⚠️ Importer un fichier JSON écrasera toutes vos données actuelles non sauvegardées ou non exportées.")
+
+    # -- Import JSON --
+    up_json = st.file_uploader("Importer un fichier JSON", type="json", key="upload_all")
     if up_json:
         try:
             data = json.load(up_json)
             st.session_state.players = pd.DataFrame(data.get("players", []))
             st.session_state.lineups = data.get("lineups", {})
             st.session_state.matches = data.get("matches", {})
-            st.success("✅ Données importées avec succès!")
+            st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
         except Exception as e:
             st.error(f"❌ Erreur à l'import : {e}")
-    
-        with open(DATA_FILE, "r") as f:
-            data = f.read()
-        st.download_button(
-            label="📥 Télécharger données (JSON)",
-            data=data,
-            file_name=DATA_FILE,
-            mime="application/json"
-        )
+
+    # -- Export JSON (depuis la session courante) --
+    st.download_button(
+        label="Télécharger le fichier JSON (état courant)",
+        data=json.dumps({
+            "players": st.session_state.players.to_dict(orient="records"),
+            "lineups": st.session_state.lineups,
+            "matches": st.session_state.matches,
+        }, indent=2),
+        file_name=DATA_FILE,
+        mime="application/json"
+    )
     
 
 st.sidebar.title("⚽ Gestion Équipe AFC")
@@ -421,7 +428,6 @@ with tab1:
         edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
         st.session_state.players = edited_df[PLAYER_COLS]
         save_all()
-        reload_all()
         st.success("Base de joueurs mise à jour !")
     st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
 
