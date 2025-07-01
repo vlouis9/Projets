@@ -435,6 +435,7 @@ with tab1:
         edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
         st.session_state.players = edited_df[PLAYER_COLS]
         save_all()
+        st.rerun()
         st.success("Base de joueurs mise à jour !")
     st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
 
@@ -475,8 +476,8 @@ with tab2:
                 }
                 st.session_state.lineups[nom_compo] = lineup
                 save_all()
-                st.success("Composition sauvegardée !")
                 st.rerun()
+                st.success("Composition sauvegardée !")
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
@@ -496,8 +497,8 @@ with tab2:
                     if col2.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
                         del st.session_state.lineups[nom]
                         save_all()
-                        st.success("Composition supprimée !")
                         st.rerun()
+                        st.success("Composition supprimée !")
 
 # --- MATCHS ---
 with tab3:
@@ -567,6 +568,7 @@ with tab3:
                     "homme_du_match": ""
                 }
                 save_all()
+                st.rerun()
                 st.success("Match enregistré !")
             except Exception as e:
                 import traceback
