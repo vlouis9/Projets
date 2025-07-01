@@ -561,35 +561,43 @@ with tab3:
         if edit_match_lineup:
             match_id = edit_match_lineup["id"]
             match_data = st.session_state.matches[match_id]
-            adversaire = match_data["adversaire"]
-            date = pd.to_datetime(match_data["date"]).date()
-            heure = pd.to_datetime(match_data["heure"]).time()
-            lieu = match_data["lieu"]
-            nom_match = match_id
-            type_match = match_data.get("type", "Championnat")
-            st.info(f"Édition de la compo pour le match : {nom_match}")
+            # Pre-populate session state for all fields only once
+            for key, default in [
+                ("adversaire_edit", match_data["adversaire"]),
+                ("date_edit", pd.to_datetime(match_data["date"]).date()),
+                ("heure_edit", pd.to_datetime(match_data["heure"]).time()),
+                ("lieu_edit", match_data["lieu"]),
+                ("type_match_edit", match_data.get("type", "Championnat")),
+                ("nom_match_edit", match_id),
+                ("formation_new_match", match_data["formation"]),
+                ("terrain_new_match", copy.deepcopy(match_data["details"])),
+                ("remp_new_match", copy.deepcopy(match_data.get("remplacants", []))),
+            ]:
+                if key not in st.session_state:
+                    st.session_state[key] = default
     
-            # Pre-fill the session state for the lineup editor the first time only
-            if "formation_new_match" not in st.session_state:
-                st.session_state["formation_new_match"] = match_data["formation"]
-            if "terrain_new_match" not in st.session_state:
-                st.session_state["terrain_new_match"] = copy.deepcopy(match_data["details"])
-            if "remp_new_match" not in st.session_state:
-                st.session_state["remp_new_match"] = copy.deepcopy(match_data.get("remplacants", []))
+            adversaire = st.text_input("Nom de l'adversaire", key="adversaire_edit")
+            date = st.date_input("Date du match", value=st.session_state["date_edit"], key="date_edit")
+            heure = st.time_input("Heure du match", value=st.session_state["heure_edit"], key="heure_edit")
+            lieu = st.text_input("Lieu", key="lieu_edit")
+            type_match = st.selectbox("Type de match", ["Championnat", "Coupe"], index=0 if st.session_state["type_match_edit"] == "Championnat" else 1, key="type_match_edit")
+            nom_match = st.text_input("Nom du match", value=st.session_state["nom_match_edit"], key="nom_match_edit")
+            st.info(f"Édition complète du match : {match_id}")
         else:
             adversaire = st.text_input("Nom de l'adversaire", key="adversaire_create")
             date = st.date_input("Date du match", value=datetime.today(), key="date_create")
             heure = st.time_input("Heure du match", key="heure_create")
             lieu = st.text_input("Lieu", key="lieu_create")
+            type_match = st.selectbox("Type de match", ["Championnat", "Coupe"], key="type_match_create")
             nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
             nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
-            type_match = st.selectbox("Type de match", ["Championnat", "Coupe"], key="type_match_create")
     
         # Reset button
         if st.button("Réinitialiser la création du match"):
             for k in [
                 "terrain_new_match", "formation_new_match", "remp_new_match",
-                "nom_match_sugg", "adversaire_create", "lieu_create", "date_create", "heure_create", "type_match_create"
+                "nom_match_sugg", "adversaire_create", "lieu_create", "date_create", "heure_create", "type_match_create",
+                "adversaire_edit", "lieu_edit", "date_edit", "heure_edit", "type_match_edit", "nom_match_edit"
             ]:
                 if k in st.session_state:
                     del st.session_state[k]
@@ -597,7 +605,6 @@ with tab3:
                 del st.session_state["edit_match_lineup"]
             st.rerun()
     
-        # Always show interactive lineup editor!
         formation = st.selectbox(
             "Formation",
             list(FORMATION.keys()),
@@ -614,32 +621,43 @@ with tab3:
     
         if st.button("Enregistrer le match"):
             try:
+                match_info = {
+                    "type": type_match,
+                    "adversaire": adversaire,
+                    "date": str(date),
+                    "heure": str(heure),
+                    "lieu": lieu,
+                    "formation": formation,
+                    "details": copy.deepcopy(terrain),
+                    "remplacants": copy.deepcopy(remplacants),
+                }
                 if edit_match_lineup:
-                    # Only update lineup/remplaçants for the existing match, keep meta info
-                    st.session_state.matches[nom_match]["formation"] = formation
-                    st.session_state.matches[nom_match]["details"] = copy.deepcopy(terrain)
-                    st.session_state.matches[nom_match]["remplacants"] = copy.deepcopy(remplacants)
+                    # Preserve events and stats
+                    old = st.session_state.matches[match_id]
+                    for k in ["events", "score", "score_afc", "score_adv", "noted", "homme_du_match"]:
+                        match_info[k] = old.get(k, "" if k == "score" else 0 if "score" in k else False)
+                    # If the name changed, rename the match key
+                    if nom_match != match_id:
+                        st.session_state.matches[nom_match] = match_info
+                        del st.session_state.matches[match_id]
+                    else:
+                        st.session_state.matches[nom_match] = match_info
                 else:
-                    st.session_state.matches[nom_match] = {
-                        "type": type_match,
-                        "adversaire": adversaire,
-                        "date": str(date),
-                        "heure": str(heure),
-                        "lieu": lieu,
-                        "formation": formation,
-                        "details": copy.deepcopy(terrain),
-                        "remplacants": copy.deepcopy(remplacants),
+                    match_info.update({
                         "events": {},
                         "score": "",
                         "score_afc": 0,
                         "score_adv": 0,
                         "noted": False,
                         "homme_du_match": ""
-                    }
+                    })
+                    st.session_state.matches[nom_match] = match_info
                 save_all()
-                st.success("Composition du match mise à jour !" if edit_match_lineup else "Match enregistré !")
-                if "edit_match_lineup" in st.session_state:
-                    del st.session_state["edit_match_lineup"]
+                st.success("Match enregistré !")
+                # Clean up edit state
+                for k in ["edit_match_lineup", "adversaire_edit", "lieu_edit", "date_edit", "heure_edit", "type_match_edit", "nom_match_edit"]:
+                    if k in st.session_state:
+                        del st.session_state[k]
                 st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
