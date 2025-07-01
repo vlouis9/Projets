@@ -656,7 +656,7 @@ with tab3:
         if edit_match_lineup:
             # --- Editing existing match ---
             match_id = edit_match_lineup["id"]
-            match_data = st.session_state.matches[match_id]
+            match_data = st.session_state.matches.get(match_id)
 
             # Only set initial values if not already present (prevents overwriting user edits during rerun)
             if f"terrain_{match_id}" not in st.session_state:
