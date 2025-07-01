@@ -566,6 +566,7 @@ with tab3:
             st.session_state["remp_new_match"] = edit_match_lineup["remplacants"]
             nom_match = edit_match_lineup["id"]  # Use match name/id for saving
         else:
+            nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"match_sugg")
             nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
         if st.button("Réinitialiser la création du match"):
             for k in [
