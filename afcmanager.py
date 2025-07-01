@@ -78,13 +78,13 @@ def positions_for_formation_vertical(formation):
     presets = {
         "4-2-3-1": {
             "G": [(34, 8)],
-            "D": [(10, 22), (22, 22), (46, 22), (58, 22)],
+            "D": [(10, 22), (22, 15), (46, 15), (58, 22)],
             "M": [(18, 40), (50, 40), (10, 60), (34, 60), (58, 60)],
             "A": [(34, 88)],
         },
         "4-3-3": {
             "G": [(34, 8)],
-            "D": [(10, 22), (22, 22), (46, 22), (58, 22)],
+            "D": [(10, 22), (22, 15), (46, 15), (58, 22)],
             "M": [(18, 46), (34, 52.5), (50, 46)],
             "A": [(18, 80), (34, 92), (50, 80)],
         },
@@ -158,14 +158,14 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 # Show stats as subtitle below player
                 if stats:
                     fig.add_trace(go.Scatter(
-                        x=[x], y=[y-8],
+                        x=[x], y=[y-9],
                         mode="text",
                         text=[stats],
                         textfont=dict(color="yellow", size=12, family="Arial Black"),
                         showlegend=False
                     ))
                 fig.add_trace(go.Scatter(
-                    x=[x], y=[y-5],
+                    x=[x], y=[y-6],
                     mode="text",
                     text=[nom + (" (C)" if joueur.get("Capitaine") else "")],
                     textfont=dict(color="white", size=13, family="Arial Black"),
