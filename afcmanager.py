@@ -563,7 +563,7 @@ with tab3:
                     del st.session_state[k]
             st.rerun()
         type_match = st.selectbox("Type de match", ["Championnat", "Coupe"])
-        if type_match="Championnat"
+        if type_match=="Championnat"
             journee= st.text_input("Journée", value="J", key="journee")
         else:
             journee= st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"], key="journee")
@@ -571,7 +571,7 @@ with tab3:
         date = st.date_input("Date du match", value=datetime.today())
         heure = st.time_input("Heure du match", value="21:00")
         domicile = st.selectbox("Domicile/Extérieur", ["Domicile", "Extérieur"])
-        if domicile = "Domicile"
+        if domicile == "Domicile"
             lieu = st.text_input("Lieu", value="Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac", key="lieu")
         else:
             lieu = st.text_input("Lieu", key="lieu")
