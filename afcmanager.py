@@ -641,13 +641,21 @@ with tab3:
                     st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
                     if match.get("noted", False):
                         score_col1, score_col2, score_col3 = st.columns([2,1,2])
-                        with score_col1:
-                            st.markdown(f"### {match['adversaire']}")
-                        with score_col2:
-                            st.markdown(f"### {match.get('score_afc', 0)} - {match.get('score_adv', 0)}")
-                        with score_col3:
-                            st.markdown("### AFC")
-                    st.write(f"**Lieu :** {match['lieu']}")
+                        if match.get('domicile')=="Domicile":
+                            with score_col1:
+                                st.markdown("### AFC")
+                            with score_col2:
+                                st.markdown(f"### {match.get('score_afc', 0)} - {match.get('score_adv', 0)}")
+                            with score_col3:
+                                st.markdown(f"### {match['adversaire']}")
+                        else:
+                            with score_col1:
+                                st.markdown(f"### {match['adversaire']}")
+                            with score_col2:
+                                st.markdown(f"{match.get('score_adv', 0)} - ### {match.get('score_afc', 0)}")
+                            with score_col3:
+                                st.markdown("### AFC")
+                    st.write(f"{match['nom_match']}")
                     st.markdown("---")
                     fig = draw_football_pitch_vertical()
                     # Prepare player stats for display
