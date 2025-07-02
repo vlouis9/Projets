@@ -573,10 +573,10 @@ with tab3:
         domicile = st.selectbox("Domicile/Extérieur", ["Domicile", "Extérieur"])
         if domicile == "Domicile":
             lieu = st.text_input("Lieu", value="Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac", key="lieu")
-            nom_sugg = f"{type_match}-{journée}-AFC vs {adversaire}" if adversaire else f"{type_match}-{journée}"
+            nom_sugg = f"{type_match}-{journee}-AFC vs {adversaire}" if adversaire else f"{type_match}-{journee}"
         else:
             lieu = st.text_input("Lieu", key="lieu")
-            nom_sugg = f"{type_match}-{journée}-{adversaire} vs AFC" if adversaire else f"{type_match}-{journée}"
+            nom_sugg = f"{type_match}-{journee}-{adversaire} vs AFC" if adversaire else f"{type_match}-{journee}"
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
         use_compo = st.checkbox("Utiliser une composition enregistrée ?", key="use_compo_match")
         if use_compo and st.session_state.lineups:
