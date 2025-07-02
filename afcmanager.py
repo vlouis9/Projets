@@ -637,7 +637,7 @@ with tab3:
             st.info("Aucun match enregistré.")
         else:
             for mid, match in st.session_state.matches.items():
-                with st.expander(f"{match['date']} {match['heure']} vs {match['adversaire']} ({match['type']})"):
+                with st.expander(st.session_state.get("nom_match_sugg", nom_match)):
                     st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
                     if match.get("noted", False):
                         score_col1, score_col2, score_col3 = st.columns([2,1,2])
