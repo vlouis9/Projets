@@ -438,7 +438,7 @@ with st.sidebar:
         download_upload_buttons()
     st.markdown("---")
 
-tab3, tab2, tab4, tab1 = st.tabs(["Matchs", "Stats équipe", "Base joueurs", "Compositions"])
+tab3, tab4, tab1, tab2 = st.tabs(["Matchs", "Stats équipe", "Base joueurs", "Compositions"])
 
 # --- DATABASE ---
 with tab1:
