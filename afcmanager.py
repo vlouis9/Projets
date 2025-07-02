@@ -404,13 +404,10 @@ if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
 
 def download_upload_buttons():
-    st.markdown("### 📥 Import/Export des données")
-    st.warning("⚠️ Importer un fichier JSON écrasera toutes vos données actuelles non sauvegardées ou non exportées.")
-
     # -- Import JSON --
     with st.form("import_json_form"):
-        up_json = st.file_uploader("Importer un fichier JSON", type="json", key="upload_all")
-        submitted = st.form_submit_button("Importer ce fichier")
+        up_json = st.file_uploader("📂 Importer un fichier JSON", type="json", key="upload_all")
+        submitted = st.form_submit_button("📤 Importer ce fichier")
         if submitted and up_json:
             try:
                 data = json.load(up_json)
@@ -423,7 +420,7 @@ def download_upload_buttons():
 
     # -- Export JSON (depuis la session courante) --
     st.download_button(
-        label="Télécharger le fichier JSON (état courant)",
+        label="💾 Télécharger le fichier JSON (état courant)",
         data=json.dumps({
             "players": st.session_state.players.to_dict(orient="records"),
             "lineups": st.session_state.lineups,
@@ -437,7 +434,7 @@ def download_upload_buttons():
 st.sidebar.title("⚽ Gestion Équipe AFC")
 with st.sidebar:
     st.markdown("---")
-    with st.expander("📥 Import/Export des données"):
+    with st.expander("🔄 Import/Export des données"):
         download_upload_buttons()
     st.markdown("---")
 
