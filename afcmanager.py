@@ -577,6 +577,7 @@ with tab3:
         else:
             lieu = st.text_input("Lieu", key="lieu")
             nom_sugg = f"{type_match}-{journee}-{adversaire} vs AFC" if adversaire else f"{type_match}-{journee}"
+        st.rerun()
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
         use_compo = st.checkbox("Utiliser une composition enregistrée ?", key="use_compo_match")
         if use_compo and st.session_state.lineups:
