@@ -571,7 +571,7 @@ with tab3:
         date = st.date_input("Date du match", value=datetime.today())
         heure = st.time_input("Heure du match", value="21:00")
         domicile = st.selectbox("Domicile/Extérieur", ["Domicile", "Extérieur"])
-        if domicile = "Domicile
+        if domicile = "Domicile"
             lieu = st.text_input("Lieu", value="Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac", key="lieu")
         else:
             lieu = st.text_input("Lieu", key="lieu")
