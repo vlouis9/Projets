@@ -563,10 +563,18 @@ with tab3:
                     del st.session_state[k]
             st.rerun()
         type_match = st.selectbox("Type de match", ["Championnat", "Coupe"])
+        if type_match="Championnat"
+            journee= st.text_input("Journée", value="J", key="journee")
+        else:
+            journee= st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"], key="journee")
         adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
         date = st.date_input("Date du match", value=datetime.today())
-        heure = st.time_input("Heure du match")
-        lieu = st.text_input("Lieu", key="lieu")
+        heure = st.time_input("Heure du match", value="21:00")
+        domicile = st.selectbox("Domicile/Extérieur", ["Domicile", "Extérieur"])
+        if domicile = "Domicile
+            lieu = st.text_input("Lieu", value="Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac", key="lieu")
+        else:
+            lieu = st.text_input("Lieu", key="lieu")
         nom_sugg = f"{date.strftime('%Y-%m-%d')} vs {adversaire}" if adversaire else f"{date.strftime('%Y-%m-%d')}"
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
         use_compo = st.checkbox("Utiliser une composition enregistrée ?", key="use_compo_match")
