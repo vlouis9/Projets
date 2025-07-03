@@ -648,7 +648,7 @@ with tab3:
                             fig = draw_football_pitch_vertical()
                             fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
                             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
-                            if st.button("Enregistrer la compo", key="btn_enregistrer_compo"):
+                            if st.button("Enregistrer la compo", key="btn_enregistrer_compo_{mid}"):
                                 try:
                                     match_id = nom_match
                                     st.session_state.matches[match_id] = {
