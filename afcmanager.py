@@ -744,7 +744,6 @@ with tab3:
                                     st.markdown(f"### {match['adversaire']} {match.get('score_afc', 0)} - {match.get('score_adv', 0)} AFC")
                                 st.markdown("---")
                                 col1, col2 = st.columns(2)
-                                score_col1, score_col2, score_col3 = st.columns([2,1,2])
                                 with col1:
                                     st.markdown("#### 📊 Stats du match")
                                     ev = match.get("events", {})
