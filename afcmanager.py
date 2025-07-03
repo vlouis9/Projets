@@ -731,6 +731,7 @@ with tab3:
                                     match["noted"] = True
                                     match["termine"] = match_ended
                                     match["homme_du_match"] = homme_du_match
+                                    st.session_state.matches[mid] = match
                                     save_all()
                                     st.success("Stats du match enregistrées !")
                                     st.rerun()
