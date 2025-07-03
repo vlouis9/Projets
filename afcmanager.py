@@ -605,7 +605,6 @@ with tab3:
                 st.rerun()
                 st.success("Match enregistré !")
             except Exception as e:
-                import traceback
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
     #----Mes Matchs----
@@ -614,7 +613,7 @@ with tab3:
             st.info("Aucun match enregistré.")
         else:
             for mid, match in st.session_state.matches.items():
-                with st.expander(st.session_state.get("nom_match_sugg", nom_match)):
+                with st.expander(match.get("nom_match", nom_match)):
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
                     #st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
                     #--Créer compo---
