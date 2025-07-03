@@ -579,7 +579,7 @@ with tab3:
             lieu = st.text_input("Lieu", key="lieu")
             nom_sugg = f"{type_match} - {journee} - {adversaire} vs AFC" if adversaire else f"{type_match} - {journee}"
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
-        if st.button("Enregistrer le match"):
+        if st.button("Enregistrer le match", key="btn_enregistrer_match"):
             try:
                 match_id = nom_match
                 st.session_state.matches[match_id] = {
@@ -648,7 +648,7 @@ with tab3:
                             fig = draw_football_pitch_vertical()
                             fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
                             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
-                            if st.button("Enregistrer la compo"):
+                            if st.button("Enregistrer la compo", key="btn_enregistrer_compo"):
                                 try:
                                     match_id = nom_match
                                     st.session_state.matches[match_id] = {
