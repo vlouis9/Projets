@@ -4,6 +4,7 @@ import json
 import os
 import copy
 import traceback
+import uuid
 from datetime import datetime
 import plotly.graph_objects as go
 
@@ -581,7 +582,7 @@ with tab3:
         nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
         if st.button("Enregistrer le match", key="btn_enregistrer_match"):
             try:
-                match_id = nom_match
+                match_id = str(uuid.uuid4())
                 st.session_state.matches[match_id] = {
                     "type": type_match,
                     "adversaire": adversaire,
@@ -613,23 +614,23 @@ with tab3:
             st.info("Aucun match enregistré.")
         else:
             for mid, match in st.session_state.matches.items():
-                with st.expander(match.get("nom_match", nom_match)):
+                with st.expander(match.get("nom_match", "Match sans nom")):
                     match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
                     #st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
                     #--Créer compo---
                     if not match_ended:
                         with st.expander("🏟️ Créer compo"):
-                            use_compo = st.checkbox("Utiliser une composition enregistrée ?", key="use_compo_match")
+                            use_compo = st.checkbox("Utiliser une composition enregistrée ?", key=f"use_compo_match_{mid}")
                             if use_compo and st.session_state.lineups:
                                 compo_keys = list(st.session_state.lineups.keys())
                                 # Initialisation de la sélection si besoin
-                                if "compo_choice_match" not in st.session_state:
+                                if f"compo_choice_match_{mid}" not in st.session_state:
                                     st.session_state.compo_choice_match = compo_keys[0] if compo_keys else ""
                                 compo_choice = st.selectbox(
                                     "Choisir la composition",
                                     compo_keys,
                                     index=compo_keys.index(st.session_state.get("compo_choice_match", compo_keys[0])) if compo_keys else 0,
-                                    key="compo_choice_match"
+                                    key=f"compo_choice_match_{mid}"
                                 )
                                 compo_data = st.session_state.lineups[compo_choice]
                                 formation = compo_data["formation"]
@@ -639,14 +640,14 @@ with tab3:
                                 st.session_state["terrain_new_match"] = terrain
                                 st.session_state["remp_new_match"] = remplacants
                             else:
-                                formation = st.selectbox("Formation", list(FORMATION.keys()), key="match_formation")
+                                formation = st.selectbox("Formation", list(FORMATION.keys()), key=f"match_formation_{mid}")
                                 st.session_state["formation_new_match"] = formation
                                 terrain = terrain_interactif(formation, "terrain_new_match")
                                 tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
                                 remplacants = remplacants_interactif("new_match", tous_titulaires)
                             fig = draw_football_pitch_vertical()
                             fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-                            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_match")
+                            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
                             if st.button("Enregistrer la compo", key=f"btn_enregistrer_compo_{mid}"):
                                 try:
                                     match_id = nom_match
