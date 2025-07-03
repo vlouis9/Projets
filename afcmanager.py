@@ -739,53 +739,53 @@ with tab3:
                                 st.write(f"{match['nom_match']}")
                                 st.markdown("---")
                                 col1, col2 = st.columns(2)
-                                    score_col1, score_col2, score_col3 = st.columns([2,1,2])
-                                    if match.get('domicile')=="Domicile":
-                                        with score_col1:
-                                            st.markdown("### AFC")
-                                        with score_col2:
-                                            st.markdown(f"### {match.get('score_afc', 0)} - {match.get('score_adv', 0)}")
-                                        with score_col3:
-                                            st.markdown(f"### {match['adversaire']}")
-                                    else:
-                                        with score_col1:
-                                            st.markdown(f"### {match['adversaire']}")
-                                        with score_col2:
-                                            st.markdown(f"{match.get('score_adv', 0)} - ### {match.get('score_afc', 0)}")
-                                        with score_col3:
-                                            st.markdown("### AFC")
-                                    with col1:
-                                        st.markdown("#### 📊 Stats du match")
-                                        ev = match.get("events", {})
-                                        but_col, pass_col = st.columns(2)
-                                        with but_col:
-                                            st.markdown("**⚽ Buteurs**")
-                                            for nom, nb in ev.get("buteurs", {}).items():
-                                                st.markdown(f"- {nom} ({nb})")
-                                        with pass_col:
-                                            st.markdown("**👟 Passeurs**")
-                                            for nom, nb in ev.get("passeurs", {}).items():
-                                                st.markdown(f"- {nom} ({nb})")
-                                    with col2:
-                                        st.markdown("#### 🎯 Performance")
-                                        st.markdown(f"**🏆 Homme du match :** {match.get('homme_du_match','')}")
-                                        notes = ev.get("notes", {})
-                                        if notes:
-                                            st.markdown("**⭐ Meilleures notes:**")
-                                            sorted_notes = sorted(notes.items(), key=lambda x: x[1], reverse=True)
-                                            for nom, note in sorted_notes[:3]:
-                                                st.markdown(f"- {nom}: {note}/10")
-                                    st.markdown("#### 📋 Discipline")
-                                    disc_col1, disc_col2 = st.columns(2)
-                                    with disc_col1:
-                                        st.markdown("**🟨 Cartons jaunes**")
-                                        for nom, nb in ev.get("cartons_jaunes", {}).items():
+                                score_col1, score_col2, score_col3 = st.columns([2,1,2])
+                                if match.get('domicile')=="Domicile":
+                                    with score_col1:
+                                        st.markdown("### AFC")
+                                    with score_col2:
+                                        st.markdown(f"### {match.get('score_afc', 0)} - {match.get('score_adv', 0)}")
+                                    with score_col3:
+                                        st.markdown(f"### {match['adversaire']}")
+                                else:
+                                    with score_col1:
+                                        st.markdown(f"### {match['adversaire']}")
+                                    with score_col2:
+                                        st.markdown(f"{match.get('score_adv', 0)} - ### {match.get('score_afc', 0)}")
+                                    with score_col3:
+                                        st.markdown("### AFC")
+                                with col1:
+                                    st.markdown("#### 📊 Stats du match")
+                                    ev = match.get("events", {})
+                                    but_col, pass_col = st.columns(2)
+                                    with but_col:
+                                        st.markdown("**⚽ Buteurs**")
+                                        for nom, nb in ev.get("buteurs", {}).items():
                                             st.markdown(f"- {nom} ({nb})")
-                                    with disc_col2:
-                                        st.markdown("**🟥 Cartons rouges**")
-                                        for nom, nb in ev.get("cartons_rouges", {}).items():
+                                    with pass_col:
+                                        st.markdown("**👟 Passeurs**")
+                                        for nom, nb in ev.get("passeurs", {}).items():
                                             st.markdown(f"- {nom} ({nb})")
-                                    st.markdown("---")
+                                with col2:
+                                    st.markdown("#### 🎯 Performance")
+                                    st.markdown(f"**🏆 Homme du match :** {match.get('homme_du_match','')}")
+                                    notes = ev.get("notes", {})
+                                    if notes:
+                                        st.markdown("**⭐ Meilleures notes:**")
+                                        sorted_notes = sorted(notes.items(), key=lambda x: x[1], reverse=True)
+                                        for nom, note in sorted_notes[:3]:
+                                            st.markdown(f"- {nom}: {note}/10")
+                                st.markdown("#### 📋 Discipline")
+                                disc_col1, disc_col2 = st.columns(2)
+                                with disc_col1:
+                                    st.markdown("**🟨 Cartons jaunes**")
+                                    for nom, nb in ev.get("cartons_jaunes", {}).items():
+                                        st.markdown(f"- {nom} ({nb})")
+                                with disc_col2:
+                                    st.markdown("**🟥 Cartons rouges**")
+                                    for nom, nb in ev.get("cartons_rouges", {}).items():
+                                        st.markdown(f"- {nom} ({nb})")
+                                st.markdown("---")
                                 
                                 fig = draw_football_pitch_vertical()
                                 # Prepare player stats for display
