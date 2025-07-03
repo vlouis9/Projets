@@ -674,12 +674,11 @@ with tab3:
                                     st.rerun()
                                     st.success("Match enregistré !")
                                 except Exception as e:
-                                    import traceback
                                     st.error(f"Erreur lors de la sauvegarde : {e}")
                                     st.text(traceback.format_exc())
                     #--Noter match---
                     else :  
-                        if match.get("noted", False)
+                        if match.get("noted", False):
                             with st.expander("📊 Stats du match"):
                                 st.write("### Saisie des stats du match")
                                 titularies = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j]
@@ -714,7 +713,7 @@ with tab3:
                                 notes = {}
                                 st.write("#### Notes")
                                 for nom in joueurs_all:
-                                    n = st.number_input(f"{nom} - Note", min_value=0.0, max_value=10.0, value=0.0, step=0.1, key=f"note_{mid}_{nom}")
+                                    n = st.number_input(f"{nom} - Note", min_value=0.0, max_value=10.0, value=5.0, step=0.5, key=f"note_{mid}_{nom}")
                                     if n > 0:
                                         notes[nom] = n
                                 homme_du_match = st.selectbox("Homme du match", [""] + joueurs_all, key=f"hdm_{mid}")
@@ -736,7 +735,7 @@ with tab3:
                                     st.rerun()
                         #---Résumé match----
                         else :
-                            with st.expander("📊 Résumé du match"):
+                            with st.expander("📝 Résumé du match"):
                                 st.write(f"{match['nom_match']}")
                                 st.markdown("---")
                                 col1, col2 = st.columns(2)
