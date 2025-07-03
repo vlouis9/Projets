@@ -575,11 +575,10 @@ with tab3:
         domicile = st.selectbox("Domicile/Extérieur", ["Domicile", "Extérieur"])
         if domicile == "Domicile":
             lieu = st.text_input("Lieu", value="Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac", key="lieu")
-            nom_sugg = f"{type_match} - {journee} - AFC vs {adversaire}" if adversaire else f"{type_match} - {journee}"
+            nom_match = f"{type_match} - {journee} - AFC vs {adversaire}" if adversaire else f"{type_match} - {journee}"
         else:
             lieu = st.text_input("Lieu", key="lieu")
-            nom_sugg = f"{type_match} - {journee} - {adversaire} vs AFC" if adversaire else f"{type_match} - {journee}"
-        nom_match = st.text_input("Nom du match", value=st.session_state.get("nom_match_sugg", nom_sugg), key="nom_match_sugg")
+            nom_match = f"{type_match} - {journee} - {adversaire} vs AFC" if adversaire else f"{type_match} - {journee}"
         if st.button("Enregistrer le match", key="btn_enregistrer_match"):
             try:
                 match_id = str(uuid.uuid4())
@@ -738,24 +737,14 @@ with tab3:
                         #---Résumé match----
                         else :
                             with st.expander("📝 Résumé du match"):
-                                st.write(f"{match['nom_match']}")
+                                st.write(f"### {match['nom_match']}")
+                                if match.get('domicile')=="Domicile":
+                                    st.markdown(f"### AFC {match.get('score_afc', 0)} - {match.get('score_adv', 0)} {match['adversaire']}")
+                                else:
+                                    st.markdown(f"### {match['adversaire']} {match.get('score_afc', 0)} - {match.get('score_adv', 0)} AFC")
                                 st.markdown("---")
                                 col1, col2 = st.columns(2)
                                 score_col1, score_col2, score_col3 = st.columns([2,1,2])
-                                if match.get('domicile')=="Domicile":
-                                    with score_col1:
-                                        st.markdown("### AFC")
-                                    with score_col2:
-                                        st.markdown(f"### {match.get('score_afc', 0)} - {match.get('score_adv', 0)}")
-                                    with score_col3:
-                                        st.markdown(f"### {match['adversaire']}")
-                                else:
-                                    with score_col1:
-                                        st.markdown(f"### {match['adversaire']}")
-                                    with score_col2:
-                                        st.markdown(f"{match.get('score_adv', 0)} - ### {match.get('score_afc', 0)}")
-                                    with score_col3:
-                                        st.markdown("### AFC")
                                 with col1:
                                     st.markdown("#### 📊 Stats du match")
                                     ev = match.get("events", {})
@@ -812,7 +801,13 @@ with tab3:
                                 )
                                 st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
                                 st.markdown("---")
-                        
+
+                                if st.button(f"Éditer les stats", key=f"edit_stats_{mid}"):
+                                    match["noted"] = False
+                                    st.session_state.matches[mid] = match  # obligatoire pour que Streamlit détecte
+                                    save_all()
+                                    st.experimental_rerun()
+
                     if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
                         del st.session_state.matches[mid]
                         save_all()
