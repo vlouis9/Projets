@@ -678,7 +678,7 @@ with tab3:
                                     st.text(traceback.format_exc())
                     #--Noter match---
                     else :  
-                        if match.get("noted", False):
+                        if not match.get("noted", False):
                             with st.expander("📊 Stats du match"):
                                 st.write("### Saisie des stats du match")
                                 titularies = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j]
@@ -729,6 +729,7 @@ with tab3:
                                         "notes": notes
                                     }
                                     match["noted"] = True
+                                    match["termine"] = match_ended
                                     match["homme_du_match"] = homme_du_match
                                     save_all()
                                     st.success("Stats du match enregistrées !")
