@@ -805,7 +805,7 @@ with tab3:
                                     match["noted"] = False
                                     st.session_state.matches[mid] = match  # obligatoire pour que Streamlit détecte
                                     save_all()
-                                    st.experimental_rerun()
+                                    st.rerun()
 
                     if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
                         del st.session_state.matches[mid]
