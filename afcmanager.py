@@ -273,10 +273,15 @@ def terrain_interactif(formation, terrain_key):
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
 
+    stats_data = []
+    for _, row in st.session_state.players.iterrows():
+        s = compute_player_stats(row["Nom"])
+        stats_data.append({**row, **s})
+    stats_df = pd.DataFrame(stats_data)
+    
     # Générer la liste triée par titularisations
-    players_df = st.session_state.players.copy()
-    players_df["Titularisations"] = pd.to_numeric(players_df["Titularisations"], errors="coerce").fillna(0)
-    joueurs_tries = players_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
+    stats_df["Titularisations"] = pd.to_numeric(stats_df["Titularisations"], errors="coerce").fillna(0)
+    joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
     
     # Affichage vertical par poste, compatible mobile
     for poste in POSTES_ORDER:
@@ -316,10 +321,15 @@ def remplacants_interactif(key, titulaires):
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
 
+    stats_data = []
+    for _, row in st.session_state.players.iterrows():
+        s = compute_player_stats(row["Nom"])
+        stats_data.append({**row, **s})
+    stats_df = pd.DataFrame(stats_data)
+                            
     # Liste triée par titularisations
-    players_df = st.session_state.players.copy()
-    players_df["Titularisations"] = pd.to_numeric(players_df["Titularisations"], errors="coerce").fillna(0)
-    noms_joueurs_tries = players_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
+    stats_df["Titularisations"] = pd.to_numeric(stats_df["Titularisations"], errors="coerce").fillna(0)
+    noms_joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
     
     # Patch robustesse colonne Nom
     if hasattr(st.session_state.players, "columns") and "Nom" in st.session_state.players.columns:
