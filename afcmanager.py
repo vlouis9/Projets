@@ -360,6 +360,10 @@ def remplacants_interactif(key, titulaires):
 def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     for match in st.session_state.matches.values():
+        
+        if not (match.get("termine") and match.get("note_enregistree")):
+            continue
+
         details = match.get("details", {})
         joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and isinstance(j, dict) and j.get("Nom") == joueur_nom]
         is_titulaire = bool(joueurs)
