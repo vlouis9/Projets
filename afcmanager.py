@@ -272,6 +272,12 @@ def terrain_interactif(formation, terrain_key):
     if terrain_key not in st.session_state:
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
+
+    # Générer la liste triée par titularisations
+    players_df = st.session_state.players.copy()
+    players_df["Titularisations"] = pd.to_numeric(players_df["Titularisations"], errors="coerce").fillna(0)
+    joueurs_tries = players_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
+    
     # Affichage vertical par poste, compatible mobile
     for poste in POSTES_ORDER:
         if formation in POSTES_NOMS and poste in POSTES_NOMS[formation]:
@@ -284,9 +290,9 @@ def terrain_interactif(formation, terrain_key):
             current_nom = current_joueur["Nom"] if current_joueur else ""
             label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
             joueur_options = [""] + [
-                n for n in st.session_state.players["Nom"]
-                if n and (n == current_nom or n not in all_selected)
+                n for n in joueurs_tries if n == current_nom or n not in all_selected
             ]
+
             choix = st.selectbox(
                 label,
                 joueur_options,
@@ -310,12 +316,17 @@ def remplacants_interactif(key, titulaires):
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
 
+    # Liste triée par titularisations
+    players_df = st.session_state.players.copy()
+    players_df["Titularisations"] = pd.to_numeric(players_df["Titularisations"], errors="coerce").fillna(0)
+    noms_joueurs_tries = players_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
+    
     # Patch robustesse colonne Nom
     if hasattr(st.session_state.players, "columns") and "Nom" in st.session_state.players.columns:
         noms_joueurs = st.session_state.players["Nom"].dropna().astype(str).tolist()
     else:
         noms_joueurs = []
-    dispo = [n for n in noms_joueurs if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]] if n]
+    dispo = [n for n in noms_joueurs_tries if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]]]
     for i in range(MAX_REMPLACANTS):
         current = remps[i]["Nom"]
         options = dispo + ([current] if current and current not in dispo else [])
@@ -675,7 +686,7 @@ with tab3:
                                 except Exception as e:
                                     st.error(f"Erreur lors de la sauvegarde : {e}")
                                     st.text(traceback.format_exc())
-                            if st.button("Sauvegarder la composition", key=f"btn_sauvegarde_compo_{mid}):
+                            if st.button("Sauvegarder la composition", key=f"btn_sauvegarde_compo_{mid}"):
                                 lineup = {
                                     "formation": formation,
                                     "details": copy.deepcopy(terrain),
