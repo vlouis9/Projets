@@ -647,7 +647,7 @@ with tab3:
                             fig = draw_football_pitch_vertical()
                             fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
                             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
-                            if st.button("Enregistrer la compo", key=f"btn_enregistrer_compo_{mid}"):
+                            if st.button("Valider la compo", key=f"btn_enregistrer_compo_{mid}"):
                                 try:
                                     match_id = nom_match
                                     st.session_state.matches[match_id] = {
@@ -675,6 +675,16 @@ with tab3:
                                 except Exception as e:
                                     st.error(f"Erreur lors de la sauvegarde : {e}")
                                     st.text(traceback.format_exc())
+                            if st.button("Sauvegarder la composition", key=f"btn_sauvegarde_compo_{mid}):
+                                lineup = {
+                                    "formation": formation,
+                                    "details": copy.deepcopy(terrain),
+                                    "remplacants": copy.deepcopy(remplacants)
+                                }
+                                st.session_state.matches[nom_match] = lineup
+                                save_all()
+                                st.rerun()
+                                st.success("Composition sauvegardée !")
                     #--Noter match---
                     else :  
                         if not match.get("noted", False):
