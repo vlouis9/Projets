@@ -708,7 +708,7 @@ with tab3:
                                     "details": copy.deepcopy(terrain),
                                     "remplacants": copy.deepcopy(remplacants)
                                 }
-                                st.session_state.matches[nom_match] = lineup
+                                st.session_state.lineups[nom_match] = lineup
                                 save_all()
                                 st.rerun()
                                 st.success("Composition sauvegardée !")
