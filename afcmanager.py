@@ -361,7 +361,7 @@ def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     for match in st.session_state.matches.items():
         
-        if not match.get("match.ended") and not match.get("noted", False):
+        if not match.get("termine", False) and not match.get("noted", False):
             continue
 
         details = match.get("details", {})
@@ -639,10 +639,10 @@ with tab3:
         else:
             for mid, match in st.session_state.matches.items():
                 with st.expander(match.get("nom_match", "Match sans nom")):
-                    match_ended = st.checkbox("Match terminé", value=match.get("noted", False), key=f"ended_{mid}")
+                    match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
                     #st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
                     #--Créer compo---
-                    if not match_ended:
+                    if not match.get("termine",False):
                         with st.expander("🏟️ Créer compo"):
                             use_compo = st.checkbox("Utiliser une composition enregistrée ?", key=f"use_compo_match_{mid}")
                             if use_compo and st.session_state.lineups:
@@ -692,6 +692,8 @@ with tab3:
                                         "score_afc": 0,
                                         "score_adv": 0,
                                         "noted": False,
+
+"termine" : False, 
                                         "homme_du_match": ""
                                     }
                                     save_all()
@@ -763,7 +765,7 @@ with tab3:
                                         "notes": notes
                                     }
                                     match["noted"] = True
-                                    match["termine"] = match_ended
+                                    match["termine"] = True
                                     match["homme_du_match"] = homme_du_match
                                     st.session_state.matches[mid] = match
                                     save_all()
