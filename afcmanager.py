@@ -359,7 +359,7 @@ def remplacants_interactif(key, titulaires):
 
 def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
-    for match in st.session_state.matches.items():
+    for mid, match in st.session_state.matches.items():
         
         if not match.get("termine", False) and not match.get("noted", False):
             continue
