@@ -361,7 +361,7 @@ def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     for match in st.session_state.matches.items():
         
-        if not match.ended and not match.get("noted", False)):
+        if not match.ended and not match.get("noted", False):
             continue
 
         details = match.get("details", {})
