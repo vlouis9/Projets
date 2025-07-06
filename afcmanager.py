@@ -706,8 +706,8 @@ with tab3:
 
                         with st.expander("👥 Convocation des joueurs"):
                             try:
-                                terrain = st.session_state.get("terrain_new_match", {})
-                                remplacants = st.session_state.get("remp_new_match", [])
+                                terrain = st.session_state.get("terrain_new_match_{mid}", {})
+                                remplacants = st.session_state.get("remp_new_match_{mid}", [])
                     
                                 # Récupérer tous les noms des joueurs convoqués
                                 joueurs_convoques = []
@@ -740,7 +740,7 @@ with tab3:
                                     st.write(f"## {adversaire} vs AFC")
                                 st.markdown("---")
                                 st.markdown(f"🗓️ Date: {date}")
-                                st.markdown(f"🕒 Heure: {heure} (rdv {heure}")
+                                st.markdown(f"🕒 Heure: {heure} (rdv {heure-1})")
                                 st.markdown(f"📍 Lieu: {lieu}")
                                 st.markdown("---")
                                 if joueurs_tries:
