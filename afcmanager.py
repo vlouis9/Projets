@@ -302,7 +302,7 @@ def terrain_interactif(formation, terrain_key):
                 label,
                 joueur_options,
                 index=joueur_options.index(current_nom) if current_nom in joueur_options else 0,
-                key=f"{terrain_key}_{poste}_{i}"
+                key=f"{terrain_key}_{poste}_{i}_{mid}"
             )
             if choix:
                 joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
@@ -344,7 +344,7 @@ def remplacants_interactif(key, titulaires):
             f"Remplacant {i+1}",
             [""] + options,
             index=(options.index(current)+1) if current in options else 0,
-            key=f"remp_choice_{key}_{i}"
+            key=f"remp_choice_{key}_{i}_{mid}"
         )
         if choix:
             joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
@@ -640,9 +640,13 @@ with tab3:
             for mid, match in st.session_state.matches.items():
                 with st.expander(match.get("nom_match", "Match sans nom")):
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
-                    #st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
+                    if match_ended != match.get("termine", False):
+                        match["termine"] = match_ended
+                        st.session_state.matches[mid] = match
+                        save_all()
+                        st.rerun()
                     #--Créer compo---
-                    if not match.get("termine",False) or not match_ended:
+                    if not match["termine"]:
                         with st.expander("🏟️ Créer compo"):
                             use_compo = st.checkbox("Utiliser une composition enregistrée ?", key=f"use_compo_match_{mid}")
                             if use_compo and st.session_state.lineups:
@@ -666,39 +670,21 @@ with tab3:
                             else:
                                 formation = st.selectbox("Formation", list(FORMATION.keys()), key=f"match_formation_{mid}")
                                 st.session_state["formation_new_match"] = formation
-                                terrain = terrain_interactif(formation, "terrain_new_match")
+                                terrain = terrain_interactif(formation, "terrain_new_match_{mid}")
                                 tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-                                remplacants = remplacants_interactif("new_match", tous_titulaires)
+                                remplacants = remplacants_interactif("new_match_{mid}", tous_titulaires)
                             fig = draw_football_pitch_vertical()
                             fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
                             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
                             if st.button("Valider la compo", key=f"btn_enregistrer_compo_{mid}"):
                                 try:
-                                    match_id = nom_match
-                                    st.session_state.matches[match_id] = {
-                                        "type": type_match,
-                                        "adversaire": adversaire,
-                                        "date": str(date),
-                                        "heure": str(heure),
-                                        "domicile" : domicile, 
-                                        "journée" : journee, 
-                                        "nom_match" : nom_match, 
-                                        "lieu": lieu,
-                                        "formation": formation,
-                                        "details": copy.deepcopy(terrain),
-                                        "remplacants": copy.deepcopy(remplacants),
-                                        "events": {},
-                                        "score": "",
-                                        "score_afc": 0,
-                                        "score_adv": 0,
-                                        "noted": False,
-
-"termine" : False, 
-                                        "homme_du_match": ""
-                                    }
+                                    match = st.session_state.matches[mid]
+                                    match["formation"] = formation
+                                    match["details"] = copy.deepcopy(terrain)
+                                    match["remplacants"] = copy.deepcopy(remplacants)
                                     save_all()
                                     st.rerun()
-                                    st.success("Match enregistré !")
+                                    st.success("Composition enregistrée dans le match !")
                                 except Exception as e:
                                     st.error(f"Erreur lors de la sauvegarde : {e}")
                                     st.text(traceback.format_exc())
