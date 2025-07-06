@@ -651,7 +651,7 @@ with tab3:
                         save_all()
                         st.rerun()
                     #--Créer compo---
-                    if not match["termine"]:
+                    if not match.get("termine", False):
                         with st.expander("🏟️ Créer compo"):
                             use_compo = st.checkbox("Utiliser une composition enregistrée ?", key=f"use_compo_match_{mid}")
                             if use_compo and st.session_state.lineups:
