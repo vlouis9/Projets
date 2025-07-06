@@ -268,7 +268,7 @@ def reload_all():
 def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
-def terrain_interactif(formation, terrain_key):
+def terrain_interactif(formation, terrain_key, key_suffix=None):
     if terrain_key not in st.session_state:
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
@@ -297,12 +297,14 @@ def terrain_interactif(formation, terrain_key):
             joueur_options = [""] + [
                 n for n in joueurs_tries if n == current_nom or n not in all_selected
             ]
-
+            widget_key = f"{terrain_key}_{poste}_{i}"
+            if key_suffix is not None:
+                widget_key += f"_{key_suffix}"
             choix = st.selectbox(
                 label,
                 joueur_options,
                 index=joueur_options.index(current_nom) if current_nom in joueur_options else 0,
-                key=f"{terrain_key}_{poste}_{i}_{mid}"
+                key=widget_key
             )
             if choix:
                 joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
@@ -316,7 +318,7 @@ def terrain_interactif(formation, terrain_key):
     st.session_state[terrain_key] = terrain
     return terrain
     
-def remplacants_interactif(key, titulaires):
+def remplacants_interactif(key, titulaires, key_suffix=None):
     if f"remp_{key}" not in st.session_state:
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
     remps = st.session_state[f"remp_{key}"]
@@ -340,11 +342,14 @@ def remplacants_interactif(key, titulaires):
     for i in range(MAX_REMPLACANTS):
         current = remps[i]["Nom"]
         options = dispo + ([current] if current and current not in dispo else [])
+        widget_key = f"remp_choice_{key}_{i}"
+        if key_suffix is not None:
+            widget_key += f"_{key_suffix}"
         choix = st.selectbox(
             f"Remplacant {i+1}",
             [""] + options,
             index=(options.index(current)+1) if current in options else 0,
-            key=f"remp_choice_{key}_{i}_{mid}"
+            key=widget_key
         )
         if choix:
             joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
@@ -670,9 +675,9 @@ with tab3:
                             else:
                                 formation = st.selectbox("Formation", list(FORMATION.keys()), key=f"match_formation_{mid}")
                                 st.session_state["formation_new_match"] = formation
-                                terrain = terrain_interactif(formation, "terrain_new_match_{mid}")
+                                terrain = terrain_interactif(formation, "terrain_new_match_{mid}", key_suffix=mid)
                                 tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-                                remplacants = remplacants_interactif("new_match_{mid}", tous_titulaires)
+                                remplacants = remplacants_interactif("new_match_{mid}", tous_titulaires, key_suffix=mid)
                             fig = draw_football_pitch_vertical()
                             fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
                             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
