@@ -732,10 +732,17 @@ with tab3:
                                             joueurs_tries.append(nom)
                     
                                 # Affichage
-                                st.write("### Convocation de match")
-                                st.write(f"### {match['nom_match']}")
+                                st.write("### 🚨 Convocation de match")
+                                st.write(f"## 🏟 {type_match} - {journee}")
+                                if match[domicile] == "Domicile":
+                                    st.write(f"##  AFC vs {adversaire}")
+                                else:
+                                    st.write(f"## {adversaire} vs AFC")
                                 st.markdown("---")
-                                #st.markdown()
+                                st.markdown(f"🗓️ Date: {date}")
+                                st.markdown(f"🕒 Heure: {heure} (rdv {heure}")
+                                st.markdown(f"📍 Lieu: {lieu}")
+                                st.markdown("---")
                                 if joueurs_tries:
                                     for nom in joueurs_tries:
                                         st.markdown(f"- {nom}")
