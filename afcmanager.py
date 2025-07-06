@@ -640,11 +640,9 @@ with tab3:
             for mid, match in st.session_state.matches.items():
                 with st.expander(match.get("nom_match", "Match sans nom")):
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
-                    if match_ended:
-                            st.rerun()
                     #st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
                     #--Créer compo---
-                    if not match.get("termine",False):
+                    if not match.get("termine",False) or not match_ended:
                         with st.expander("🏟️ Créer compo"):
                             use_compo = st.checkbox("Utiliser une composition enregistrée ?", key=f"use_compo_match_{mid}")
                             if use_compo and st.session_state.lineups:
