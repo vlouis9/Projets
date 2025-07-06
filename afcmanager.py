@@ -706,8 +706,8 @@ with tab3:
 
                         with st.expander("👥 Convocation des joueurs"):
                             try:
-                                terrain = st.session_state.get("terrain_new_match_{mid}", {})
-                                remplacants = st.session_state.get("remp_new_match", [])
+                                terrain = match.get("details", {})
+                                remplacants = match.get("remplacants", [])
                     
                                 # Récupérer tous les noms des joueurs convoqués
                                 joueurs_convoques = []
