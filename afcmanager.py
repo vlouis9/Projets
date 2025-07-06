@@ -740,7 +740,7 @@ with tab3:
                                     st.write(f"## {adversaire} vs AFC")
                                 st.markdown("---")
                                 st.markdown(f"🗓️ Date: {date}")
-                                st.markdown(f"🕒 Heure: {heure} (rdv {heure-1})")
+                                st.markdown(f"🕒 Heure: {heure} (rdv {heure})")
                                 st.markdown(f"📍 Lieu: {lieu}")
                                 st.markdown("---")
                                 if joueurs_tries:
