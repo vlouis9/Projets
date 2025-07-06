@@ -640,6 +640,8 @@ with tab3:
             for mid, match in st.session_state.matches.items():
                 with st.expander(match.get("nom_match", "Match sans nom")):
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
+                    if match_ended:
+                            st.rerun()
                     #st.write(f"**Statut :** {'Terminé' if match.get('noted', False) else 'A jouer'}")
                     #--Créer compo---
                     if not match.get("termine",False):
