@@ -712,6 +712,43 @@ with tab3:
                                 save_all()
                                 st.rerun()
                                 st.success("Composition sauvegardée !")
+
+                        with st.expander("👥 Convocation des joueurs (tri par poste)"):
+                            try:
+                                terrain = st.session_state.get("terrain_new_match", {})
+                                remplacants = st.session_state.get("remp_new_match", [])
+                    
+                                # Récupérer tous les noms des joueurs convoqués
+                                joueurs_convoques = []
+                                for p in POSTES_ORDER:
+                                    joueurs_poste = terrain.get(p, [])
+                                    for j in joueurs_poste:
+                                        if j and isinstance(j, dict) and "Nom" in j:
+                                            joueurs_convoques.append(j["Nom"])
+                                joueurs_convoques += [r for r in remplacants if isinstance(r, str)]
+                    
+                                joueurs_convoques = list(dict.fromkeys(joueurs_convoques))  # Supprime les doublons en conservant l'ordre
+                    
+                                # Base joueurs sous forme dict rapide : {Nom: Poste}
+                                df_joueurs = st.session_state.players
+                                postes_dict = dict(zip(df_joueurs["Nom"], df_joueurs["Poste"]))
+                    
+                                # Tri des convoqués selon POSTES_ORDER de la base
+                                joueurs_tries = []
+                                for poste in POSTES_ORDER:
+                                    for nom in joueurs_convoques:
+                                        if postes_dict.get(nom) == poste:
+                                            joueurs_tries.append(nom)
+                    
+                                # Affichage
+                                if joueurs_tries:
+                                    for nom in joueurs_tries:
+                                        st.markdown(f"- {nom}")
+                                else:
+                                    st.info("Aucun joueur convoqué pour l'instant.")
+                                    
+                            except Exception as e:
+                                st.warning(f"Impossible d'afficher la convocation : {e}")
                     #--Noter match---
                     else :  
                         if not match.get("noted", False):
