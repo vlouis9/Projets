@@ -732,9 +732,9 @@ with tab3:
                                             joueurs_tries.append(nom)
                     
                                 # Affichage
-                                st.write("### 🚨 Convocation de match")
+                                st.write("# 🚨 Convocation de match")
                                 st.write(f"## 🏟 {type_match} - {journee}")
-                                if match[domicile] == "Domicile":
+                                if match.get("Domicile") == "Domicile":
                                     st.write(f"##  AFC vs {adversaire}")
                                 else:
                                     st.write(f"## {adversaire} vs AFC")
