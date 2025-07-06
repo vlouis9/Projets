@@ -716,7 +716,7 @@ with tab3:
                                     for j in joueurs_poste:
                                         if j and isinstance(j, dict) and "Nom" in j:
                                             joueurs_convoques.append(j["Nom"])
-                                joueurs_convoques += [r for r in remplacants if isinstance(r, dict) and r.get("Nom")]
+                                joueurs_convoques += [r["Nom"] for r in remplacants if isinstance(r, dict) and "Nom" in r and r.["Nom"]]
                     
                                 joueurs_convoques = list(dict.fromkeys(joueurs_convoques))  # Supprime les doublons en conservant l'ordre
                     
