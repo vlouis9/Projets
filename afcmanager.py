@@ -704,7 +704,7 @@ with tab3:
                                 st.rerun()
                                 st.success("Composition sauvegardée !")
 
-                        with st.expander("👥 Convocation des joueurs (tri par poste)"):
+                        with st.expander("👥 Convocation des joueurs"):
                             try:
                                 terrain = st.session_state.get("terrain_new_match", {})
                                 remplacants = st.session_state.get("remp_new_match", [])
@@ -732,6 +732,10 @@ with tab3:
                                             joueurs_tries.append(nom)
                     
                                 # Affichage
+                                st.write("### Convocation de match")
+                                st.write(f"### {match['nom_match']}")
+                                st.markdown("---")
+                                #st.markdown()
                                 if joueurs_tries:
                                     for nom in joueurs_tries:
                                         st.markdown(f"- {nom}")
