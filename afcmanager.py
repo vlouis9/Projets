@@ -500,7 +500,9 @@ def download_upload_buttons():
                 st.session_state.matches = data.get("matches", {})
                 st.session_state.adversaires = data.get("adversaires", [])
                 st.session_state.championnat_scores = data.get("championnat_scores", {})
-                st.session_state.profondeur_effectif = data.get("profondeur_effectif", {})
+                if st.session_state.lineups:
+                    first_name, first_lineup = next(iter(st.session_state.lineups.items()))
+                    st.session_state["profondeur_selected_compo"] = first_name
                 st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
             except Exception as e:
                 st.error(f"❌ Erreur à l'import : {e}")
