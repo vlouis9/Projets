@@ -1076,45 +1076,126 @@ with tab2:
         st.dataframe(classement, hide_index=True, use_container_width=True)
     with subtab2:
         st.title("Saisie des scores de championnat")
-        # Choix du nombre de journées
-        n_journees = st.number_input("Nombre de journées", min_value=1, value=10, step=1, key="nb_journees")
-        journees = [f"J{i+1}" for i in range(n_journees)]
-        selected_journee = st.selectbox("Sélectionnez une journée", journees, key="select_journee")
-
-        # Initialisation des matchs pour la journée si besoin
-        if selected_journee not in st.session_state.championnat_scores:
-            # Par défaut, AFC rencontre chaque adversaire
-            st.session_state.championnat_scores[selected_journee] = [
-                {"domicile": "AFC", "exterieur": adv, "score_dom": 0, "score_ext": 0}
-                for adv in st.session_state.adversaires
-            ]
-
-        matchs = st.session_state.championnat_scores[selected_journee]
-
-        # Edition des scores
+    
+        def get_next_journee_key():
+            #"""Trouve la prochaine clé de journée sous la forme J01, J02, etc."""
+            existing = [int(j[1:]) for j in st.session_state.championnat_scores.keys() if j.startswith("J")]
+            next_num = max(existing, default=0) + 1
+            return f"J{next_num:02d}"
+    
+        # Initialisation si aucune journée
+        if "championnat_scores" not in st.session_state:
+            st.session_state.championnat_scores = {}
+        if not st.session_state.championnat_scores:
+            st.session_state.championnat_scores["J01"] = []
+    
+        journees = sorted(st.session_state.championnat_scores.keys())
+        if "selected_journee" not in st.session_state or st.session_state.selected_journee not in journees:
+            st.session_state.selected_journee = journees[0]
+    
+        # --- BOUTONS NAVIGATION JOURNÉES & AJOUT JOURNÉE ---
+        col_nav1, col_nav2, col_nav3, col_nav4 = st.columns([1, 2, 2, 1])
+        with col_nav1:
+            idx = journees.index(st.session_state.selected_journee)
+            if idx > 0:
+                if st.button("←", key="prev_journee"):
+                    st.session_state.selected_journee = journees[idx - 1]
+                    st.experimental_rerun()
+        with col_nav2:
+            st.markdown(f"<h4 style='text-align:center;'>Journée : {st.session_state.selected_journee}</h4>", unsafe_allow_html=True)
+        with col_nav3:
+            if idx < len(journees) - 1:
+                if st.button("→", key="next_journee"):
+                    st.session_state.selected_journee = journees[idx + 1]
+                    st.experimental_rerun()
+        with col_nav4:
+            if st.button("Ajouter une journée"):
+                next_journee = get_next_journee_key()
+                st.session_state.championnat_scores[next_journee] = []
+                st.session_state.selected_journee = next_journee
+                save_all()
+                st.experimental_rerun()
+    
+        selected_journee = st.session_state.selected_journee
+        matchs = st.session_state.championnat_scores.get(selected_journee, [])
+    
+        equipes = ["AFC"] + st.session_state.adversaires
+    
+        # --- AFFICHAGE/EDITION DES MATCHS EXISTANTS ---
+        st.subheader(f"Matchs de la {selected_journee}")
+        to_delete = []
         for i, match in enumerate(matchs):
-            cols = st.columns([2,1,1,1,2])
+            cols = st.columns([3,1,1,1,3,1])
             with cols[0]:
-                st.markdown(f"**{match['domicile']}**")
+                dom = st.selectbox(
+                    f"Domicile {i+1}", equipes, 
+                    index=equipes.index(match["domicile"]) if match.get("domicile") in equipes else 0,
+                    key=f"dom_{selected_journee}_{i}"
+                )
             with cols[1]:
-                match["score_dom"] = st.number_input(
-                    "", min_value=0, max_value=30, value=match["score_dom"],
+                score_dom = st.number_input(
+                    "", min_value=0, max_value=30, value=match.get("score_dom", 0),
                     key=f"score_dom_{selected_journee}_{i}"
                 )
             with cols[2]:
                 st.markdown("—")
             with cols[3]:
-                match["score_ext"] = st.number_input(
-                    "", min_value=0, max_value=30, value=match["score_ext"],
+                score_ext = st.number_input(
+                    "", min_value=0, max_value=30, value=match.get("score_ext", 0),
                     key=f"score_ext_{selected_journee}_{i}"
                 )
             with cols[4]:
-                st.markdown(f"**{match['exterieur']}**")
-
+                # Filtre équipes déjà prises ce jour-là (hors ce match)
+                exclus = [dom]
+                autres_ext = [m["exterieur"] for j, m in enumerate(matchs) if j != i]
+                options_ext = [e for e in equipes if e not in exclus + autres_ext or e == match.get("exterieur")]
+                ext = st.selectbox(
+                    f"Extérieur {i+1}", 
+                    options_ext if match.get("exterieur") in options_ext else options_ext + [match.get("exterieur","")],
+                    index=options_ext.index(match["exterieur"]) if match.get("exterieur") in options_ext else 0,
+                    key=f"ext_{selected_journee}_{i}"
+                )
+            with cols[5]:
+                if st.button("❌", key=f"del_match_{selected_journee}_{i}"):
+                    to_delete.append(i)
+            # Met à jour le match si modifié
+            match["domicile"] = dom
+            match["exterieur"] = ext
+            match["score_dom"] = score_dom
+            match["score_ext"] = score_ext
+        # Supprime les matchs demandés
+        for i in sorted(to_delete, reverse=True):
+            matchs.pop(i)
+        st.session_state.championnat_scores[selected_journee] = matchs
+    
+        # --- FORMULAIRE AJOUT MATCH ---
+        st.markdown("---")
+        st.subheader("Ajouter un match")
+        with st.form(f"add_match_form_{selected_journee}"):
+            equipes_dom = equipes
+            dom_new = st.selectbox("Équipe à domicile", equipes_dom, key=f"new_dom_{selected_journee}")
+            equipes_ext = [e for e in equipes if e != dom_new and e not in [m["exterieur"] for m in matchs]]
+            ext_new = st.selectbox("Équipe à l'extérieur", equipes_ext, key=f"new_ext_{selected_journee}")
+            score_dom_new = st.number_input("Score domicile", min_value=0, max_value=30, value=0, key=f"new_score_dom_{selected_journee}")
+            score_ext_new = st.number_input("Score extérieur", min_value=0, max_value=30, value=0, key=f"new_score_ext_{selected_journee}")
+            submitted = st.form_submit_button("Ajouter le match")
+            if submitted:
+                matchs.append({
+                    "domicile": dom_new, 
+                    "exterieur": ext_new, 
+                    "score_dom": score_dom_new, 
+                    "score_ext": score_ext_new
+                })
+                st.session_state.championnat_scores[selected_journee] = matchs
+                save_all()
+                st.experimental_rerun()
+    
+        # --- SAUVEGARDE DES SCORES DE LA JOURNÉE ---
         if st.button("Sauvegarder les scores de la journée", key=f"save_scores_{selected_journee}"):
             st.session_state.championnat_scores[selected_journee] = matchs
             save_all()
             st.success(f"Scores de {selected_journee} sauvegardés !")
+            
     with subtab3:
         st.title("Gestion des adversaires")
         adv_df = pd.DataFrame({"Nom": st.session_state.adversaires if st.session_state.adversaires else [""]}, dtype="object")
