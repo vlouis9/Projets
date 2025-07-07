@@ -519,7 +519,8 @@ def download_upload_buttons():
         file_name=DATA_FILE,
         mime="application/json"
     )
-    
+
+
 
 st.sidebar.title("⚽ Gestion Équipe AFC")
 with st.sidebar:
@@ -727,7 +728,7 @@ with tab4:
             st.session_state.profondeur_effectif = {}
         if formation_profondeur not in st.session_state.profondeur_effectif:
             st.session_state.profondeur_effectif[formation_profondeur] = {}
-        profondeur_formation = st.session_state.profondeur_effectif[formation_profondeur]
+        profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur,{})
     
         postes_formation = POSTES_NOMS[formation_profondeur]
         joueurs = st.session_state.players["Nom"].dropna().tolist()
