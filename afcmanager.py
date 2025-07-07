@@ -1117,16 +1117,13 @@ with tab2:
             st.success(f"Scores de {selected_journee} sauvegardés !")
     with subtab3:
         st.title("Gestion des adversaires")
-        adv_df = pd.DataFrame({"Nom": st.session_state.adversaires})
+        adv_df = pd.DataFrame({"Nom": st.session_state.adversaires if st.session_state.adversaires else [""]}, dtype="object")
         edited_adv = st.data_editor(
             adv_df,
             num_rows="dynamic",
             hide_index=True,
             use_container_width=True,
-            key="edit_adv",
-            column_config={
-                "Nom" : st.column_config.TextColumn(required=True)
-            }
+            key="edit_adv"
         )
     
         if st.button("Sauvegarder les adversaires", key="save_adv"):
