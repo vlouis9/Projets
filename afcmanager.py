@@ -779,45 +779,31 @@ with tab4:
     
         with col_right:
             st.markdown("### Visuel terrain (tous les choix par poste)")
-            # Nouveau terrain enrichi
             terrain_profondeur = {poste: [] for poste in POSTES_ORDER}
-            annotation_by_position = []
-            for poste in postes_formation:
-                for idx_label, label in enumerate(postes_formation[poste]):
-                    choix_list = profondeur_formation.get(poste, {}).get(idx_label, [])
-                    # Pour chaque choix (Choix 1, Choix 2, ...)
-                    for i, choix in enumerate([c for c in choix_list if c]):
-                        # On l'affiche comme un joueur à ce poste avec un suffixe
-                        # On empile les noms sur l'axe y
-                        terrain_profondeur[poste].append({"Nom": f"{choix}  (#{i+1})"})
-            # Pour éviter d'afficher 2 fois trop de joueurs, on limite à 1 par "slot" pour le visuel Plotly
-            # Mais on va utiliser les annotations Plotly pour empiler les noms
             fig = draw_football_pitch_vertical()
             positions = positions_for_formation_vertical(formation_profondeur)
             for poste in postes_formation:
                 poste_positions = positions[poste]
                 for idx_label, label in enumerate(postes_formation[poste]):
-                    # Tous les choix pour ce poste
                     choix_list = profondeur_formation.get(poste, {}).get(idx_label, [])
                     noms = [c for c in choix_list if c]
                     if noms:
                         x, y = poste_positions[idx_label % len(poste_positions)]
-                        # Empile chaque nom verticalement
-                        for i, nom in enumerate(noms):
-                            fig.add_annotation(
-                                x=x,
-                                y=y - 6 * i,  # Décale les noms verticalement
-                                text=f"{nom} <span style='font-size:11px;'>(#{i+1})</span>",
-                                showarrow=False,
-                                font=dict(size=14 if i==0 else 12, color="white"),
-                                bgcolor="#0d47a1" if i==0 else "#2874A6",
-                                bordercolor="white",
-                                borderwidth=1,
-                                borderpad=2,
-                                align="center"
-                            )
+                        # Bloc unique : tous les noms séparés par un saut de ligne
+                        bloc_noms = "<br>".join([f"{i+1}. {nom}" for i, nom in enumerate(noms)])
+                        fig.add_annotation(
+                            x=x,
+                            y=y,
+                            text=bloc_noms,
+                            showarrow=False,
+                            font=dict(size=13, color="white"),
+                            bgcolor="#0d47a1",
+                            bordercolor="white",
+                            borderwidth=1,
+                            borderpad=4,
+                            align="center"
+                        )
             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_profondeur_all")
-        
 
 # --- GESTION MATCHS ---
 with tab1:
