@@ -489,7 +489,7 @@ with tab1:
         combined_df,
         num_rows="dynamic",
         use_container_width=True,
-        hide_index=True
+        hide_index=True,
         column_config={
             "Nom": st.column_config.TextColumn(required=True),
             "Poste": st.column_config.SelectboxColumn(
