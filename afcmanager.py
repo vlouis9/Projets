@@ -1123,8 +1123,12 @@ with tab2:
             num_rows="dynamic",
             hide_index=True,
             use_container_width=True,
-            key="edit_adv"
+            key="edit_adv",
+            column_config={
+                "Nom" : st.column_config.TextColumn(required=True)
+            }
         )
+    
         if st.button("Sauvegarder les adversaires", key="save_adv"):
             st.session_state.adversaires = edited_adv["Nom"].dropna().tolist()
             save_all()  # Utilise ta fonction actuelle
