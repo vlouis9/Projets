@@ -489,6 +489,7 @@ with tab1:
         combined_df,
         num_rows="dynamic",
         use_container_width=True,
+        hide_index=True
         column_config={
             "Nom": st.column_config.TextColumn(required=True),
             "Poste": st.column_config.SelectboxColumn(
@@ -708,8 +709,6 @@ with tab3:
                             try:
                                 terrain = match.get("details", {})
                                 remplacants = match.get("remplacants", [])
-                    
-                                # Récupérer tous les noms des joueurs convoqués
                                 joueurs_convoques = []
                                 for p in POSTES_ORDER:
                                     joueurs_poste = terrain.get(p, [])
@@ -717,7 +716,6 @@ with tab3:
                                         if j and isinstance(j, dict) and "Nom" in j:
                                             joueurs_convoques.append(j["Nom"])
                                 joueurs_convoques += [r["Nom"] for r in remplacants if isinstance(r, dict) and "Nom" in r and r["Nom"]]
-                    
                                 joueurs_convoques = list(dict.fromkeys(joueurs_convoques))  # Supprime les doublons en conservant l'ordre
                     
                                 # Base joueurs sous forme dict rapide : {Nom: Poste}
@@ -732,16 +730,28 @@ with tab3:
                                             joueurs_tries.append(nom)
                     
                                 # Affichage
+                                type_match = match.get("type", "")
+                                journee = match.get("journée", "")
+                                adversaire = match.get("adversaire", "")
+                                domicile = match.get("domicile", "")
+                                lieu = match.get("lieu", "")
+                                date = match.get("date", "")
+                                heure_str = match.get("heure", "21:00")
+                                # Calcul heure convoc
+                                try:
+                                    heure_obj = datetime.strptime(heure_str, "%H:%M")
+                                    heure_convoc = (heure_obj - timedelta(hours=1)).strftime("%H:%M")
+                                except Exception:
+                                    heure_convoc = "?"
                                 st.write("# 🚨 Convocation de match")
                                 st.write(f"## 🏟 {type_match} - {journee}")
-                                if match.get("Domicile") == "Domicile":
-                                    st.write(f"##  AFC vs {adversaire}")
+                                if domicile == "Domicile":
+                                    st.write(f"## AFC vs {adversaire}")
                                 else:
                                     st.write(f"## {adversaire} vs AFC")
                                 st.markdown("---")
                                 st.markdown(f"🗓️ Date: {date}")
-                                heure_convoc=match.get("heure")-timedelta(hours=1)
-                                st.markdown(f"🕒 Heure: {heure} (rdv {heure_convoq})")
+                                st.markdown(f"🕒 Heure: {heure_str} (rdv {heure_convoc})")
                                 st.markdown(f"📍 Lieu: {lieu}")
                                 st.markdown("---")
                                 if joueurs_tries:
@@ -749,7 +759,6 @@ with tab3:
                                         st.markdown(f"- {nom}")
                                 else:
                                     st.info("Aucun joueur convoqué pour l'instant.")
-                                    
                             except Exception as e:
                                 st.warning(f"Impossible d'afficher la convocation : {e}")
                     #--Noter match---
@@ -926,23 +935,23 @@ with tab4:
     
         with col1:
             st.subheader("⭐ Top 5 Notes")
-            st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True)
+            st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
             st.subheader("⚽ Top 5 Buteurs")
-            st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True)
+            st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True, hide_index=True)
             st.subheader("🎯 Top 5 Passeurs")
-            st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True)
+            st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True, hide_index=True)
             st.subheader("🔥 Top 5 Décisifs (Buts+Passes)")
-            st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True)
+            st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True, hide_index=True)
             st.subheader("🧤 Top 5 Clean Sheets (Gardiens)")
-            st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True)
+            st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True, hide_index=True)
     
         with col2:
             st.subheader("⚡ Top 5 Ratio Décisif/Match")
-            st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True)
+            st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True, hide_index=True)
             st.subheader("🔁 Top 5 Plus Utilisés")
-            st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True)
+            st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True, hide_index=True)
             st.subheader("🟥🟨 Top 5 Bouchers")
-            st.dataframe(top_bouchers[["Nom", "Cartons rouges", "Cartons jaunes"]], use_container_width=True)
+            st.dataframe(top_bouchers[["Nom", "Cartons rouges", "Cartons jaunes"]], use_container_width=True, hide_index=True)
     
         # Team stats
         total_goals = df["Buts"].sum()
