@@ -1100,21 +1100,21 @@ with tab2:
             if idx > 0:
                 if st.button("←", key="prev_journee"):
                     st.session_state.selected_journee = journees[idx - 1]
-                    st.experimental_rerun()
+                    st.rerun()
         with col_nav2:
             st.markdown(f"<h4 style='text-align:center;'>Journée : {st.session_state.selected_journee}</h4>", unsafe_allow_html=True)
         with col_nav3:
             if idx < len(journees) - 1:
                 if st.button("→", key="next_journee"):
                     st.session_state.selected_journee = journees[idx + 1]
-                    st.experimental_rerun()
+                    st.rerun()
         with col_nav4:
             if st.button("Ajouter une journée"):
                 next_journee = get_next_journee_key()
                 st.session_state.championnat_scores[next_journee] = []
                 st.session_state.selected_journee = next_journee
                 save_all()
-                st.experimental_rerun()
+                st.rerun()
     
         selected_journee = st.session_state.selected_journee
         matchs = st.session_state.championnat_scores.get(selected_journee, [])
@@ -1188,7 +1188,7 @@ with tab2:
                 })
                 st.session_state.championnat_scores[selected_journee] = matchs
                 save_all()
-                st.experimental_rerun()
+                st.rerun()
     
         # --- SAUVEGARDE DES SCORES DE LA JOURNÉE ---
         if st.button("Sauvegarder les scores de la journée", key=f"save_scores_{selected_journee}"):
