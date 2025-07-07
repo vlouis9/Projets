@@ -222,6 +222,8 @@ def save_all():
         "players": st.session_state.players.to_dict(orient="records"),
         "lineups": st.session_state.lineups,
         "matches": st.session_state.matches,
+        "adversaires": st.session_state.get("adversaires", []),
+        "championnat_scores": st.session_state.get("championnat_scores", {})
     }
     try:
         with open(DATA_FILE, "w") as f:
@@ -260,10 +262,14 @@ def reload_all():
         session_matches = st.session_state.get("matches", {})
         json_matches = data.get("matches", {})
         st.session_state.matches = fusion_dictionnaires(json_matches, session_matches)
+        st.session_state.adversaires = data.get("adversaires", st.session_state.get("adversaires", []))
+        st.session_state.championnat_scores = data.get("championnat_scores", st.session_state.get("championnat_scores", {}))
     else:
         st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
         st.session_state.lineups = {}
         st.session_state.matches = {}
+        st.session_state.adversaires = []
+        st.session_state.championnat_scores = {}
 
 def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
@@ -422,6 +428,40 @@ def compute_clean_sheets():
                 clean_sheets[name] = clean_sheets.get(name, 0) + 1
     return clean_sheets
 
+def get_classement(championnat_scores, adversaires):
+    stats = {adv: {"Pts":0, "V":0, "N":0, "D":0, "BP":0, "BC":0} for adv in adversaires+["AFC"]}
+    for journee, matchs in championnat_scores.items():
+        for m in matchs:
+            dom, ext = m["domicile"], m["exterieur"]
+            sd, se = m["score_dom"], m["score_ext"]
+            # Buts
+            stats[dom]["BP"] += sd
+            stats[dom]["BC"] += se
+            stats[ext]["BP"] += se
+            stats[ext]["BC"] += sd
+            # Victoire/nul/défaite/points
+            if sd > se:
+                stats[dom]["V"] += 1
+                stats[ext]["D"] += 1
+                stats[dom]["Pts"] += 3
+            elif se > sd:
+                stats[ext]["V"] += 1
+                stats[dom]["D"] += 1
+                stats[ext]["Pts"] += 3
+            else:
+                stats[dom]["N"] += 1
+                stats[ext]["N"] += 1
+                stats[dom]["Pts"] += 1
+                stats[ext]["Pts"] += 1
+    # Différence de buts
+    for v in stats.values():
+        v["Diff"] = v["BP"] - v["BC"]
+    # Conversion DataFrame pour affichage
+    classement = pd.DataFrame([
+        {"Équipe": k, **v} for k, v in stats.items()
+    ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
+    return classement
+
 if ("players" not in st.session_state or
     "lineups" not in st.session_state or
     "matches" not in st.session_state):
@@ -433,6 +473,10 @@ for col in PLAYER_COLS:
         st.session_state.players[col] = ""
 if "formation" not in st.session_state:
     st.session_state.formation = DEFAULT_FORMATION
+if "adversaires" not in st.session_state:
+    st.session_state.adversaires = []
+if "championnat_scores" not in st.session_state:
+    st.session_state.championnat_scores = {}
 
 def download_upload_buttons():
     # -- Import JSON --
@@ -445,6 +489,8 @@ def download_upload_buttons():
                 st.session_state.players = pd.DataFrame(data.get("players", []))
                 st.session_state.lineups = data.get("lineups", {})
                 st.session_state.matches = data.get("matches", {})
+                st.session_state.adversaires = data.get("adversaires", [])
+                st.session_state.championnat_scores = data.get("championnat_scores", {})
                 st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
             except Exception as e:
                 st.error(f"❌ Erreur à l'import : {e}")
@@ -456,6 +502,8 @@ def download_upload_buttons():
             "players": st.session_state.players.to_dict(orient="records"),
             "lineups": st.session_state.lineups,
             "matches": st.session_state.matches,
+            "adversaires": st.session_state.get("adversaires", []),
+            "championnat_scores": st.session_state.get("championnat_scores", {})
         }, indent=2),
         file_name=DATA_FILE,
         mime="application/json"
@@ -469,59 +517,134 @@ with st.sidebar:
         download_upload_buttons()
     st.markdown("---")
 
-tab3, tab4, tab1, tab2 = st.tabs(["Matchs", "Stats équipe", "Base joueurs", "Compositions"])
+tab1, tab2, tab3, tab4 = st.tabs(["Gestion Matchs", "Suivi Championnat", "Gestion Equipe", "Tactique"])
 
-# --- DATABASE ---
-with tab1:
-    st.title("Base de données joueurs")
-    st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous.")
-    stats_data = []
-    for _, row in st.session_state.players.iterrows():
-        s = compute_player_stats(row["Nom"])
-        stats_data.append({**row, **s})
-    combined_df = pd.DataFrame(stats_data, columns=[
-        "Nom", "Poste", "Infos", "Buts", "Passes décisives", 
-        "Buts + Passes", "Décisif par match", "Cartons jaunes", 
-        "Cartons rouges", "Sélections", "Titularisations", 
-        "Note générale", "Homme du match"
-    ])
-    edited_df = st.data_editor(
-        combined_df,
-        num_rows="dynamic",
-        use_container_width=True,
-        hide_index=True,
-        column_config={
-            "Nom": st.column_config.TextColumn(required=True),
-            "Poste": st.column_config.SelectboxColumn(
-                options=POSTES_ORDER,
-                required=True,
-                default="G"
-            ),
-            "Infos": st.column_config.TextColumn(),
-            "Buts": st.column_config.NumberColumn(disabled=True),
-            "Passes décisives": st.column_config.NumberColumn(disabled=True),
-            "Buts + Passes": st.column_config.NumberColumn(disabled=True),
-            "Décisif par match": st.column_config.NumberColumn(disabled=True),
-            "Cartons jaunes": st.column_config.NumberColumn(disabled=True),
-            "Cartons rouges": st.column_config.NumberColumn(disabled=True),
-            "Sélections": st.column_config.NumberColumn(disabled=True),
-            "Titularisations": st.column_config.NumberColumn(disabled=True),
-            "Note générale": st.column_config.NumberColumn(disabled=True),
-            "Homme du match": st.column_config.NumberColumn(disabled=True)
-        },
-        key="data_edit"
-    )
-    if st.button("Sauvegarder les modifications"):
-        edited_df = edited_df.fillna("")
-        edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
-        st.session_state.players = edited_df[PLAYER_COLS]
-        save_all()
-        st.rerun()
-        st.success("Base de joueurs mise à jour !")
-    st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
+# --- GESTION EQUIPE ---
+with tab3:
+    subtab1, subtab2 = st.tabs(["Stats équipe","Base joueurs"]
+    with subtab1
+        st.title("📊 Statistiques de l'équipe")
+        stats_data = []
+        for _, row in st.session_state.players.iterrows():
+            s = compute_player_stats(row["Nom"])
+            stats_data.append({**row, **s})
+    
+        df = pd.DataFrame(stats_data)
+        clean_sheets = compute_clean_sheets()
+        if not df.empty:
+            df["Clean sheets"] = df.apply(
+                lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
+            df["Bouchers"] = df["Cartons rouges"].fillna(0) + df["Cartons jaunes"].fillna(0)
+        
+            # Top 5 by rating
+            top_rating = df[df["Note générale"] > 0].sort_values("Note générale", ascending=False).head(5)
+            # Top 5 scorers
+            top_buts = df[df["Buts"] > 0].sort_values("Buts", ascending=False).head(5)
+            # Top 5 passers
+            top_passes = df[df["Passes décisives"] > 0].sort_values("Passes décisives", ascending=False).head(5)
+            # Top 5 decisive
+            top_decisive = df[df["Buts + Passes"] > 0].sort_values("Buts + Passes", ascending=False).head(5)
+            # Top 5 clean sheets (goalkeepers only)
+            top_clean = df[df["Poste"] == "G"].sort_values("Clean sheets", ascending=False).head(5)
+            # Top 5 ratio
+            top_ratio = df[df["Décisif par match"] > 0].sort_values("Décisif par match", ascending=False).head(5)
+            # Top 5 used
+            top_used = df[df["Titularisations"] > 0].sort_values("Titularisations", ascending=False).head(5)
+            # Top 5 bouchers (by red, then yellow)
+            top_bouchers = df[(df["Cartons rouges"] > 0) | (df["Cartons jaunes"] > 0)].sort_values(
+                by=["Cartons rouges", "Cartons jaunes"], ascending=[False, False]).head(5)
+        
+            col1, col2 = st.columns(2)
+        
+            with col1:
+                st.subheader("⭐ Top 5 Notes")
+                st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
+                st.subheader("⚽ Top 5 Buteurs")
+                st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True, hide_index=True)
+                st.subheader("🎯 Top 5 Passeurs")
+                st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True, hide_index=True)
+                st.subheader("🔥 Top 5 Décisifs (Buts+Passes)")
+                st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True, hide_index=True)
+                st.subheader("🧤 Top 5 Clean Sheets (Gardiens)")
+                st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True, hide_index=True)
+        
+            with col2:
+                st.subheader("⚡ Top 5 Ratio Décisif/Match")
+                st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True, hide_index=True)
+                st.subheader("🔁 Top 5 Plus Utilisés")
+                st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True, hide_index=True)
+                st.subheader("🟥🟨 Top 5 Bouchers")
+                st.dataframe(top_bouchers[["Nom", "Cartons rouges", "Cartons jaunes"]], use_container_width=True, hide_index=True)
+        
+            # Team stats
+            total_goals = df["Buts"].sum()
+            total_conceded = sum(
+                match.get("score_adv", 0)
+                for match in st.session_state.matches.values()
+                if match.get("noted", False)
+            )
+            diff_scorers = df[df["Buts"] > 0]["Nom"].nunique()
+        
+            st.markdown("---")
+            col3, col4, col5 = st.columns(3)
+            with col3:
+                st.metric("Buts marqués", int(total_goals))
+            with col4:
+                st.metric("Buts encaissés", int(total_conceded))
+            with col5:
+                st.metric("Nombre de buteurs différents", int(diff_scorers))
+        else:
+            st.info("Aucun joueur dans la base, impossible de calculer les statistiques.")
+    with subtab2
+        st.title("Base de données joueurs")
+        st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous.")
+        stats_data = []
+        for _, row in st.session_state.players.iterrows():
+            s = compute_player_stats(row["Nom"])
+            stats_data.append({**row, **s})
+        combined_df = pd.DataFrame(stats_data, columns=[
+            "Nom", "Poste", "Infos", "Buts", "Passes décisives", 
+            "Buts + Passes", "Décisif par match", "Cartons jaunes", 
+            "Cartons rouges", "Sélections", "Titularisations", 
+            "Note générale", "Homme du match"
+        ])
+        edited_df = st.data_editor(
+            combined_df,
+            num_rows="dynamic",
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Nom": st.column_config.TextColumn(required=True),
+                "Poste": st.column_config.SelectboxColumn(
+                    options=POSTES_ORDER,
+                    required=True,
+                    default="G"
+                ),
+                "Infos": st.column_config.TextColumn(),
+                "Buts": st.column_config.NumberColumn(disabled=True),
+                "Passes décisives": st.column_config.NumberColumn(disabled=True),
+                "Buts + Passes": st.column_config.NumberColumn(disabled=True),
+                "Décisif par match": st.column_config.NumberColumn(disabled=True),
+                "Cartons jaunes": st.column_config.NumberColumn(disabled=True),
+                "Cartons rouges": st.column_config.NumberColumn(disabled=True),
+                "Sélections": st.column_config.NumberColumn(disabled=True),
+                "Titularisations": st.column_config.NumberColumn(disabled=True),
+                "Note générale": st.column_config.NumberColumn(disabled=True),
+                "Homme du match": st.column_config.NumberColumn(disabled=True)
+            },
+            key="data_edit"
+        )
+        if st.button("Sauvegarder les modifications"):
+            edited_df = edited_df.fillna("")
+            edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
+            st.session_state.players = edited_df[PLAYER_COLS]
+            save_all()
+            st.rerun()
+            st.success("Base de joueurs mise à jour !")
+        st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
 
-# --- COMPOSITIONS ---
-with tab2:
+# --- TACTIQUES ---
+with tab4:
     st.title("Gestion des compositions")
     subtab1, subtab2 = st.tabs(["Créer une composition", "Mes compositions"])
     with subtab1:
@@ -584,8 +707,8 @@ with tab2:
                         st.rerun()
                         st.success("Composition supprimée !")
 
-# --- MATCHS ---
-with tab3:
+# --- GESTION MATCHS ---
+with tab1:
     st.title("Gestion des matchs")
     subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
     #---Créer match----
@@ -601,9 +724,10 @@ with tab3:
         type_match = st.selectbox("Type de match", ["Championnat", "Coupe"], key="type_match")
         if type_match=="Championnat":
             journee= st.text_input("Journée", value="J", key="journee")
+            adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
         else:
             journee= st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"], key="journee")
-        adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
+            adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
         date = st.date_input("Date du match", value=datetime.today())
         heure = st.time_input("Heure du match", value="21:00")
         domicile = st.selectbox("Domicile/Extérieur", ["Domicile", "Extérieur"])
@@ -911,77 +1035,98 @@ with tab3:
                         save_all()
                         st.rerun()
 
-#----STATS EQUIPE-----
-with tab4:
-    st.title("📊 Statistiques de l'équipe")
-    stats_data = []
-    for _, row in st.session_state.players.iterrows():
-        s = compute_player_stats(row["Nom"])
-        stats_data.append({**row, **s})
+#----SUIVI CHAMPIONNAT-----
+with tab2:
+    subtab1, subtab2, subtab3 = st.tabs(["Classement", "Saisie scores", "Adversaires"])
+    with subtab1:
+        st.title("Classement automatique")
+        # Récupération de la liste des équipes (AFC + adversaires)
+        equipes = ["AFC"] + st.session_state.adversaires
+        stats = {equipe: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for equipe in equipes}
+        # Calcul des stats à partir des scores saisis
+        for journee, matchs in st.session_state.championnat_scores.items():
+            for match in matchs:
+                dom, ext = match["domicile"], match["exterieur"]
+                sd, se = match["score_dom"], match["score_ext"]
+                # Buts pour/contre
+                stats[dom]["BP"] += sd
+                stats[dom]["BC"] += se
+                stats[ext]["BP"] += se
+                stats[ext]["BC"] += sd
+                # Résultat
+                if sd > se:
+                    stats[dom]["V"] += 1
+                    stats[ext]["D"] += 1
+                    stats[dom]["Pts"] += 3
+                elif se > sd:
+                    stats[ext]["V"] += 1
+                    stats[dom]["D"] += 1
+                    stats[ext]["Pts"] += 3
+                else:
+                    stats[dom]["N"] += 1
+                    stats[ext]["N"] += 1
+                    stats[dom]["Pts"] += 1
+                    stats[ext]["Pts"] += 1
+        # Différence de buts
+        for v in stats.values():
+            v["Diff"] = v["BP"] - v["BC"]
+        classement = pd.DataFrame([
+            {"Équipe": k, **v} for k, v in stats.items()
+        ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
+        st.dataframe(classement, hide_index=True, use_container_width=True)
+    with subtab2:
+        st.title("Saisie des scores de championnat")
+        # Choix du nombre de journées
+        n_journees = st.number_input("Nombre de journées", min_value=1, value=10, step=1, key="nb_journees")
+        journees = [f"J{i+1}" for i in range(n_journees)]
+        selected_journee = st.selectbox("Sélectionnez une journée", journees, key="select_journee")
 
-    df = pd.DataFrame(stats_data)
-    clean_sheets = compute_clean_sheets()
-    if not df.empty:
-        df["Clean sheets"] = df.apply(
-            lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
-        df["Bouchers"] = df["Cartons rouges"].fillna(0) + df["Cartons jaunes"].fillna(0)
-    
-        # Top 5 by rating
-        top_rating = df[df["Note générale"] > 0].sort_values("Note générale", ascending=False).head(5)
-        # Top 5 scorers
-        top_buts = df[df["Buts"] > 0].sort_values("Buts", ascending=False).head(5)
-        # Top 5 passers
-        top_passes = df[df["Passes décisives"] > 0].sort_values("Passes décisives", ascending=False).head(5)
-        # Top 5 decisive
-        top_decisive = df[df["Buts + Passes"] > 0].sort_values("Buts + Passes", ascending=False).head(5)
-        # Top 5 clean sheets (goalkeepers only)
-        top_clean = df[df["Poste"] == "G"].sort_values("Clean sheets", ascending=False).head(5)
-        # Top 5 ratio
-        top_ratio = df[df["Décisif par match"] > 0].sort_values("Décisif par match", ascending=False).head(5)
-        # Top 5 used
-        top_used = df[df["Titularisations"] > 0].sort_values("Titularisations", ascending=False).head(5)
-        # Top 5 bouchers (by red, then yellow)
-        top_bouchers = df[(df["Cartons rouges"] > 0) | (df["Cartons jaunes"] > 0)].sort_values(
-            by=["Cartons rouges", "Cartons jaunes"], ascending=[False, False]).head(5)
-    
-        col1, col2 = st.columns(2)
-    
-        with col1:
-            st.subheader("⭐ Top 5 Notes")
-            st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
-            st.subheader("⚽ Top 5 Buteurs")
-            st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True, hide_index=True)
-            st.subheader("🎯 Top 5 Passeurs")
-            st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True, hide_index=True)
-            st.subheader("🔥 Top 5 Décisifs (Buts+Passes)")
-            st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True, hide_index=True)
-            st.subheader("🧤 Top 5 Clean Sheets (Gardiens)")
-            st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True, hide_index=True)
-    
-        with col2:
-            st.subheader("⚡ Top 5 Ratio Décisif/Match")
-            st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True, hide_index=True)
-            st.subheader("🔁 Top 5 Plus Utilisés")
-            st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True, hide_index=True)
-            st.subheader("🟥🟨 Top 5 Bouchers")
-            st.dataframe(top_bouchers[["Nom", "Cartons rouges", "Cartons jaunes"]], use_container_width=True, hide_index=True)
-    
-        # Team stats
-        total_goals = df["Buts"].sum()
-        total_conceded = sum(
-            match.get("score_adv", 0)
-            for match in st.session_state.matches.values()
-            if match.get("noted", False)
+        # Initialisation des matchs pour la journée si besoin
+        if selected_journee not in st.session_state.championnat_scores:
+            # Par défaut, AFC rencontre chaque adversaire
+            st.session_state.championnat_scores[selected_journee] = [
+                {"domicile": "AFC", "exterieur": adv, "score_dom": 0, "score_ext": 0}
+                for adv in st.session_state.adversaires
+            ]
+
+        matchs = st.session_state.championnat_scores[selected_journee]
+
+        # Edition des scores
+        for i, match in enumerate(matchs):
+            cols = st.columns([2,1,1,1,2])
+            with cols[0]:
+                st.markdown(f"**{match['domicile']}**")
+            with cols[1]:
+                match["score_dom"] = st.number_input(
+                    "", min_value=0, max_value=30, value=match["score_dom"],
+                    key=f"score_dom_{selected_journee}_{i}"
+                )
+            with cols[2]:
+                st.markdown("—")
+            with cols[3]:
+                match["score_ext"] = st.number_input(
+                    "", min_value=0, max_value=30, value=match["score_ext"],
+                    key=f"score_ext_{selected_journee}_{i}"
+                )
+            with cols[4]:
+                st.markdown(f"**{match['exterieur']}**")
+
+        if st.button("Sauvegarder les scores de la journée", key=f"save_scores_{selected_journee}"):
+            st.session_state.championnat_scores[selected_journee] = matchs
+            save_all()
+            st.success(f"Scores de {selected_journee} sauvegardés !")
+    with subtab3:
+        st.title("Gestion des adversaires")
+        adv_df = pd.DataFrame({"Nom": st.session_state.adversaires})
+        edited_adv = st.data_editor(
+            adv_df,
+            num_rows="dynamic",
+            hide_index=True,
+            use_container_width=True,
+            key="edit_adv"
         )
-        diff_scorers = df[df["Buts"] > 0]["Nom"].nunique()
+        if st.button("Sauvegarder les adversaires", key="save_adv"):
+            st.session_state.adversaires = edited_adv["Nom"].dropna().tolist()
+            save_all()  # Utilise ta fonction actuelle
+            st.success("Liste des adversaires mise à jour !")
     
-        st.markdown("---")
-        col3, col4, col5 = st.columns(3)
-        with col3:
-            st.metric("Buts marqués", int(total_goals))
-        with col4:
-            st.metric("Buts encaissés", int(total_conceded))
-        with col5:
-            st.metric("Nombre de buteurs différents", int(diff_scorers))
-    else:
-        st.info("Aucun joueur dans la base, impossible de calculer les statistiques.")
