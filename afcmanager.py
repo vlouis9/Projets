@@ -224,6 +224,7 @@ def save_all():
         "matches": st.session_state.matches,
         "adversaires": st.session_state.get("adversaires", []),
         "championnat_scores": st.session_state.get("championnat_scores", {})
+        "profondeur_effectif": st.session_state.get("profondeur_effectif", {})
     }
     try:
         with open(DATA_FILE, "w") as f:
@@ -483,6 +484,8 @@ if "adversaires" not in st.session_state:
     st.session_state.adversaires = []
 if "championnat_scores" not in st.session_state:
     st.session_state.championnat_scores = {}
+if "profondeur_effectif" not in st.session_state:
+    st.session_state.profondeur_effectif = {}
 
 def download_upload_buttons():
     # -- Import JSON --
@@ -497,6 +500,7 @@ def download_upload_buttons():
                 st.session_state.matches = data.get("matches", {})
                 st.session_state.adversaires = data.get("adversaires", [])
                 st.session_state.championnat_scores = data.get("championnat_scores", {})
+                st.session_state.profondeur_effectif = data.get("profondeur_effectif", {})
                 st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
             except Exception as e:
                 st.error(f"❌ Erreur à l'import : {e}")
@@ -510,6 +514,7 @@ def download_upload_buttons():
             "matches": st.session_state.matches,
             "adversaires": st.session_state.get("adversaires", []),
             "championnat_scores": st.session_state.get("championnat_scores", {})
+            "profondeur_effectif": st.session_state.get("profondeur_effectif", {})
         }, indent=2),
         file_name=DATA_FILE,
         mime="application/json"
@@ -652,7 +657,7 @@ with tab3:
 # --- TACTIQUES ---
 with tab4:
     st.title("Gestion des compositions")
-    subtab1, subtab2 = st.tabs(["Créer une composition", "Mes compositions"])
+    subtab1, subtab2, subtab3 = st.tabs(["Créer une composition", "Mes compositions", "Profondeur effectif"])
     with subtab1:
         edit_key = "edit_compo"
         edit_compo = st.session_state.get(edit_key, None)
@@ -712,6 +717,107 @@ with tab4:
                         save_all()
                         st.rerun()
                         st.success("Composition supprimée !")
+    with subtab3:
+        st.title("🔍 Profondeur d'effectif par poste")
+        formations = list(FORMATION.keys())
+        formation_profondeur = st.selectbox("Choisir une formation", formations, key="formation_profondeur")
+    
+        # Initialisation stockage profondeur d'effectif si besoin
+        if "profondeur_effectif" not in st.session_state:
+            st.session_state.profondeur_effectif = {}
+        if formation_profondeur not in st.session_state.profondeur_effectif:
+            st.session_state.profondeur_effectif[formation_profondeur] = {}
+        profondeur_formation = st.session_state.profondeur_effectif[formation_profondeur]
+    
+        postes_formation = POSTES_NOMS[formation_profondeur]
+        joueurs = st.session_state.players["Nom"].dropna().tolist()
+    
+        col_left, col_right = st.columns([1, 2])
+        with col_left:
+            st.markdown("### Sélectionnez vos options par poste")
+            for poste in POSTES_ORDER:
+                if poste not in postes_formation:
+                    continue
+                for idx_label, label in enumerate(postes_formation[poste]):
+                    key_poste = f"{formation_profondeur}_{poste}_{idx_label}"
+                    if poste not in profondeur_formation:
+                        profondeur_formation[poste] = {}
+                    joueurs_choisis = profondeur_formation[poste].get(idx_label, [])
+                    st.markdown(f"**{label}**")
+                    # On affiche plusieurs selectbox (choix 1, choix 2, ...) dynamiques
+                    choix_list = joueurs_choisis if isinstance(joueurs_choisis, list) else []
+                    n_choix = max(len(choix_list), 1)
+                    for i in range(n_choix):
+                        key_select = f"{key_poste}_choix_{i}"
+                        # Proposer tous les joueurs non déjà sélectionnés sur ce poste (mais possibles sur d'autres)
+                        options = [""] + joueurs
+                        current_value = choix_list[i] if i < len(choix_list) else ""
+                        choix = st.selectbox(
+                            f"Choix {i+1}", options, 
+                            index=options.index(current_value) if current_value in options else 0,
+                            key=key_select
+                        )
+                        # MAJ session_state
+                        if len(choix_list) <= i:
+                            choix_list.append("")
+                        choix_list[i] = choix
+                    # Ajout dynamique d'un choix supplémentaire si le dernier est rempli
+                    if choix_list and choix_list[-1]:
+                        choix_list.append("")
+                    # Nettoyage : retirer cases vides à la fin
+                    while len(choix_list)>1 and not choix_list[-1] and not choix_list[-2]:
+                        choix_list.pop()
+                    # Enregistre dans la session_state
+                    profondeur_formation[poste][idx_label] = choix_list
+                    # Affichage dynamique des choix sélectionnés
+                    st.caption("Options sélectionnées : " + ", ".join([c for c in choix_list if c]))
+                    st.markdown("---")
+            if st.button("Sauvegarder la profondeur d'effectif"):
+                st.session_state.profondeur_effectif[formation_profondeur] = profondeur_formation
+                save_all()
+                st.success("Profondeur d'effectif sauvegardée pour cette formation !")
+    
+        with col_right:
+            st.markdown("### Visuel terrain (tous les choix par poste)")
+            # Nouveau terrain enrichi
+            terrain_profondeur = {poste: [] for poste in POSTES_ORDER}
+            annotation_by_position = []
+            for poste in postes_formation:
+                for idx_label, label in enumerate(postes_formation[poste]):
+                    choix_list = profondeur_formation.get(poste, {}).get(idx_label, [])
+                    # Pour chaque choix (Choix 1, Choix 2, ...)
+                    for i, choix in enumerate([c for c in choix_list if c]):
+                        # On l'affiche comme un joueur à ce poste avec un suffixe
+                        # On empile les noms sur l'axe y
+                        terrain_profondeur[poste].append({"Nom": f"{choix}  (#{i+1})"})
+            # Pour éviter d'afficher 2 fois trop de joueurs, on limite à 1 par "slot" pour le visuel Plotly
+            # Mais on va utiliser les annotations Plotly pour empiler les noms
+            fig = draw_football_pitch_vertical()
+            positions = positions_for_formation_vertical(formation_profondeur)
+            for poste in postes_formation:
+                poste_positions = positions[poste]
+                for idx_label, label in enumerate(postes_formation[poste]):
+                    # Tous les choix pour ce poste
+                    choix_list = profondeur_formation.get(poste, {}).get(idx_label, [])
+                    noms = [c for c in choix_list if c]
+                    if noms:
+                        x, y = poste_positions[idx_label % len(poste_positions)]
+                        # Empile chaque nom verticalement
+                        for i, nom in enumerate(noms):
+                            fig.add_annotation(
+                                x=x,
+                                y=y - 6 * i,  # Décale les noms verticalement
+                                text=f"{nom} <span style='font-size:11px;'>(#{i+1})</span>",
+                                showarrow=False,
+                                font=dict(size=14 if i==0 else 12, color="white"),
+                                bgcolor="#0d47a1" if i==0 else "#2874A6",
+                                bordercolor="white",
+                                borderwidth=1,
+                                borderpad=2,
+                                align="center"
+                            )
+            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_profondeur_all")
+        
 
 # --- GESTION MATCHS ---
 with tab1:
