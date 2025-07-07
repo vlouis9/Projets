@@ -595,7 +595,7 @@ with tab3:
                 st.metric("Nombre de buteurs différents", int(diff_scorers))
         else:
             st.info("Aucun joueur dans la base, impossible de calculer les statistiques.")
-    with subtab2
+    with subtab2:
         st.title("Base de données joueurs")
         st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous.")
         stats_data = []
