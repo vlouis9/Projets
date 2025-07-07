@@ -722,9 +722,15 @@ with tab1:
                     del st.session_state[k]
             st.rerun()
         type_match = st.selectbox("Type de match", ["Championnat", "Coupe"], key="type_match")
+        adversaires_list = st.session_state.adversaires if "adversaires" in st.session_state and st.session_state.adversaires else []
+        adversaires_options = adversaires_list + ["Autre..."]
         if type_match=="Championnat":
             journee= st.text_input("Journée", value="J", key="journee")
-            adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
+            adversaire_select = st.selectbox("Adversaire", adversaires_options, key="adversaire_select")
+            if adversaire_select == "Autre...":
+                adversaire = st.text_input("Nom de l'adversaire (nouveau)", key="adversaire_new")
+            else:
+                adversaire = adversaire_select
         else:
             journee= st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"], key="journee")
             adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
