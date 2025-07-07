@@ -513,7 +513,7 @@ def download_upload_buttons():
             "lineups": st.session_state.lineups,
             "matches": st.session_state.matches,
             "adversaires": st.session_state.get("adversaires", []),
-            "championnat_scores": st.session_state.get("championnat_scores", {})
+            "championnat_scores": st.session_state.get("championnat_scores", {}),
             "profondeur_effectif": st.session_state.get("profondeur_effectif", {})
         }, indent=2),
         file_name=DATA_FILE,
