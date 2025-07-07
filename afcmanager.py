@@ -275,6 +275,10 @@ def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
 def terrain_interactif(formation, terrain_key, key_suffix=None):
+    if st.session_state.players.empty:
+        st.info("Aucun joueur importé dans la base. Merci d'importer ou d'ajouter des joueurs avant d'utiliser cette fonctionnalité.")
+        return {poste: [] for poste in POSTES_ORDER}
+    
     if terrain_key not in st.session_state:
         st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
     terrain = st.session_state[terrain_key]
@@ -286,6 +290,8 @@ def terrain_interactif(formation, terrain_key, key_suffix=None):
     stats_df = pd.DataFrame(stats_data)
     
     # Générer la liste triée par titularisations
+    if "Titularisations" not in stats_df.columns:
+        stats_df["Titularisations"] = 0
     stats_df["Titularisations"] = pd.to_numeric(stats_df["Titularisations"], errors="coerce").fillna(0)
     joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
     
