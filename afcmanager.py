@@ -522,7 +522,7 @@ tab1, tab2, tab3, tab4 = st.tabs(["Gestion Matchs", "Suivi Championnat", "Gestio
 # --- GESTION EQUIPE ---
 with tab3:
     subtab1, subtab2 = st.tabs(["Stats équipe","Base joueurs"])
-    with subtab1
+    with subtab1:
         st.title("📊 Statistiques de l'équipe")
         stats_data = []
         for _, row in st.session_state.players.iterrows():
