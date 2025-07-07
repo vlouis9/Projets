@@ -1100,14 +1100,14 @@ with tab2:
         col_nav1, col_nav2, col_nav3, col_nav4 = st.columns([1, 2, 2, 1])
         with col_nav1:
             idx = journees.index(st.session_state.selected_journee)
-            if idx < len(journees)-1:
+            if idx >0:
                 if st.button("←", key="prev_journee"):
                     st.session_state.selected_journee = journees[idx - 1]
                     st.rerun()
         with col_nav2:
             st.markdown(f"<h4 style='text-align:center;'>Journée : {st.session_state.selected_journee}</h4>", unsafe_allow_html=True)
         with col_nav3:
-            if idx >0:
+            if idx < len(journees)-1:
                 if st.button("→", key="next_journee"):
                     st.session_state.selected_journee = journees[idx + 1]
                     st.rerun()
