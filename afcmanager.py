@@ -539,12 +539,15 @@ with tab2:
             index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION)),
             key="formation_create_compo"
         )
-        terrain = terrain_interactif(formation, "terrain_create_compo")
-        tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-        remplacants = remplacants_interactif("create_compo", tous_titulaires)
-        fig = draw_football_pitch_vertical()
-        fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
+        col_left, col_right = st.columns([1, 2])
+        with col_left:
+            terrain = terrain_interactif(formation, "terrain_create_compo")
+            tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
+            remplacants = remplacants_interactif("create_compo", tous_titulaires)
+        with col_right:
+            fig = draw_football_pitch_vertical()
+            fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
+            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
         if st.button("Sauvegarder la composition"):
             if not nom_compo.strip():
                 st.error("Merci d'indiquer un nom pour la composition.")
@@ -617,7 +620,7 @@ with tab3:
                     "type": type_match,
                     "adversaire": adversaire,
                     "date": str(date),
-                    "heure": str(heure),
+                    "heure": heure.strftime("%H:%M") if hasattr(heure, "strftime") else str(heure),
                     "domicile" : domicile, 
                     "journée" : journee, 
                     "nom_match" : nom_match, 
@@ -673,15 +676,25 @@ with tab3:
                                 st.session_state["formation_new_match"] = formation
                                 st.session_state["terrain_new_match"] = terrain
                                 st.session_state["remp_new_match"] = remplacants
+                                col_left, col_right = st.columns([1, 2])
+                                with col_left:
+                                    st.write("✔️ Composition chargée depuis vos compos enregistrées.")
+                                with col_right:
+                                    fig = draw_football_pitch_vertical()
+                                    fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
+                                    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
                             else:
                                 formation = st.selectbox("Formation", list(FORMATION.keys()), key=f"match_formation_{mid}")
                                 st.session_state["formation_new_match"] = formation
-                                terrain = terrain_interactif(formation, "terrain_new_match_{mid}", key_suffix=mid)
-                                tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-                                remplacants = remplacants_interactif("new_match_{mid}", tous_titulaires, key_suffix=mid)
-                            fig = draw_football_pitch_vertical()
-                            fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-                            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
+                                col_left, col_right = st.columns([1, 2])
+                                with col_left:
+                                    terrain = terrain_interactif(formation, f"terrain_new_match_{mid}", key_suffix=mid)
+                                    tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
+                                    remplacants = remplacants_interactif(f"new_match_{mid}", tous_titulaires, key_suffix=mid)
+                                with col_right:
+                                    fig = draw_football_pitch_vertical()
+                                    fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
+                                    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
                             if st.button("Valider la compo", key=f"btn_enregistrer_compo_{mid}"):
                                 try:
                                     match = st.session_state.matches[mid]
