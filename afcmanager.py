@@ -1042,12 +1042,15 @@ with tab2:
         st.title("Classement automatique")
         # Récupération de la liste des équipes (AFC + adversaires)
         equipes = ["AFC"] + st.session_state.adversaires
-        stats = {equipe: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for equipe in equipes}
+        stats = {equipe: {"MJ":0, "Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for equipe in equipes}
         # Calcul des stats à partir des scores saisis
         for journee, matchs in st.session_state.championnat_scores.items():
             for match in matchs:
                 dom, ext = match["domicile"], match["exterieur"]
                 sd, se = match["score_dom"], match["score_ext"]
+                if sd is not None and se is not None:
+                    stats[dom]["MJ"] += 1
+                    stats[ext]["MJ"] += 1
                 # Buts pour/contre
                 stats[dom]["BP"] += sd
                 stats[dom]["BC"] += se
@@ -1097,16 +1100,16 @@ with tab2:
         col_nav1, col_nav2, col_nav3, col_nav4 = st.columns([1, 2, 2, 1])
         with col_nav1:
             idx = journees.index(st.session_state.selected_journee)
-            if idx > 0:
-                if st.button("←", key="prev_journee"):
-                    st.session_state.selected_journee = journees[idx - 1]
+            if idx < len(journees)-1:
+                if st.button("→", key="next_journee"):
+                    st.session_state.selected_journee = journees[idx + 1]
                     st.rerun()
         with col_nav2:
             st.markdown(f"<h4 style='text-align:center;'>Journée : {st.session_state.selected_journee}</h4>", unsafe_allow_html=True)
         with col_nav3:
-            if idx < len(journees) - 1:
-                if st.button("→", key="next_journee"):
-                    st.session_state.selected_journee = journees[idx + 1]
+            if idx >0:
+                if st.button("←", key="prev_journee"):
+                    st.session_state.selected_journee = journees[idx - 1]
                     st.rerun()
         with col_nav4:
             if st.button("Ajouter une journée"):
