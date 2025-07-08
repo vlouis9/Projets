@@ -558,6 +558,20 @@ if "championnat_scores" not in st.session_state:
 if "profondeur_effectif" not in st.session_state:
     st.session_state.profondeur_effectif = {}
 
+try:
+    data = json.load(up_json)
+    st.session_state.players = pd.DataFrame(data.get("players", []))
+    st.session_state.lineups = data.get("lineups", {})
+    st.session_state.matches = data.get("matches", {})
+    st.session_state.adversaires = data.get("adversaires", [])
+    st.session_state.championnat_scores = data.get("championnat_scores", {})
+    if st.session_state.lineups:
+        first_name, first_lineup = next(iter(st.session_state.lineups.items()))
+        st.session_state["profondeur_selected_compo"] = first_name
+    st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
+except Exception as e:
+    st.error(f"❌ Erreur à l'import : {e}")
+
 def download_upload_buttons():
     # -- Import JSON --
     with st.form("import_json_form"):
