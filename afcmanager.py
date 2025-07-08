@@ -559,7 +559,9 @@ if "profondeur_effectif" not in st.session_state:
     st.session_state.profondeur_effectif = {}
 
 try:
-    data = json.load(up_json)
+    response = requests.get(RAW_URL)
+    response.raise_for_status()
+    data = json.load(io.StringIO(response.text))
     st.session_state.players = pd.DataFrame(data.get("players", []))
     st.session_state.lineups = data.get("lineups", {})
     st.session_state.matches = data.get("matches", {})
