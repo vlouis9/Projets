@@ -734,6 +734,7 @@ with tab4:
             st.session_state.profondeur_effectif = {}
         if formation_profondeur not in st.session_state.profondeur_effectif:
             st.session_state.profondeur_effectif[formation_profondeur] = {}
+        profondeur_effectif = st.session_state.get("profondeur_effectif", {})
         profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur,{})
     
         postes_formation = POSTES_NOMS[formation_profondeur]
