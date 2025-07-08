@@ -346,6 +346,8 @@ def remplacants_interactif(key, titulaires, key_suffix=None):
     if "Titularisations" not in stats_df.columns:
         stats_df["Titularisations"] = 0
     stats_df["Titularisations"] = pd.to_numeric(stats_df["Titularisations"], errors="coerce").fillna(0)
+    if "Nom" not in stats_df.columns:
+        stats_df["Nom"] = ""
     noms_joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
     
     # Patch robustesse colonne Nom
