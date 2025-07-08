@@ -593,31 +593,6 @@ def download_upload_buttons():
         mime="application/json"
     )
 
-# --- Initialisation session_state sécurisée ---
-if (
-    "players" not in st.session_state or
-    "lineups" not in st.session_state or
-    "matches" not in st.session_state
-):
-    reload_all()
-
-# Initialiser toutes les autres clés manquantes
-st.session_state.setdefault("players", pd.DataFrame(columns=PLAYER_COLS))
-st.session_state.setdefault("lineups", {})
-st.session_state.setdefault("matches", {})
-st.session_state.setdefault("adversaires", [])
-st.session_state.setdefault("championnat_scores", {})
-st.session_state.setdefault("profondeur_effectif", {})
-st.session_state.setdefault("formation", DEFAULT_FORMATION)
-st.session_state.setdefault("formation_profondeur", DEFAULT_FORMATION)
-st.session_state.setdefault("formation_create_compo", DEFAULT_FORMATION)
-
-# Forcer les colonnes de base dans players
-if not isinstance(st.session_state.players, pd.DataFrame):
-    st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
-for col in PLAYER_COLS:
-    if col not in st.session_state.players.columns:
-        st.session_state.players[col] = ""
 
 #st.sidebar.title("⚽ Gestion Équipe AFC")
 #with st.sidebar:
