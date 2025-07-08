@@ -595,13 +595,15 @@ def download_upload_buttons():
 
 
 
-st.sidebar.title("⚽ Gestion Équipe AFC")
-with st.sidebar:
-    st.markdown("---")
-    with st.expander("🔄 Import/Export des données"):
-        download_upload_buttons()
-    st.markdown("---")
+#st.sidebar.title("⚽ Gestion Équipe AFC")
+#with st.sidebar:
+    #st.markdown("---")
+    #with st.expander("🔄 Import/Export des données"):
+        #download_upload_buttons()
+    #st.markdown("---")
 
+
+st.write("⚽ Gestion Équipe AFC")
 tab1, tab2, tab3, tab4 = st.tabs(["Gestion Matchs", "Suivi Championnat", "Gestion Equipe", "Tactique"])
 
 # --- GESTION EQUIPE ---
