@@ -5,8 +5,15 @@ import os
 import copy
 import traceback
 import uuid
+import requests
+import base64
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
+
+username = "vlouis9"
+repo = "Projets"
+fichier = "chemin/vers/ton_fichier.json"
+token = "ghp_...TON_TOKEN..."
 
 DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
