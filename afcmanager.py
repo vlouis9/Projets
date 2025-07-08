@@ -343,6 +343,8 @@ def remplacants_interactif(key, titulaires, key_suffix=None):
     stats_df = pd.DataFrame(stats_data)
                             
     # Liste triée par titularisations
+    if "Titularisations" not in stats_df.columns:
+        stats_df["Titularisations"] = 0
     stats_df["Titularisations"] = pd.to_numeric(stats_df["Titularisations"], errors="coerce").fillna(0)
     noms_joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
     
