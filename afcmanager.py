@@ -5,15 +5,17 @@ import os
 import copy
 import traceback
 import uuid
-import requests
+import request
+import io
 import base64
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 
-username = "vlouis9"
-repo = "Projets"
-fichier ="https://github.com/vlouis9/Projets/blob/main/afcdata.json"
-token = "ghp_...TON_TOKEN..."
+USERNAME = "vlouis9"
+REPO = "Projets"
+BRANCH = "main"
+FILE_PATH = "afcdata.json"
+RAW_URL = f"https://raw.githubusercontent.com/{USERNAME}/{REPO}/{BRANCH}/{FILE_PATH}"
 
 DATA_FILE = "afcdata.json"
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
@@ -225,26 +227,69 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
     return fig
 
 def save_all():
-    data = {
-        "players": st.session_state.players.to_dict(orient="records"),
-        "lineups": st.session_state.lineups,
-        "matches": st.session_state.matches,
-        "adversaires": st.session_state.get("adversaires", []),
-        "championnat_scores": st.session_state.get("championnat_scores", {}),
-        "profondeur_effectif": st.session_state.get("profondeur_effectif", {})
-    }
+    #data = {
+        #"players": st.session_state.players.to_dict(orient="records"),
+        #"lineups": st.session_state.lineups,
+        #"matches": st.session_state.matches,
+        #"adversaires": st.session_state.get("adversaires", []),
+        #"championnat_scores": st.session_state.get("championnat_scores", {}),
+        #"profondeur_effectif": st.session_state.get("profondeur_effectif", {})
+    #}
+    #try:
+        #with open(DATA_FILE, "w") as f:
+            #json.dump(data, f, indent=2)
+        #print("Données sauvegardées dans le fichier JSON !")
+        #with open(DATA_FILE, "r") as f:
+            #data = json.load(f)
+        #st.session_state.players = pd.DataFrame(data.get("players", []))
+        #st.session_state.lineups = data.get("lineups", {})
+        #st.session_state.matches = data.get("matches", {})
+    #except Exception as e:
+        #st.error(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
+        #st.text(traceback.format_exc())
+
     try:
-        with open(DATA_FILE, "w") as f:
-            json.dump(data, f, indent=2)
-        print("Données sauvegardées dans le fichier JSON !")
-        with open(DATA_FILE, "r") as f:
-            data = json.load(f)
-        st.session_state.players = pd.DataFrame(data.get("players", []))
-        st.session_state.lineups = data.get("lineups", {})
-        st.session_state.matches = data.get("matches", {})
+        # Préparation des données à enregistrer
+        new_data = json.dumps({
+            "players": st.session_state.players.to_dict(orient="records"),
+            "lineups": st.session_state.lineups,
+            "matches": st.session_state.matches,
+            "adversaires": st.session_state.get("adversaires", []),
+            "championnat_scores": st.session_state.get("championnat_scores", {}),
+            "profondeur_effectif": st.session_state.get("profondeur_effectif", {})
+        }, indent=2)
+
+        # Paramètres GitHub
+        token = st.secrets["github"]["token"]
+        headers = {
+            "Authorization": f"token {token}",
+            "Accept": "application/vnd.github+json"
+        }
+
+        # 1. Obtenir le SHA du fichier existant (obligatoire pour le PUT)
+        api_url = f"https://api.github.com/repos/{USERNAME}/{REPO}/contents/{FILE_PATH}"
+        get_resp = requests.get(api_url, headers=headers)
+        if get_resp.status_code == 200:
+            sha = get_resp.json()["sha"]
+        else:
+            st.error("Impossible d'obtenir le SHA du fichier.")
+            return
+
+        # 2. Mise à jour du fichier
+        payload = {
+            "message": "📦 Mise à jour auto depuis Streamlit",
+            "content": base64.b64encode(new_data.encode()).decode(),
+            "branch": BRANCH,
+            "sha": sha
+        }
+
+        put_resp = requests.put(api_url, headers=headers, json=payload)
+        if put_resp.status_code == 200 or put_resp.status_code == 201:
+            st.success("✅ Données sauvegardées sur GitHub !")
+        else:
+            st.error(f"❌ Erreur GitHub : {put_resp.status_code} - {put_resp.text}")
     except Exception as e:
-        st.error(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
-        st.text(traceback.format_exc())
+        st.error(f"Erreur lors de la sauvegarde sur GitHub : {e}")
 
 def fusion_dictionnaires(json_dict, session_dict):
     fusion = dict(json_dict)
@@ -252,32 +297,47 @@ def fusion_dictionnaires(json_dict, session_dict):
     return fusion
 
 def reload_all():
-    if os.path.exists(DATA_FILE):
-        with open(DATA_FILE, "r") as f:
-            data = json.load(f)
-        session_players = st.session_state.get("players", pd.DataFrame(columns=PLAYER_COLS))
-        json_players = pd.DataFrame(data.get("players", []))
-        if not session_players.empty:
-            merged_players = pd.concat([json_players, session_players]).drop_duplicates(subset="Nom", keep="last")
-        else:
-            merged_players = json_players
-        st.session_state.players = merged_players
+    #if os.path.exists(DATA_FILE):
+        #with open(DATA_FILE, "r") as f:
+            #data = json.load(f)
+    
+        #session_players = st.session_state.get("players", pd.DataFrame(columns=PLAYER_COLS))
+        #json_players = pd.DataFrame(data.get("players", []))
+        #if not session_players.empty:
+            #merged_players = pd.concat([json_players, session_players]).drop_duplicates(subset="Nom", keep="last")
+        #else:
+            #merged_players = json_players
+        #st.session_state.players = merged_players
 
-        session_lineups = st.session_state.get("lineups", {})
-        json_lineups = data.get("lineups", {})
-        st.session_state.lineups = fusion_dictionnaires(json_lineups, session_lineups)
+        #session_lineups = st.session_state.get("lineups", {})
+        #json_lineups = data.get("lineups", {})
+        #st.session_state.lineups = fusion_dictionnaires(json_lineups, session_lineups)
 
-        session_matches = st.session_state.get("matches", {})
-        json_matches = data.get("matches", {})
-        st.session_state.matches = fusion_dictionnaires(json_matches, session_matches)
-        st.session_state.adversaires = data.get("adversaires", st.session_state.get("adversaires", []))
-        st.session_state.championnat_scores = data.get("championnat_scores", st.session_state.get("championnat_scores", {}))
-    else:
-        st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
-        st.session_state.lineups = {}
-        st.session_state.matches = {}
-        st.session_state.adversaires = []
-        st.session_state.championnat_scores = {}
+        #session_matches = st.session_state.get("matches", {})
+        #json_matches = data.get("matches", {})
+        #st.session_state.matches = fusion_dictionnaires(json_matches, session_matches)
+        #st.session_state.adversaires = data.get("adversaires", st.session_state.get("adversaires", []))
+        #st.session_state.championnat_scores = data.get("championnat_scores", st.session_state.get("championnat_scores", {}))
+    #else:
+        #st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
+        #st.session_state.lineups = {}
+        #st.session_state.matches = {}
+        #st.session_state.adversaires = []
+        #st.session_state.championnat_scores = {}
+
+    try:
+        response = requests.get(RAW_URL)
+        response.raise_for_status()
+        data = json.load(io.StringIO(response.text))
+        
+        st.session_state.players = pd.DataFrame(data.get("players", []))
+        st.session_state.lineups = data.get("lineups", {})
+        st.session_state.matches = data.get("matches", {})
+        st.session_state.adversaires = data.get("adversaires", [])
+        st.session_state.championnat_scores = data.get("championnat_scores", {})
+        st.session_state.profondeur_effectif = data.get("profondeur_effectif", {})
+    except Exception as e:
+        st.error(f"Erreur lors du chargement depuis GitHub : {e}")
 
 def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
