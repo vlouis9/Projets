@@ -1,0 +1,725 @@
+{
+  "players": [
+    {
+      "Nom": "William Toumelin",
+      "Poste": "G",
+      "Infos": ""
+    },
+    {
+      "Nom": "Pierre Pavia",
+      "Poste": "D",
+      "Infos": ""
+    },
+    {
+      "Nom": "Quentin Dauris",
+      "Poste": "D",
+      "Infos": ""
+    },
+    {
+      "Nom": "Charles Plun",
+      "Poste": "D",
+      "Infos": ""
+    },
+    {
+      "Nom": "Jason Cuvelier",
+      "Poste": "D",
+      "Infos": ""
+    },
+    {
+      "Nom": "Thibault Rigal",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Maxime Pujol",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Adrien Gric",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Axel Soldadi\u00e9",
+      "Poste": "A",
+      "Infos": ""
+    },
+    {
+      "Nom": "Gregory Perrot",
+      "Poste": "A",
+      "Infos": ""
+    },
+    {
+      "Nom": "Louis Vermeulen",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Nicolas Gardan",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Credo Atake",
+      "Poste": "A",
+      "Infos": ""
+    },
+    {
+      "Nom": "Arthur Bouchet",
+      "Poste": "D",
+      "Infos": ""
+    },
+    {
+      "Nom": "Arthur Couto",
+      "Poste": "D",
+      "Infos": ""
+    },
+    {
+      "Nom": "Pierre Tarasinski",
+      "Poste": "G",
+      "Infos": ""
+    },
+    {
+      "Nom": "Thibault Defaye",
+      "Poste": "G",
+      "Infos": ""
+    },
+    {
+      "Nom": "Hicham Grerifa",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Axel Lapouble",
+      "Poste": "A",
+      "Infos": ""
+    },
+    {
+      "Nom": "Nicolas Mitrano",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Marouane Habachi",
+      "Poste": "D",
+      "Infos": ""
+    },
+    {
+      "Nom": "Abdel Jalil",
+      "Poste": "A",
+      "Infos": ""
+    },
+    {
+      "Nom": "Emmanuel Pannier",
+      "Poste": "A",
+      "Infos": ""
+    },
+    {
+      "Nom": "Florentin Reynaud",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Yoann Perzynski",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Walid Chouchi",
+      "Poste": "M",
+      "Infos": ""
+    }
+  ],
+  "lineups": {
+    "Djdj": {
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "M": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "A": [
+          null
+        ]
+      },
+      "remplacants": []
+    },
+    "\u00c9quipe type": {
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jason Cuvelier",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Charles Plun",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Quentin Dauris",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Yoann Perzynski",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11",
+            "Capitaine": true
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Maxime Pujol",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Adrien Gric",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Pierre Pavia",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Abdel Jalil",
+          "Numero": "15"
+        },
+        {
+          "Nom": "Nicolas Mitrano",
+          "Numero": "16"
+        }
+      ]
+    }
+  },
+  "matches": {
+    "Championnat - J01 - AFC vs CHU": {
+      "type": "Championnat",
+      "adversaire": "CHU",
+      "date": "2025-07-02",
+      "heure": "21:00:00",
+      "domicile": "Domicile",
+      "journ\u00e9e": "J01",
+      "nom_match": "Championnat - J01 - AFC vs CHU",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Charles Plun",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jason Cuvelier",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Quentin Dauris",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Yoann Perzynski",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11",
+            "Capitaine": false
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Pierre Pavia",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Adrien Gric",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Nicolas Mitrano",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Abdel Jalil",
+          "Numero": "15"
+        },
+        {
+          "Nom": "Maxime Pujol",
+          "Numero": "16"
+        }
+      ],
+      "events": {
+        "buteurs": {
+          "Louis Vermeulen": 2,
+          "Gregory Perrot": 1
+        },
+        "passeurs": {
+          "Louis Vermeulen": 1,
+          "Yoann Perzynski": 1,
+          "Axel Soldadi\u00e9": 1
+        },
+        "cartons_jaunes": {
+          "Arthur Bouchet": 1,
+          "Axel Soldadi\u00e9": 1
+        },
+        "cartons_rouges": {},
+        "notes": {
+          "William Toumelin": 7.0,
+          "Arthur Bouchet": 5.0,
+          "Charles Plun": 7.0,
+          "Jason Cuvelier": 6.0,
+          "Quentin Dauris": 5.0,
+          "Thibault Rigal": 7.0,
+          "Walid Chouchi": 7.0,
+          "Louis Vermeulen": 8.0,
+          "Yoann Perzynski": 7.5,
+          "Axel Soldadi\u00e9": 7.0,
+          "Gregory Perrot": 7.0,
+          "Pierre Pavia": 5.0,
+          "Adrien Gric": 5.0,
+          "Nicolas Mitrano": 5.0,
+          "Abdel Jalil": 6.0,
+          "Maxime Pujol": 6.0
+        }
+      },
+      "score": "3-0",
+      "score_afc": 3,
+      "score_adv": 0,
+      "noted": true,
+      "termine": true,
+      "homme_du_match": "Louis Vermeulen"
+    },
+    "36614b50-6348-436b-bf66-6f7f3056dfde": {
+      "type": "Amical",
+      "adversaire": "TFC",
+      "date": "2025-07-07",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journ\u00e9e": "01",
+      "nom_match": "Amical - 01 - AFC vs TFC",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jason Cuvelier",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Charles Plun",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Quentin Dauris",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Yoann Perzynski",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11",
+            "Capitaine": true
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Maxime Pujol",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Adrien Gric",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Pierre Pavia",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Abdel Jalil",
+          "Numero": "15"
+        },
+        {
+          "Nom": "Nicolas Mitrano",
+          "Numero": "16"
+        }
+      ],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "homme_du_match": ""
+    }
+  },
+  "adversaires": [
+    "Athletico Tolosa B",
+    "Forza Viola FC",
+    "Altran Foot",
+    "ASFP Lusitanos",
+    "AJ Saint-Exupery",
+    "AS DRT",
+    "Internat FC",
+    "CHU Toulouse FC",
+    "Liebherr"
+  ],
+  "championnat_scores": {
+    "J01": [
+      {
+        "domicile": "AFC",
+        "exterieur": "Athletico Tolosa B",
+        "score_dom": 3,
+        "score_ext": 0
+      },
+      {
+        "domicile": "Forza Viola FC",
+        "exterieur": "AJ Saint-Exupery",
+        "score_dom": 2,
+        "score_ext": 0
+      },
+      {
+        "domicile": "ASFP Lusitanos",
+        "exterieur": "Forza Viola FC",
+        "score_dom": 1,
+        "score_ext": 1
+      },
+      {
+        "domicile": "AS DRT",
+        "exterieur": "Altran Foot",
+        "score_dom": 2,
+        "score_ext": 1
+      },
+      {
+        "domicile": "CHU Toulouse FC",
+        "exterieur": "ASFP Lusitanos",
+        "score_dom": 2,
+        "score_ext": 2
+      }
+    ],
+    "J02": [
+      {
+        "domicile": "AFC",
+        "exterieur": "Forza Viola FC",
+        "score_dom": 3,
+        "score_ext": 1
+      },
+      {
+        "domicile": "Altran Foot",
+        "exterieur": "Liebherr",
+        "score_dom": 2,
+        "score_ext": 2
+      },
+      {
+        "domicile": "ASFP Lusitanos",
+        "exterieur": "Athletico Tolosa B",
+        "score_dom": 2,
+        "score_ext": 2
+      },
+      {
+        "domicile": "AS DRT",
+        "exterieur": "CHU Toulouse FC",
+        "score_dom": 2,
+        "score_ext": 2
+      },
+      {
+        "domicile": "AJ Saint-Exupery",
+        "exterieur": "Internat FC",
+        "score_dom": 2,
+        "score_ext": 2
+      }
+    ]
+  },
+  "profondeur_effectif": {
+    "4-2-3-1": {
+      "G": {
+        "0": [
+          "William Toumelin",
+          "Thibault Defaye",
+          "Pierre Tarasinski",
+          "Nicolas Gardan",
+          ""
+        ]
+      },
+      "D": {
+        "0": [
+          "Arthur Bouchet",
+          "Marouane Habachi",
+          "Walid Chouchi",
+          ""
+        ],
+        "1": [
+          "Jason Cuvelier",
+          "Maxime Pujol",
+          ""
+        ],
+        "2": [
+          "Charles Plun",
+          "Pierre Pavia",
+          ""
+        ],
+        "3": [
+          "Quentin Dauris",
+          "Arthur Couto",
+          "Pierre Pavia",
+          ""
+        ]
+      },
+      "M": {
+        "0": [
+          "Thibault Rigal",
+          "Yoann Perzynski",
+          "Florentin Reynaud",
+          "Louis Vermeulen",
+          ""
+        ],
+        "1": [
+          "Walid Chouchi",
+          "Maxime Pujol",
+          "Arthur Bouchet",
+          "Nicolas Mitrano",
+          ""
+        ],
+        "2": [
+          "Louis Vermeulen",
+          "Hicham Grerifa",
+          ""
+        ],
+        "3": [
+          "Adrien Gric",
+          "Florentin Reynaud",
+          "Yoann Perzynski",
+          "Louis Vermeulen",
+          ""
+        ],
+        "4": [
+          "Axel Soldadi\u00e9",
+          "Abdel Jalil",
+          "Nicolas Gardan",
+          "Axel Lapouble",
+          ""
+        ]
+      },
+      "A": {
+        "0": [
+          "Gregory Perrot",
+          "Axel Soldadi\u00e9",
+          "Abdel Jalil",
+          "Emmanuel Pannier",
+          ""
+        ]
+      }
+    }
+  }
+}
