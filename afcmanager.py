@@ -70,6 +70,32 @@ POSTES_NOMS = {
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
 
+# --- Initialisation session_state sécurisée ---
+if (
+    "players" not in st.session_state or
+    "lineups" not in st.session_state or
+    "matches" not in st.session_state
+):
+    reload_all()
+
+# Initialiser toutes les autres clés si absentes
+st.session_state.setdefault("adversaires", [])
+st.session_state.setdefault("championnat_scores", {})
+st.session_state.setdefault("profondeur_effectif", {})
+st.session_state.setdefault("formation", DEFAULT_FORMATION)
+st.session_state.setdefault("formation_profondeur", DEFAULT_FORMATION)
+st.session_state.setdefault("formation_create_compo", DEFAULT_FORMATION)
+st.session_state.setdefault("lineup_loaded", False)
+
+# Initialiser le DataFrame des joueurs si nécessaire
+if not isinstance(st.session_state.players, pd.DataFrame):
+    st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
+
+# Forcer les colonnes de base
+for col in PLAYER_COLS:
+    if col not in st.session_state.players.columns:
+        st.session_state.players[col] = ""
+
 def draw_football_pitch_vertical():
     fig = go.Figure()
     fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#145A32"))
@@ -804,8 +830,7 @@ with tab4:
         #if formation_profondeur not in st.session_state.profondeur_effectif:
             #st.session_state.profondeur_effectif[formation_profondeur] = copy.deepcopy({})
             #st.session_state.profondeur_effectif[formation_profondeur] = {}
-        formation_profondeur = st.session_state.formation_profondeur
-        profondeur_effectif = st.session_state.profondeur_effectif.get(formation_profondeur, {})
+        profondeur_effectif = st.session_state.profondeur_effectif.get(profondeur_effectif,{})
         #profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur,{})
     
         postes_formation = POSTES_NOMS[formation_profondeur]
