@@ -730,10 +730,11 @@ with tab4:
         formation_profondeur = st.selectbox("Choisir une formation", formations, key="formation_profondeur")
     
         # Initialisation stockage profondeur d'effectif si besoin
-        if "profondeur_effectif" not in st.session_state:
-            st.session_state.profondeur_effectif = {}
-        if formation_profondeur not in st.session_state.profondeur_effectif:
-            st.session_state.profondeur_effectif[formation_profondeur] = {}
+        #if "profondeur_effectif" not in st.session_state:
+            #st.session_state.profondeur_effectif = {}
+        #if formation_profondeur not in st.session_state.profondeur_effectif:
+            #st.session_state.profondeur_effectif[formation_profondeur] = copy.deepcopy({})
+            #st.session_state.profondeur_effectif[formation_profondeur] = {}
         profondeur_effectif = st.session_state.get("profondeur_effectif", {})
         profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur,{})
     
