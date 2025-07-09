@@ -621,18 +621,18 @@ with tab_acc:
     
     for match in sorted(matchs.values(), key=lambda m: m.get("date", ""), reverse=True):
         try:
-            date_match = datetime.strptime(match["date"], "%Y/%m/%d").date()
-            if date_match < today and "resultat" in match:
-                resultat = match["resultat"]  # Exemple : "V", "N", "D"
-                if resultat == "V":
-                    symbol = "✅"
-                elif resultat == "N":
-                    symbol = "⚖️"
-                elif resultat == "D":
-                    symbol = "❌"
-                else:
-                    symbol = "❓"
-                derniers_resultats.append(symbol)
+            date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
+            if date_match < today and match.get("termine", False) and match.get("noted", False):
+                score_afc = match.get("score_afc")
+                score_adv = match.get("score_adv")
+                if score_afc is not None and score_adv is not None:
+                    if score_afc > score_adv:
+                        symbol = "✅"
+                    elif score_afc == score_adv:
+                        symbol = "⚖️"
+                    else:
+                        symbol = "❌"
+                    derniers_resultats.append(symbol)
             if len(derniers_resultats) == 5:
                 break
         except:
@@ -661,9 +661,9 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** vs {match_coupe_a_venir.get('equipe', 'Adversaire inconnu')} ({match_coupe_a_venir.get('date')})")
+        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** vs {match_coupe_a_venir.get('adversaire', 'Adversaire inconnu')} ({match_coupe_a_venir.get('date')})")
     elif dernier_tour_coupe:
-        st.warning(f"✅ Dernier match de coupe joué : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** vs {dernier_tour_coupe.get('equipe', 'Adversaire')} ({dernier_tour_coupe.get('date')})")
+        st.warning(f"✅ Dernier match de coupe joué : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** vs {dernier_tour_coupe.get('adversaire', 'Adversaire')} ({dernier_tour_coupe.get('date')})")
     else:
         st.info("🚩 Coupe à démarrer")
 
@@ -684,7 +684,7 @@ with tab_acc:
 
     if prochain_match:
         st.markdown(f"**{prochain_match['type_match']} - {prochain_match.get('journee', '')}**")
-        st.markdown(f"🆚 **Adversaire** : {prochain_match['equipe']}")
+        st.markdown(f"🆚 **Adversaire** : {prochain_match['adversaire']}")
         st.markdown(f"📅 **Date** : {prochain_match['date']}")
         lieu = "🏠 Domicile" if prochain_match.get("domicile", True) else "🚗 Extérieur"
         st.markdown(f"📍 **Lieu** : {lieu}")
@@ -697,7 +697,7 @@ with tab_acc:
         try:
             date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
             if date_match >= today:
-                lignes = f"{match['date']} - {match['type_match']} {match.get('journee', '')} vs {match['equipe']} "
+                lignes = f"{match['date']} - {match['type_match']} {match.get('journee', '')} vs {match['adversaire']} "
                 lieu = "🏠" if match.get("domicile", True) else "🚗"
                 lignes += f"({lieu})"
                 prochains.append(lignes)
