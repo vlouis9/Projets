@@ -540,6 +540,17 @@ def get_classement(championnat_scores, adversaires):
     ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
     return classement
 
+def style_classement(df):
+    styles = []
+    for i in range(len(df)):
+        if i == 0:
+            styles.append(['background-color: #d4edda'] * len(df.columns))  # Vert clair
+        elif i >= len(df) - 2:
+            styles.append(['background-color: #f8d7da'] * len(df.columns))  # Rouge clair
+        else:
+            styles.append([''] * len(df.columns))
+    return pd.DataFrame(styles, columns=df.columns)
+
 if ("players" not in st.session_state or
     "lineups" not in st.session_state or
     "matches" not in st.session_state):
@@ -574,52 +585,128 @@ try:
 except Exception as e:
     st.error(f"❌ Erreur à l'import : {e}")
 
-def download_upload_buttons():
-    # -- Import JSON --
-    with st.form("import_json_form"):
-        up_json = st.file_uploader("📂 Importer un fichier JSON", type="json", key="upload_all")
-        submitted = st.form_submit_button("📤 Importer ce fichier")
-        if submitted and up_json:
+st.write("###⚽ Gestion Équipe AFC")
+tab_acc, tab1, tab2, tab3, tab4 = st.tabs(["🏠    ", "Gestion Matchs", "Suivi Championnat", "Gestion Equipe", "Tactique"])
+
+#--- ACCUEIL ----
+with tab_acc:
+    st.title("🏟️ Tableau de bord AFC")
+
+    from datetime import datetime
+
+    today = datetime.today().date()
+    matchs = st.session_state.get("matchs", {})
+    classement = st.session_state.get("classement", [])
+
+    # 📊 Classement
+    st.subheader("📊 Classement championnat")
+    if classement:
+        df_classement = pd.DataFrame(classement)
+        df_classement = df_classement.sort_values(by=["Pts", "Diff"], ascending=False)
+        st.dataframe(
+            df_classement.reset_index(drop=True).style.apply(style_classement, axis=0),
+            use_container_width=True
+        )
+    else:
+        st.info("Classement non disponible.")
+
+    st.subheader("📈 Forme récente de l'équipe")
+
+    # Rechercher les 5 derniers matchs joués par l'AFC
+    derniers_resultats = []
+    
+    for match in sorted(matchs.values(), key=lambda m: m.get("date", ""), reverse=True):
+        try:
+            date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
+            if date_match < today and "resultat" in match:
+                resultat = match["resultat"]  # Exemple : "V", "N", "D"
+                if resultat == "V":
+                    symbol = "✅"
+                elif resultat == "N":
+                    symbol = "⚖️"
+                elif resultat == "D":
+                    symbol = "❌"
+                else:
+                    symbol = "❓"
+                derniers_resultats.append(symbol)
+            if len(derniers_resultats) == 5:
+                break
+        except:
+            continue
+    
+    if derniers_resultats:
+        st.markdown(" - ".join(derniers_resultats))
+    else:
+        st.info("Pas encore de match joué cette saison.")
+    
+    # 🏆 Progression en coupe
+    st.subheader("🏆 Parcours en coupe")
+    match_coupe_a_venir = None
+    dernier_tour_coupe = None
+
+    for match in matchs.values():
+        if match["type_match"].lower() == "coupe":
             try:
-                data = json.load(up_json)
-                st.session_state.players = pd.DataFrame(data.get("players", []))
-                st.session_state.lineups = data.get("lineups", {})
-                st.session_state.matches = data.get("matches", {})
-                st.session_state.adversaires = data.get("adversaires", [])
-                st.session_state.championnat_scores = data.get("championnat_scores", {})
-                if st.session_state.lineups:
-                    first_name, first_lineup = next(iter(st.session_state.lineups.items()))
-                    st.session_state["profondeur_selected_compo"] = first_name
-                st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
-            except Exception as e:
-                st.error(f"❌ Erreur à l'import : {e}")
+                date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
+                if date_match >= today:
+                    if not match_coupe_a_venir or date_match < datetime.strptime(match_coupe_a_venir["date"], "%Y-%m-%d").date():
+                        match_coupe_a_venir = match
+                elif not dernier_tour_coupe or date_match > datetime.strptime(dernier_tour_coupe["date"], "%Y-%m-%d").date():
+                    dernier_tour_coupe = match
+            except:
+                continue
 
-    # -- Export JSON (depuis la session courante) --
-    st.download_button(
-        label="💾 Télécharger le fichier JSON (état courant)",
-        data=json.dumps({
-            "players": st.session_state.players.to_dict(orient="records"),
-            "lineups": st.session_state.lineups,
-            "matches": st.session_state.matches,
-            "adversaires": st.session_state.get("adversaires", []),
-            "championnat_scores": st.session_state.get("championnat_scores", {}),
-            "profondeur_effectif": st.session_state.get("profondeur_effectif", {})
-        }, indent=2),
-        file_name=DATA_FILE,
-        mime="application/json"
-    )
+    if match_coupe_a_venir:
+        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** vs {match_coupe_a_venir.get('equipe', 'Adversaire inconnu')} ({match_coupe_a_venir.get('date')})")
+    elif dernier_tour_coupe:
+        st.warning(f"✅ Dernier match de coupe joué : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** vs {dernier_tour_coupe.get('equipe', 'Adversaire')} ({dernier_tour_coupe.get('date')})")
+    else:
+        st.info("🚩 Coupe à démarrer")
 
+    # 📅 Prochain match (tous types)
+    st.subheader("📅 Prochain match toutes compétitions")
+    prochain_match = None
+    date_min = None
 
-#st.sidebar.title("⚽ Gestion Équipe AFC")
-#with st.sidebar:
-    #st.markdown("---")
-    #with st.expander("🔄 Import/Export des données"):
-        #download_upload_buttons()
-    #st.markdown("---")
+    for match_id, match in matchs.items():
+        try:
+            date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
+            if date_match >= today:
+                if not date_min or date_match < date_min:
+                    prochain_match = match
+                    date_min = date_match
+        except:
+            continue
 
+    if prochain_match:
+        st.markdown(f"**{prochain_match['type_match']} - {prochain_match.get('journee', '')}**")
+        st.markdown(f"🆚 **Adversaire** : {prochain_match['equipe']}")
+        st.markdown(f"📅 **Date** : {prochain_match['date']}")
+        lieu = "🏠 Domicile" if prochain_match.get("domicile", True) else "🚗 Extérieur"
+        st.markdown(f"📍 **Lieu** : {lieu}")
+    else:
+        st.info("Aucun match à venir.")
 
-st.write("⚽ Gestion Équipe AFC")
-tab1, tab2, tab3, tab4 = st.tabs(["Gestion Matchs", "Suivi Championnat", "Gestion Equipe", "Tactique"])
+    st.subheader("📅 Prochains matchs")
+    prochains = []
+    for match in sorted(matchs.values(), key=lambda m: m.get("date", "")):
+        try:
+            date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
+            if date_match >= today:
+                lignes = f"{match['date']} - {match['type_match']} {match.get('journee', '')} vs {match['equipe']} "
+                lieu = "🏠" if match.get("domicile", True) else "🚗"
+                lignes += f"({lieu})"
+                prochains.append(lignes)
+            if len(prochains) == 5:
+                break
+        except:
+            continue
+    
+    if prochains:
+        for ligne in prochains:
+            st.markdown(f"• {ligne}")
+    else:
+        st.info("Aucun match à venir.")
 
 # --- GESTION EQUIPE ---
 with tab3:
