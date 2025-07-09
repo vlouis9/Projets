@@ -683,7 +683,7 @@ with tab_acc:
             continue
 
     if prochain_match:
-        st.markdown(f"**{prochain match.get("type","")} - {prochain_match.get('journée', '')}**")
+        st.markdown(f"**{prochain match.get('type','')} - {prochain_match.get('journée', '')}**")
         st.markdown(f"🆚 **Adversaire** : {prochain_match['adversaire']}")
         st.markdown(f"📅 **Date** : {prochain_match['date']}")
         lieu = "🏠 Domicile" if prochain_match.get("domicile", True) else "🚗 Extérieur"
@@ -697,7 +697,7 @@ with tab_acc:
         try:
             date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
             if date_match >= today:
-                lignes = f"{match['date']} - {match['type_match']} {match.get('journée', '')} vs {match['adversaire']} "
+                lignes = f"{match['date']} - {match.get("type","")} {match.get('journée', '')} vs {match['adversaire']} "
                 lieu = "🏠" if match.get("domicile", True) else "🚗"
                 lignes += f"({lieu})"
                 prochains.append(lignes)
