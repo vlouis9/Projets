@@ -649,7 +649,7 @@ with tab_acc:
     dernier_tour_coupe = None
 
     for match in matchs.values():
-        if match["type_match"].lower() == "coupe":
+        if match["type"].lower() == "coupe":
             try:
                 date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
                 if date_match >= today:
