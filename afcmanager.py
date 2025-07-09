@@ -813,6 +813,19 @@ with tab4:
     
         formations = list(FORMATION.keys())
         formation_profondeur = st.selectbox("Choisir une formation", formations, key="formation_profondeur")
+        # ➕ Auto-injecte les valeurs enregistrées une seule fois par formation
+        auto_key = f"loaded_{formation_profondeur}"
+        if auto_key not in st.session_state:
+            profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur, {})
+            for poste in POSTES_ORDER:
+                poste_data = profondeur_formation.get(poste, {})
+                for idx_label, choix_list in poste_data.items():
+                    for i, nom in enumerate(choix_list):
+                        if nom:
+                            key = f"{formation_profondeur}_{poste}_{idx_label}_choix_{i}"
+                            st.session_state[key] = nom
+            st.session_state[auto_key] = True  # empêche double chargement
+        
         if st.button("🔄 Charger la profondeur enregistrée"):
             profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur, {})
             for poste in POSTES_ORDER:
@@ -850,10 +863,10 @@ with tab4:
                         key_select = f"{key_poste}_choix_{i}"
                         options = [""] + joueurs
                         current_value = choix_list[i] if i < len(choix_list) else ""
-                        choix = st.selectbox(
-                            f"Choix {i+1}", options,
-                            key=key_select
-                        )
+                        default = st.session_state.get(key_select, choix_list[i] if i < len(choix_list) else "")
+                        if default not in options:
+                            default = ""
+                        choix = st.selectbox(f"Choix {i+1}", options, index=options.index(default), key=key_select)
                         if len(choix_list) <= i:
                             choix_list.append("")
                         choix_list[i] = choix
@@ -869,6 +882,10 @@ with tab4:
     
             if st.button("Sauvegarder la profondeur d'effectif"):
                 st.session_state.profondeur_effectif[formation_profondeur] = profondeur_formation
+                # Nettoie les chaînes vides pour éviter les ["", ""] inutiles
+                for p in profondeur_formation:
+                    for k in profondeur_formation[p]:
+                        profondeur_formation[p][k] = [n for n in profondeur_formation[p][k] if n.strip()]
                 save_all()
                 st.success("Profondeur d'effectif sauvegardée pour cette formation !")
     
