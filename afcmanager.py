@@ -581,9 +581,14 @@ try:
     if st.session_state.lineups:
         first_name, first_lineup = next(iter(st.session_state.lineups.items()))
         st.session_state["profondeur_selected_compo"] = first_name
-    #st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
+    if st.session_state.championnat_scores and st.session_state.adversaires:
+        st.session_state.classement = get_classement(st.session_state.championnat_scores, st.session_state.adversaires)
+    else:
+        st.session_state.classement = []
+    #st.success("✅ Données importées dans la session.")
 except Exception as e:
     st.error(f"❌ Erreur à l'import : {e}")
+
 
 st.write("###⚽ Gestion Équipe AFC")
 tab_acc, tab1, tab2, tab3, tab4 = st.tabs(["🏠    ", "Gestion Matchs", "Suivi Championnat", "Gestion Equipe", "Tactique"])
@@ -592,15 +597,13 @@ tab_acc, tab1, tab2, tab3, tab4 = st.tabs(["🏠    ", "Gestion Matchs", "Suivi 
 with tab_acc:
     st.title("🏟️ Tableau de bord AFC")
 
-    from datetime import datetime
-
     today = datetime.today().date()
     matchs = st.session_state.get("matchs", {})
     classement = st.session_state.get("classement", [])
 
     # 📊 Classement
     st.subheader("📊 Classement championnat")
-    if classement:
+    if classement and not classement.empty: # Vérifier si le DataFrame n'est pas vide
         df_classement = pd.DataFrame(classement)
         df_classement = df_classement.sort_values(by=["Pts", "Diff"], ascending=False)
         st.dataframe(
@@ -608,7 +611,8 @@ with tab_acc:
             use_container_width=True
         )
     else:
-        st.info("Classement non disponible.")
+        st.info("Classement non disponible. Assurez-vous d'avoir des scores de championnat enregistrés.")
+
 
     st.subheader("📈 Forme récente de l'équipe")
 
