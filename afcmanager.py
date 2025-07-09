@@ -819,8 +819,7 @@ with tab4:
         #if formation_profondeur not in st.session_state.profondeur_effectif:
             #st.session_state.profondeur_effectif[formation_profondeur] = copy.deepcopy({})
             #st.session_state.profondeur_effectif[formation_profondeur] = {}
-        profondeur_effectif = st.session_state.profondeur_effectif.get(profondeur_effectif,{})
-        #profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur,{})
+        profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur, {})
     
         postes_formation = POSTES_NOMS[formation_profondeur]
         joueurs = st.session_state.players["Nom"].dropna().tolist()
