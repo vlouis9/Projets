@@ -598,7 +598,7 @@ with tab_acc:
     st.title("🏟️ Tableau de bord AFC")
 
     today = datetime.today().date()
-    matchs = st.session_state.get("matchs", {})
+    matchs = st.session_state.get("matches", {})
     classement = st.session_state.get("classement", [])
 
     # 📊 Classement
@@ -649,7 +649,7 @@ with tab_acc:
     dernier_tour_coupe = None
 
     for match in matchs.values():
-        if match["type"].lower() == "coupe":
+        if match.get("type", "").lower() == "coupe":
             try:
                 date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
                 if date_match >= today:
@@ -661,9 +661,9 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** vs {match_coupe_a_venir.get('adversaire', 'Adversaire inconnu')} ({match_coupe_a_venir.get('date')})")
+        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journée', 'Tour à venir')}** vs {match_coupe_a_venir.get('adversaire', 'Adversaire inconnu')} ({match_coupe_a_venir.get('date')})")
     elif dernier_tour_coupe:
-        st.warning(f"✅ Dernier match de coupe joué : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** vs {dernier_tour_coupe.get('adversaire', 'Adversaire')} ({dernier_tour_coupe.get('date')})")
+        st.warning(f"✅ Dernier match de coupe joué : **{dernier_tour_coupe.get('journée', 'Tour inconnu')}** vs {dernier_tour_coupe.get('adversaire', 'Adversaire')} ({dernier_tour_coupe.get('date')})")
     else:
         st.info("🚩 Coupe à démarrer")
 
@@ -683,7 +683,7 @@ with tab_acc:
             continue
 
     if prochain_match:
-        st.markdown(f"**{prochain_match['type_match']} - {prochain_match.get('journee', '')}**")
+        st.markdown(f"**{prochain match.get("type","")} - {prochain_match.get('journée', '')}**")
         st.markdown(f"🆚 **Adversaire** : {prochain_match['adversaire']}")
         st.markdown(f"📅 **Date** : {prochain_match['date']}")
         lieu = "🏠 Domicile" if prochain_match.get("domicile", True) else "🚗 Extérieur"
@@ -697,7 +697,7 @@ with tab_acc:
         try:
             date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
             if date_match >= today:
-                lignes = f"{match['date']} - {match['type_match']} {match.get('journee', '')} vs {match['adversaire']} "
+                lignes = f"{match['date']} - {match['type_match']} {match.get('journée', '')} vs {match['adversaire']} "
                 lieu = "🏠" if match.get("domicile", True) else "🚗"
                 lignes += f"({lieu})"
                 prochains.append(lignes)
