@@ -590,7 +590,7 @@ except Exception as e:
     st.error(f"❌ Erreur à l'import : {e}")
 
 
-st.write("###⚽ Gestion Équipe AFC")
+st.title("⚽ Gestion Équipe AFC")
 tab_acc, tab1, tab2, tab3, tab4 = st.tabs(["🏠    ", "Gestion Matchs", "Suivi Championnat", "Gestion Equipe", "Tactique"])
 
 #--- ACCUEIL ----
@@ -603,7 +603,7 @@ with tab_acc:
 
     # 📊 Classement
     st.subheader("📊 Classement championnat")
-    if classement and not classement.empty: # Vérifier si le DataFrame n'est pas vide
+    if isinstance (classement,pd.Dataframe) and not classement.empty: 
         df_classement = pd.DataFrame(classement)
         df_classement = df_classement.sort_values(by=["Pts", "Diff"], ascending=False)
         st.dataframe(
