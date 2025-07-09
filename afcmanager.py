@@ -570,7 +570,7 @@ try:
     if st.session_state.lineups:
         first_name, first_lineup = next(iter(st.session_state.lineups.items()))
         st.session_state["profondeur_selected_compo"] = first_name
-    st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
+    #st.success("✅ Données importées dans la session. N'oubliez pas de cliquer sur les boutons Sauvegarder dans les menus pour valider sur disque.")
 except Exception as e:
     st.error(f"❌ Erreur à l'import : {e}")
 
@@ -835,7 +835,7 @@ with tab4:
         postes_formation = POSTES_NOMS[formation_profondeur]
         joueurs = st.session_state.players["Nom"].dropna().tolist()
     
-        col_left, col_right = st.columns([2, 3])
+        col_left, col_right = st.columns([1, 4])
         with col_left:
             st.markdown("### Sélectionnez vos options par poste")
             for poste in POSTES_ORDER:
