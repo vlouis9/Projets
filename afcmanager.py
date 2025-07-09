@@ -607,7 +607,7 @@ with tab_acc:
         df_classement = pd.DataFrame(classement)
         df_classement = df_classement.sort_values(by=["Pts", "Diff"], ascending=False)
         st.dataframe(
-            df_classement.reset_index(drop=True).style.apply(style_classement, axis=0),
+            df_classement.reset_index(drop=True).style.apply(style_classement, axis=None),
             use_container_width=True
         )
     else:
