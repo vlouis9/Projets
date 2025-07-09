@@ -541,6 +541,25 @@
       "score_adv": 0,
       "noted": false,
       "homme_du_match": ""
+    },
+    "06d00f0a-d500-4f38-b4d5-eb5d9ae6d9c4": {
+      "type": "Championnat",
+      "adversaire": "Athletico Tolosa B",
+      "date": "2025-07-16",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journ\u00e9e": "J02",
+      "nom_match": "Championnat - J02 - AFC vs Athletico Tolosa B",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
