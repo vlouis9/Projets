@@ -129,9 +129,45 @@
       "Nom": "Walid Chouchi",
       "Poste": "M",
       "Infos": ""
+    },
+    {
+      "Nom": "Abdel Ouachouo",
+      "Poste": "M",
+      "Infos": ""
     }
   ],
   "lineups": {
+    "Djdj": {
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "M": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "A": [
+          null
+        ]
+      },
+      "remplacants": []
+    },
     "\u00c9quipe type": {
       "formation": "4-2-3-1",
       "details": {
