@@ -813,7 +813,15 @@ with tab4:
     
         formations = list(FORMATION.keys())
         formation_profondeur = st.selectbox("Choisir une formation", formations, key="formation_profondeur")
-    
+        if st.button("🔄 Charger la profondeur enregistrée"):
+            profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur, {})
+            for poste in POSTES_ORDER:
+                poste_data = profondeur_formation.get(poste, {})
+                for idx_label, choix_list in poste_data.items():
+                    for i, nom in enumerate(choix_list):
+                        if nom:
+                            key = f"{formation_profondeur}_{poste}_{idx_label}_choix_{i}"
+                            st.session_state[key] = nom
         # Initialisation : charger la profondeur pour cette formation
         profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur)
         if profondeur_formation is None:
