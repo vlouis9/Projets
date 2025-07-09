@@ -820,7 +820,7 @@ with tab4:
     
         profondeur_formation = st.session_state.profondeur_effectif[formation_profondeur]
     
-        # 🔄 Injection auto une seule fois à l'ouverture
+        # 🔄 Injection automatique (une seule fois par session pour cette formation)
         auto_key = f"loaded_{formation_profondeur}"
         if auto_key not in st.session_state:
             for poste in POSTES_ORDER:
@@ -849,19 +849,25 @@ with tab4:
                     key_poste = f"{formation_profondeur}_{poste}_{idx_label}"
                     choix_list = profondeur_formation[poste].get(idx_label, [])
                     choix_list = choix_list if isinstance(choix_list, list) else []
-                    n_choix = max(len(choix_list), 1)
+    
+                    # 🔁 Calcul du nombre de selectbox à afficher
+                    nb_keys_injected = len([k for k in st.session_state if k.startswith(f"{key_poste}_choix_")])
+                    n_choix = max(len(choix_list), nb_keys_injected, 1)
+    
+                    # 🔧 Extend la liste si nécessaire
+                    while len(choix_list) < n_choix:
+                        choix_list.append("")
     
                     st.markdown(f"**{label}**")
                     for i in range(n_choix):
                         key_select = f"{key_poste}_choix_{i}"
                         options = [""] + joueurs
-                        st.selectbox(f"Choix {i+1}", options, key=key_select)
-                        choix = st.session_state[key_select]
-                        if len(choix_list) <= i:
-                            choix_list.append("")
+                        if key_select not in st.session_state:
+                            st.session_state[key_select] = choix_list[i]
+                        choix = st.selectbox(f"Choix {i+1}", options, key=key_select)
                         choix_list[i] = choix
     
-                    # Ajout dynamique d'un champ si le dernier est rempli
+                    # Ajout dynamique d’un champ si le dernier est rempli
                     if choix_list and choix_list[-1]:
                         choix_list.append("")
                     while len(choix_list) > 1 and not choix_list[-1] and not choix_list[-2]:
@@ -872,7 +878,7 @@ with tab4:
                     st.markdown("---")
     
             if st.button("💾 Sauvegarder la profondeur d'effectif"):
-                # Nettoyage des chaînes vides
+                # Nettoyage des chaînes vides avant sauvegarde
                 for p in profondeur_formation:
                     for k in profondeur_formation[p]:
                         profondeur_formation[p][k] = [n for n in profondeur_formation[p][k] if n.strip()]
