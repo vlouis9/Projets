@@ -822,6 +822,7 @@ with tab4:
                         if nom:
                             key = f"{formation_profondeur}_{poste}_{idx_label}_choix_{i}"
                             st.session_state[key] = nom
+            st.rerun()
         # Initialisation : charger la profondeur pour cette formation
         profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur)
         if profondeur_formation is None:
