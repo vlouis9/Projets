@@ -835,7 +835,7 @@ with tab4:
         postes_formation = POSTES_NOMS[formation_profondeur]
         joueurs = st.session_state.players["Nom"].dropna().tolist()
     
-        col_left, col_right = st.columns([1, 4])
+        col_left, col_right = st.columns([3, 7])
         with col_left:
             st.markdown("### Sélectionnez vos options par poste")
             for poste in POSTES_ORDER:
