@@ -683,7 +683,7 @@ with tab_acc:
             continue
 
     if prochain_match:
-        st.markdown(f"**{prochain match.get('type','')} - {prochain_match.get('journée', '')}**")
+        st.markdown(f"**{prochain_match.get('type','')} - {prochain_match.get('journée', '')}**")
         st.markdown(f"🆚 **Adversaire** : {prochain_match['adversaire']}")
         st.markdown(f"📅 **Date** : {prochain_match['date']}")
         lieu = "🏠 Domicile" if prochain_match.get("domicile", True) else "🚗 Extérieur"
