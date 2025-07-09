@@ -816,6 +816,8 @@ with tab4:
     
         # Initialisation : charger la profondeur pour cette formation
         profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur)
+        st.write("🔍 DEBUG – profondeur_effectif chargée :", st.session_state.profondeur_effectif)
+        st.write("🔍 DEBUG – profondeur_formation pour", formation_profondeur, ":", profondeur_formation)
         if profondeur_formation is None:
             profondeur_formation = {}
             st.session_state.profondeur_effectif[formation_profondeur] = profondeur_formation
@@ -846,6 +848,7 @@ with tab4:
                             index=options.index(current_value) if current_value in options else 0,
                             key=key_select
                         )
+                        st.write(f"{key_select} → current_value = {current_value}, options = {options}")
                         if len(choix_list) <= i:
                             choix_list.append("")
                         choix_list[i] = choix
@@ -871,6 +874,7 @@ with tab4:
             for poste in postes_formation:
                 poste_positions = positions[poste]
                 for idx_label, label in enumerate(postes_formation[poste]):
+                    st.write(f"{poste} – {label} → noms = {noms}")
                     noms = profondeur_formation.get(poste, {}).get(idx_label, [])
                     noms = [n for n in noms if n]
                     if noms:
