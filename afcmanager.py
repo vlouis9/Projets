@@ -336,6 +336,8 @@ def reload_all():
         st.session_state.adversaires = data.get("adversaires", [])
         st.session_state.championnat_scores = data.get("championnat_scores", {})
         st.session_state.profondeur_effectif = data.get("profondeur_effectif", {})
+        if "matches" not in st.session_state:
+            st.session_state.matches = {}
     except Exception as e:
         st.error(f"Erreur lors du chargement depuis GitHub : {e}")
 
@@ -1065,7 +1067,7 @@ with tab1:
                     "homme_du_match": ""
                 }
                 save_all()
-                st.rerun()
+                reload_all()
                 st.success("Match enregistré !")
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
