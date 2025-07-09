@@ -621,7 +621,7 @@ with tab_acc:
     
     for match in sorted(matchs.values(), key=lambda m: m.get("date", ""), reverse=True):
         try:
-            date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
+            date_match = datetime.strptime(match["date"], "%Y/%m/%d").date()
             if date_match < today and "resultat" in match:
                 resultat = match["resultat"]  # Exemple : "V", "N", "D"
                 if resultat == "V":
