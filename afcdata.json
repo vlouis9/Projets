@@ -560,6 +560,25 @@
       "score_adv": 0,
       "noted": false,
       "homme_du_match": ""
+    },
+    "89f7cdad-3d35-4bcd-86c3-7531bc72f5e0": {
+      "type": "Coupe",
+      "adversaire": "",
+      "date": "2025-07-27",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journ\u00e9e": "Poules",
+      "nom_match": "Coupe - Poules",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
