@@ -874,7 +874,7 @@ with tab4:
             for poste in postes_formation:
                 poste_positions = positions[poste]
                 for idx_label, label in enumerate(postes_formation[poste]):
-                    st.write(f"{poste} – {label} → noms = {noms}")
+                    #st.write(f"{poste} – {label} → noms = {noms}")
                     noms = profondeur_formation.get(poste, {}).get(idx_label, [])
                     noms = [n for n in noms if n]
                     if noms:
