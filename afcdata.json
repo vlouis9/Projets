@@ -132,37 +132,6 @@
     }
   ],
   "lineups": {
-    "Djdj": {
-      "formation": "4-2-3-1",
-      "details": {
-        "G": [
-          {
-            "Nom": "William Toumelin",
-            "Poste": "G",
-            "Infos": "",
-            "Numero": "1",
-            "Capitaine": false
-          }
-        ],
-        "D": [
-          null,
-          null,
-          null,
-          null
-        ],
-        "M": [
-          null,
-          null,
-          null,
-          null,
-          null
-        ],
-        "A": [
-          null
-        ]
-      },
-      "remplacants": []
-    },
     "\u00c9quipe type": {
       "formation": "4-2-3-1",
       "details": {
@@ -650,6 +619,9 @@
           "Pierre Tarasinski",
           "Nicolas Gardan",
           ""
+        ],
+        "0": [
+          ""
         ]
       },
       "D": {
@@ -673,6 +645,18 @@
           "Quentin Dauris",
           "Arthur Couto",
           "Pierre Pavia",
+          ""
+        ],
+        "0": [
+          ""
+        ],
+        "1": [
+          ""
+        ],
+        "2": [
+          ""
+        ],
+        "3": [
           ""
         ]
       },
@@ -709,6 +693,21 @@
           "Nicolas Gardan",
           "Axel Lapouble",
           ""
+        ],
+        "0": [
+          ""
+        ],
+        "1": [
+          ""
+        ],
+        "2": [
+          ""
+        ],
+        "3": [
+          ""
+        ],
+        "4": [
+          ""
         ]
       },
       "A": {
@@ -717,6 +716,9 @@
           "Axel Soldadi\u00e9",
           "Abdel Jalil",
           "Emmanuel Pannier",
+          ""
+        ],
+        "0": [
           ""
         ]
       }
