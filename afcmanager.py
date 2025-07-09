@@ -813,10 +813,16 @@ with tab4:
     
         formations = list(FORMATION.keys())
         formation_profondeur = st.selectbox("Choisir une formation", formations, key="formation_profondeur")
-        # ➕ Auto-injecte les valeurs enregistrées une seule fois par formation
+    
+        # Initialisation si vide
+        if formation_profondeur not in st.session_state.profondeur_effectif:
+            st.session_state.profondeur_effectif[formation_profondeur] = {}
+    
+        profondeur_formation = st.session_state.profondeur_effectif[formation_profondeur]
+    
+        # 🔄 Injection auto une seule fois à l'ouverture
         auto_key = f"loaded_{formation_profondeur}"
         if auto_key not in st.session_state:
-            profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur, {})
             for poste in POSTES_ORDER:
                 poste_data = profondeur_formation.get(poste, {})
                 for idx_label, choix_list in poste_data.items():
@@ -824,23 +830,7 @@ with tab4:
                         if nom:
                             key = f"{formation_profondeur}_{poste}_{idx_label}_choix_{i}"
                             st.session_state[key] = nom
-            st.session_state[auto_key] = True  # empêche double chargement
-        
-        if st.button("🔄 Charger la profondeur enregistrée"):
-            profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur, {})
-            for poste in POSTES_ORDER:
-                poste_data = profondeur_formation.get(poste, {})
-                for idx_label, choix_list in poste_data.items():
-                    for i, nom in enumerate(choix_list):
-                        if nom:
-                            key = f"{formation_profondeur}_{poste}_{idx_label}_choix_{i}"
-                            st.session_state[key] = nom
-            st.rerun()
-        # Initialisation : charger la profondeur pour cette formation
-        profondeur_formation = st.session_state.profondeur_effectif.get(formation_profondeur)
-        if profondeur_formation is None:
-            profondeur_formation = {}
-            st.session_state.profondeur_effectif[formation_profondeur] = profondeur_formation
+            st.session_state[auto_key] = True
     
         postes_formation = POSTES_NOMS[formation_profondeur]
         joueurs = st.session_state.players["Nom"].dropna().tolist()
@@ -851,46 +841,54 @@ with tab4:
             for poste in POSTES_ORDER:
                 if poste not in postes_formation:
                     continue
-                for idx_label, label in enumerate(postes_formation[poste]):
+                if poste not in profondeur_formation:
+                    profondeur_formation[poste] = {}
+    
+                poste_labels = postes_formation[poste]
+                for idx_label, label in enumerate(poste_labels):
                     key_poste = f"{formation_profondeur}_{poste}_{idx_label}"
-                    if poste not in profondeur_formation:
-                        profondeur_formation[poste] = {}
                     choix_list = profondeur_formation[poste].get(idx_label, [])
                     choix_list = choix_list if isinstance(choix_list, list) else []
                     n_choix = max(len(choix_list), 1)
+    
                     st.markdown(f"**{label}**")
                     for i in range(n_choix):
                         key_select = f"{key_poste}_choix_{i}"
                         options = [""] + joueurs
-                        current_value = choix_list[i] if i < len(choix_list) else ""
                         default = st.session_state.get(key_select, choix_list[i] if i < len(choix_list) else "")
                         if default not in options:
                             default = ""
-                        choix = st.selectbox(f"Choix {i+1}", options, index=options.index(default), key=key_select)
+                        choix = st.selectbox(
+                            f"Choix {i+1}",
+                            options,
+                            index=options.index(default),
+                            key=key_select
+                        )
                         if len(choix_list) <= i:
                             choix_list.append("")
                         choix_list[i] = choix
-                    # Ajout automatique d’un champ si le dernier est rempli
+    
+                    # Ajout dynamique d'un champ si le dernier est rempli
                     if choix_list and choix_list[-1]:
                         choix_list.append("")
                     while len(choix_list) > 1 and not choix_list[-1] and not choix_list[-2]:
                         choix_list.pop()
-                    # Enregistrement immédiat dans session_state
+    
                     profondeur_formation[poste][idx_label] = choix_list
-                    st.caption("Options sélectionnées : " + ", ".join([c for c in choix_list if c]))
+                    st.caption("Options sélectionnées : " + ", ".join([c for c in choix_list if c]))
                     st.markdown("---")
     
-            if st.button("Sauvegarder la profondeur d'effectif"):
-                st.session_state.profondeur_effectif[formation_profondeur] = profondeur_formation
-                # Nettoie les chaînes vides pour éviter les ["", ""] inutiles
+            if st.button("💾 Sauvegarder la profondeur d'effectif"):
+                # Nettoyage des chaînes vides
                 for p in profondeur_formation:
                     for k in profondeur_formation[p]:
                         profondeur_formation[p][k] = [n for n in profondeur_formation[p][k] if n.strip()]
+                st.session_state.profondeur_effectif[formation_profondeur] = profondeur_formation
                 save_all()
-                st.success("Profondeur d'effectif sauvegardée pour cette formation !")
+                st.success("Profondeur d'effectif sauvegardée pour cette formation ✅")
     
         with col_right:
-            st.markdown("### Visuel terrain (tous les choix par poste)")
+            st.markdown("### Terrain - joueurs sélectionnés")
             fig = draw_football_pitch_vertical()
             positions = positions_for_formation_vertical(formation_profondeur)
             for poste in postes_formation:
