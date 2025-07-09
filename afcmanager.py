@@ -603,7 +603,7 @@ with tab_acc:
 
     # 📊 Classement
     st.subheader("📊 Classement championnat")
-    if isinstance (classement,pd.Dataframe) and not classement.empty: 
+    if isinstance (classement,pd.DataFrame) and not classement.empty: 
         df_classement = pd.DataFrame(classement)
         df_classement = df_classement.sort_values(by=["Pts", "Diff"], ascending=False)
         st.dataframe(
