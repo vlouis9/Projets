@@ -852,7 +852,6 @@ with tab4:
                         current_value = choix_list[i] if i < len(choix_list) else ""
                         choix = st.selectbox(
                             f"Choix {i+1}", options,
-                            index=options.index(current_value) if current_value in options else 0,
                             key=key_select
                         )
                         if len(choix_list) <= i:
