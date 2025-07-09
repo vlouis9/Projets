@@ -855,15 +855,8 @@ with tab4:
                     for i in range(n_choix):
                         key_select = f"{key_poste}_choix_{i}"
                         options = [""] + joueurs
-                        default = st.session_state.get(key_select, choix_list[i] if i < len(choix_list) else "")
-                        if default not in options:
-                            default = ""
-                        choix = st.selectbox(
-                            f"Choix {i+1}",
-                            options,
-                            index=options.index(default),
-                            key=key_select
-                        )
+                        st.selectbox(f"Choix {i+1}", options, key=key_select)
+                        choix = st.session_state[key_select]
                         if len(choix_list) <= i:
                             choix_list.append("")
                         choix_list[i] = choix
