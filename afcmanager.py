@@ -1,34 +1,105 @@
+# --- 📦 IMPORTS ---
 import streamlit as st
 import pandas as pd
 import json
-import os
-import copy
-import traceback
-import uuid
-import requests
-import io
 import base64
+import requests
+import uuid
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 
-USERNAME = "vlouis9"
-REPO = "Projets"
-BRANCH = "main"
-FILE_PATH = "afcdata.json"
-RAW_URL = f"https://raw.githubusercontent.com/{USERNAME}/{REPO}/{BRANCH}/{FILE_PATH}"
+# --- 📁 GESTIONNAIRE DE DONNÉES ---
+class AFCDataManager:
+    def __init__(self, token=None):
+        self.token = token or st.secrets["github"]["token"]
+        self.username = "vlouis9"
+        self.repo = "Projets"
+        self.branch = "main"
+        self.file_path = "afcdata.json"
+        self.api_url = f"https://api.github.com/repos/{self.username}/{self.repo}/contents/{self.file_path}"
+        self.headers = {
+            "Authorization": f"token {self.token}",
+            "Accept": "application/vnd.github+json"
+        }
 
-DATA_FILE = "afcdata.json"
+    def load(self):
+        try:
+            resp = requests.get(self.api_url, headers=self.headers)
+            resp.raise_for_status()
+            raw = resp.json()
+            content = base64.b64decode(raw["content"]).decode()
+            data = json.loads(content)
+
+            st.session_state.players = pd.DataFrame(data.get("players", []))
+            st.session_state.lineups = data.get("lineups", {})
+            st.session_state.matchs = data.get("matchs", {})
+            st.session_state.adversaires = data.get("adversaires", [])
+            st.session_state.championnat_scores = data.get("championnat_scores", {})
+            st.session_state.profondeur_effectif = data.get("profondeur_effectif", {})
+        except Exception as e:
+            st.error(f"❌ Échec du chargement des données : {e}")
+
+    def save(self):
+        try:
+            payload = {
+                "players": st.session_state.players.to_dict(orient="records"),
+                "lineups": st.session_state.lineups,
+                "matchs": st.session_state.matchs,
+                "adversaires": st.session_state.adversaires,
+                "championnat_scores": st.session_state.championnat_scores,
+                "profondeur_effectif": st.session_state.profondeur_effectif
+            }
+            encoded = base64.b64encode(json.dumps(payload, indent=2).encode()).decode()
+
+            get_resp = requests.get(self.api_url, headers=self.headers)
+            sha = get_resp.json()["sha"]
+
+            update = {
+                "message": "🔄 Mise à jour via AFCDataManager",
+                "content": encoded,
+                "branch": self.branch,
+                "sha": sha
+            }
+
+            put_resp = requests.put(self.api_url, headers=self.headers, json=update)
+            if put_resp.status_code in [200, 201]:
+                st.success("✅ Données sauvegardées sur GitHub")
+            else:
+                st.error(f"❌ Erreur GitHub : {put_resp.status_code}")
+        except Exception as e:
+            st.error(f"❌ Échec de la sauvegarde : {e}")
+
+# --- ⚙️ INIT SESSION + CHARGEMENT DONNÉES ---
+manager = AFCDataManager()
+manager.load()
+
+# 🧩 Initialiser structures vides si besoin
+if not isinstance(st.session_state.players, pd.DataFrame):
+    st.session_state.players = pd.DataFrame(columns=["Nom", "Poste", "Infos"])
+for col in ["Nom", "Poste", "Infos"]:
+    if col not in st.session_state.players.columns:
+        st.session_state.players[col] = ""
+
+for key in ["lineups", "matchs", "adversaires", "championnat_scores", "profondeur_effectif"]:
+    if key not in st.session_state:
+        st.session_state[key] = {}
+
+# --- ⚙️ CONSTANTES FORMATION ---
 PLAYER_COLS = ["Nom", "Poste", "Infos"]
+DEFAULT_FORMATION = "4-2-3-1"
+MAX_REMPLACANTS = 5
+
 FORMATION = {
     "4-2-3-1": {"G": 1, "D": 4, "M": 5, "A": 1},
-    "4-4-2": {"G": 1, "D": 4, "M": 4, "A": 2},
-    "4-3-3": {"G": 1, "D": 4, "M": 3, "A": 3},
-    "3-5-2": {"G": 1, "D": 3, "M": 5, "A": 2},
-    "3-4-3": {"G": 1, "D": 3, "M": 4, "A": 3},
-    "5-3-2": {"G": 1, "D": 5, "M": 3, "A": 2},
+    "4-4-2":   {"G": 1, "D": 4, "M": 4, "A": 2},
+    "4-3-3":   {"G": 1, "D": 4, "M": 3, "A": 3},
+    "3-5-2":   {"G": 1, "D": 3, "M": 5, "A": 2},
+    "3-4-3":   {"G": 1, "D": 3, "M": 4, "A": 3},
+    "5-3-2":   {"G": 1, "D": 5, "M": 3, "A": 2},
 }
-POSTES_LONG = {"G": "Gardien", "D": "Défenseur", "M": "Milieu", "A": "Attaquant"}
+
 POSTES_ORDER = ["G", "D", "M", "A"]
+POSTES_LONG = {"G": "Gardien", "D": "Défenseur", "M": "Milieu", "A": "Attaquant"}
 POSTES_NOMS = {
     "4-2-3-1": {
         "G": ["Gardien"],
@@ -67,23 +138,37 @@ POSTES_NOMS = {
         "A": ["Attaquant gauche", "Attaquant droit"]
     }
 }
-DEFAULT_FORMATION = "4-2-3-1"
-MAX_REMPLACANTS = 5
+
+# --- 🎯 POSITIONNEMENT & TERRAIN ---
 
 def draw_football_pitch_vertical():
     fig = go.Figure()
+
+    # 📐 Terrain principal
     fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#145A32"))
-    fig.add_shape(type="rect", x0=13.84, y0=0, x1=68-13.84, y1=16.5, line=dict(width=1, color="#145A32"))
-    fig.add_shape(type="rect", x0=13.84, y0=105-16.5, x1=68-13.84, y1=105, line=dict(width=1, color="#145A32"))
-    fig.add_shape(type="circle", x0=34-9.15, y0=52.5-9.15, x1=34+9.15, y1=52.5+9.15, line=dict(width=1, color="#145A32"))
-    fig.add_shape(type="circle", x0=34-0.4, y0=52.5-0.4, x1=34+0.4, y1=52.5+0.4, fillcolor="#145A32", line=dict(color="#145A32"))
+
+    # 🧤 Surface de réparation
+    fig.add_shape(type="rect", x0=13.84, y0=0, x1=54.16, y1=16.5, line=dict(width=1, color="#145A32"))
+    fig.add_shape(type="rect", x0=13.84, y0=88.5, x1=54.16, y1=105, line=dict(width=1, color="#145A32"))
+
+    # ⚽ Centre du terrain
+    fig.add_shape(type="circle", x0=24.85, y0=43.35, x1=43.15, y1=61.65, line=dict(width=1, color="#145A32"))
+    fig.add_shape(type="circle", x0=33.6, y0=52.1, x1=34.4, y1=52.9, fillcolor="#145A32", line=dict(color="#145A32"))
+
     fig.update_xaxes(showticklabels=False, range=[-5, 73], visible=False)
     fig.update_yaxes(showticklabels=False, range=[-25, 125], visible=False)
+
     fig.update_layout(
-        width=460, height=800, plot_bgcolor="#154734", margin=dict(l=10,r=10,t=10,b=10), showlegend=False
+        width=460,
+        height=800,
+        plot_bgcolor="#154734",
+        margin=dict(l=10, r=10, t=10, b=10),
+        showlegend=False
     )
+
     return fig
 
+# --- 📍 Positions des joueurs selon formation ---
 def positions_for_formation_vertical(formation):
     presets = {
         "4-2-3-1": {
@@ -125,15 +210,17 @@ def positions_for_formation_vertical(formation):
     }
     return presets.get(formation, presets["4-2-3-1"])
 
+# --- 🧩 Ajout des joueurs & stats sur le terrain ---
 def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, player_stats=None):
     positions = positions_for_formation_vertical(formation)
     color_poste = "#0d47a1"
+
     for poste in POSTES_ORDER:
         for i, joueur in enumerate(details.get(poste, [])):
             if joueur and isinstance(joueur, dict) and "Nom" in joueur:
                 x, y = positions[poste][i % len(positions[poste])]
                 nom = joueur["Nom"]
-                # Gather stats
+
                 stats = ""
                 if player_stats and nom in player_stats:
                     s = player_stats[nom]
@@ -151,21 +238,23 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                     if s.get("hdm"):
                         parts.append("🏆")
                     stats = " | ".join(parts)
-                # Hovertext with stats
+
                 hovertext = f"{nom}{' (C)' if joueur.get('Capitaine') else ''}"
                 if stats:
                     hovertext += f"<br/>{stats}"
+
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y],
                     mode="markers+text",
                     marker=dict(size=38, color=color_poste, line=dict(width=2, color="white")),
-                    text=f"{joueur.get('Numero', '')}".strip() if "Numero" in joueur else "",
+                    text=f"{joueur.get('Numero', '')}".strip(),
                     textposition="middle center",
                     textfont=dict(color="white", size=17, family="Arial Black"),
                     hovertext=hovertext,
                     hoverinfo="text"
                 ))
-                # Show stats as subtitle below player
+
+                # Stats sous le joueur
                 if stats:
                     fig.add_trace(go.Scatter(
                         x=[x], y=[y-9],
@@ -174,6 +263,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                         textfont=dict(color="yellow", size=12, family="Arial Black"),
                         showlegend=False
                     ))
+
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y-6],
                     mode="text",
@@ -181,11 +271,11 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                     textfont=dict(color="white", size=13, family="Arial Black"),
                     showlegend=False
                 ))
+
+    # --- 🔁 Affichage des remplaçants ---
     remplacants = remplacants or []
     n = len(remplacants)
     if n:
-        # Définition des positions pour 2 lignes : 3 en haut, 2 en bas (max 5 remplaçants)
-        positions = []
         if n == 1:
             positions = [(34, -10)]
         elif n == 2:
@@ -195,18 +285,13 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
         elif n == 4:
             positions = [(22, -8), (34, -8), (46, -8), (34, -17)]
         else:
-            # Cas général (n>=5) : 3 en haut, 2 en bas
             positions = [(18, -8), (34, -8), (50, -8), (26, -17), (42, -17)]
-        for idx, remp in enumerate(remplacants):
-            if idx >= len(positions):
-                break  # N'afficher que 5 remplaçants max
+
+        for idx, remp in enumerate(remplacants[:5]):
             x_r, y_r = positions[idx]
-            if isinstance(remp, dict):
-                nom = remp.get("Nom", "")
-                numero = remp.get("Numero", "")
-            else:
-                nom = remp
-                numero = ""
+            nom = remp.get("Nom", "") if isinstance(remp, dict) else remp
+            numero = remp.get("Numero", "") if isinstance(remp, dict) else ""
+
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[y_r],
                 mode="markers+text",
@@ -217,6 +302,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 hovertext=[str(nom)],
                 hoverinfo="text"
             ))
+
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[y_r-5],
                 mode="text",
@@ -224,262 +310,45 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 textfont=dict(color="white", size=12, family="Arial Black"),
                 showlegend=False
             ))
+
     return fig
 
-def save_all():
-    #data = {
-        #"players": st.session_state.players.to_dict(orient="records"),
-        #"lineups": st.session_state.lineups,
-        #"matchs": st.session_state.matchs,
-        #"adversaires": st.session_state.get("adversaires", []),
-        #"championnat_scores": st.session_state.get("championnat_scores", {}),
-        #"profondeur_effectif": st.session_state.get("profondeur_effectif", {})
-    #}
-    #try:
-        #with open(DATA_FILE, "w") as f:
-            #json.dump(data, f, indent=2)
-        #print("Données sauvegardées dans le fichier JSON !")
-        #with open(DATA_FILE, "r") as f:
-            #data = json.load(f)
-        #st.session_state.players = pd.DataFrame(data.get("players", []))
-        #st.session_state.lineups = data.get("lineups", {})
-        #st.session_state.matchs = data.get("matchs", {})
-    #except Exception as e:
-        #st.error(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
-        #st.text(traceback.format_exc())
 
-    try:
-        # Préparation des données à enregistrer
-        new_data = json.dumps({
-            "players": st.session_state.players.to_dict(orient="records"),
-            "lineups": st.session_state.lineups,
-            "matchs": st.session_state.matchs,
-            "adversaires": st.session_state.get("adversaires", []),
-            "championnat_scores": st.session_state.get("championnat_scores", {}),
-            "profondeur_effectif": st.session_state.get("profondeur_effectif", {})
-        }, indent=2)
-
-        # Paramètres GitHub
-        token = st.secrets["github"]["token"]
-        headers = {
-            "Authorization": f"token {token}",
-            "Accept": "application/vnd.github+json"
-        }
-
-        # 1. Obtenir le SHA du fichier existant (obligatoire pour le PUT)
-        api_url = f"https://api.github.com/repos/{USERNAME}/{REPO}/contents/{FILE_PATH}"
-        get_resp = requests.get(api_url, headers=headers)
-        if get_resp.status_code == 200:
-            sha = get_resp.json()["sha"]
-        else:
-            st.error("Impossible d'obtenir le SHA du fichier.")
-            return
-
-        # 2. Mise à jour du fichier
-        payload = {
-            "message": "📦 Mise à jour auto depuis Streamlit",
-            "content": base64.b64encode(new_data.encode()).decode(),
-            "branch": BRANCH,
-            "sha": sha
-        }
-
-        put_resp = requests.put(api_url, headers=headers, json=payload)
-        if put_resp.status_code == 200 or put_resp.status_code == 201:
-            st.success("✅ Données sauvegardées sur GitHub !")
-        else:
-            st.error(f"❌ Erreur GitHub : {put_resp.status_code} - {put_resp.text}")
-    except Exception as e:
-        st.error(f"Erreur lors de la sauvegarde sur GitHub : {e}")
-
-def fusion_dictionnaires(json_dict, session_dict):
-    fusion = dict(json_dict)
-    fusion.update(session_dict)
-    return fusion
-
-def reload_all():
-    #if os.path.exists(DATA_FILE):
-        #with open(DATA_FILE, "r") as f:
-            #data = json.load(f)
-    
-        #session_players = st.session_state.get("players", pd.DataFrame(columns=PLAYER_COLS))
-        #json_players = pd.DataFrame(data.get("players", []))
-        #if not session_players.empty:
-            #merged_players = pd.concat([json_players, session_players]).drop_duplicates(subset="Nom", keep="last")
-        #else:
-            #merged_players = json_players
-        #st.session_state.players = merged_players
-
-        #session_lineups = st.session_state.get("lineups", {})
-        #json_lineups = data.get("lineups", {})
-        #st.session_state.lineups = fusion_dictionnaires(json_lineups, session_lineups)
-
-        #session_matchs = st.session_state.get("matchs", {})
-        #json_matchs = data.get("matchs", {})
-        #st.session_state.matchs = fusion_dictionnaires(json_matchs, session_matchs)
-        #st.session_state.adversaires = data.get("adversaires", st.session_state.get("adversaires", []))
-        #st.session_state.championnat_scores = data.get("championnat_scores", st.session_state.get("championnat_scores", {}))
-    #else:
-        #st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
-        #st.session_state.lineups = {}
-        #st.session_state.matchs = {}
-        #st.session_state.adversaires = []
-        #st.session_state.championnat_scores = {}
-
-    try:
-        response = requests.get(RAW_URL)
-        response.raise_for_status()
-        data = json.load(io.StringIO(response.text))
-        
-        st.session_state.players = pd.DataFrame(data.get("players", []))
-        st.session_state.lineups = data.get("lineups", {})
-        st.session_state.matchs = data.get("matchs", {})
-        st.session_state.adversaires = data.get("adversaires", [])
-        st.session_state.championnat_scores = data.get("championnat_scores", {})
-        st.session_state.profondeur_effectif = data.get("profondeur_effectif", {})
-        if "matchs" not in st.session_state:
-            st.session_state.matchs = {}
-    except Exception as e:
-        st.error(f"Erreur lors du chargement depuis GitHub : {e}")
-
-def terrain_init(formation):
-    return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
-
-def terrain_interactif(formation, terrain_key, key_suffix=None):
-    if st.session_state.players.empty:
-        st.info("Aucun joueur importé dans la base. Merci d'importer ou d'ajouter des joueurs avant d'utiliser cette fonctionnalité.")
-        return {poste: [] for poste in POSTES_ORDER}
-    
-    if terrain_key not in st.session_state:
-        st.session_state[terrain_key] = {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
-    terrain = st.session_state[terrain_key]
-
-    stats_data = []
-    for _, row in st.session_state.players.iterrows():
-        s = compute_player_stats(row["Nom"])
-        stats_data.append({**row, **s})
-    stats_df = pd.DataFrame(stats_data)
-    
-    # Générer la liste triée par titularisations
-    if "Titularisations" not in stats_df.columns:
-        stats_df["Titularisations"] = 0
-    stats_df["Titularisations"] = pd.to_numeric(stats_df["Titularisations"], errors="coerce").fillna(0)
-    joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
-    
-    # Affichage vertical par poste, compatible mobile
-    for poste in POSTES_ORDER:
-        if formation in POSTES_NOMS and poste in POSTES_NOMS[formation]:
-            noms_postes = POSTES_NOMS[formation][poste]
-        else:
-            noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
-        for i in range(FORMATION[formation][poste]):
-            all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and "Nom" in j and j]
-            current_joueur = terrain[poste][i] if (isinstance(terrain[poste][i], dict) and terrain[poste][i] and "Nom" in terrain[poste][i]) else None
-            current_nom = current_joueur["Nom"] if current_joueur else ""
-            label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
-            joueur_options = [""] + [
-                n for n in joueurs_tries if n == current_nom or n not in all_selected
-            ]
-            widget_key = f"{terrain_key}_{poste}_{i}"
-            if key_suffix is not None:
-                widget_key += f"_{key_suffix}"
-            choix = st.selectbox(
-                label,
-                joueur_options,
-                index=joueur_options.index(current_nom) if current_nom in joueur_options else 0,
-                key=widget_key
-            )
-            if choix:
-                joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
-                num = st.text_input(f"Numéro de {choix}", value=current_joueur.get("Numero","") if current_joueur else "", key=f"num_{terrain_key}_{poste}_{i}")
-                cap = st.checkbox(f"Capitaine ?", value=current_joueur.get("Capitaine", False) if current_joueur else False, key=f"cap_{terrain_key}_{poste}_{i}")
-                joueur_info["Numero"] = num
-                joueur_info["Capitaine"] = cap
-                terrain[poste][i] = joueur_info
-            else:
-                terrain[poste][i] = None
-    st.session_state[terrain_key] = terrain
-    return terrain
-    
-def remplacants_interactif(key, titulaires, key_suffix=None):
-    if f"remp_{key}" not in st.session_state:
-        st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
-    remps = st.session_state[f"remp_{key}"]
-
-    stats_data = []
-    for _, row in st.session_state.players.iterrows():
-        s = compute_player_stats(row["Nom"])
-        stats_data.append({**row, **s})
-    stats_df = pd.DataFrame(stats_data)
-                            
-    # Liste triée par titularisations
-    if "Titularisations" not in stats_df.columns:
-        stats_df["Titularisations"] = 0
-    stats_df["Titularisations"] = pd.to_numeric(stats_df["Titularisations"], errors="coerce").fillna(0)
-    if "Nom" not in stats_df.columns:
-        stats_df["Nom"] = ""
-    noms_joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
-    
-    # Patch robustesse colonne Nom
-    if hasattr(st.session_state.players, "columns") and "Nom" in st.session_state.players.columns:
-        noms_joueurs = st.session_state.players["Nom"].dropna().astype(str).tolist()
-    else:
-        noms_joueurs = []
-    dispo = [n for n in noms_joueurs_tries if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]]]
-    for i in range(MAX_REMPLACANTS):
-        current = remps[i]["Nom"]
-        options = dispo + ([current] if current and current not in dispo else [])
-        widget_key = f"remp_choice_{key}_{i}"
-        if key_suffix is not None:
-            widget_key += f"_{key_suffix}"
-        choix = st.selectbox(
-            f"Remplacant {i+1}",
-            [""] + options,
-            index=(options.index(current)+1) if current in options else 0,
-            key=widget_key
-        )
-        if choix:
-            joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
-            num = st.text_input(f"Numéro de {choix}", value=remps[i].get("Numero",""), key=f"num_remp_{key}_{i}")
-            remps[i] = {"Nom": choix, "Numero": num}
-        else:
-            remps[i] = {"Nom": None, "Numero": ""}
-        dispo = [n for n in dispo if n != choix]
-    st.session_state[f"remp_{key}"] = remps
-    # On renvoie la liste filtrée des remplacants valides
-    return [r for r in remps if r["Nom"]]
+# --- 📊 STATISTIQUES JOUEURS ---
 
 def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
-    for mid, match in st.session_state.matchs.items():
-        
-        if not match.get("termine", False) and not match.get("noted", False):
+    matchs = st.session_state.get("matchs", {})
+    for match in matchs.values():
+        if not match.get("termine") and not match.get("noted"):
             continue
-
         details = match.get("details", {})
-        joueurs = [j for p in POSTES_ORDER for j in details.get(p, []) if j and isinstance(j, dict) and j.get("Nom") == joueur_nom]
-        is_titulaire = bool(joueurs)
-        if is_titulaire or joueur_nom in match.get("remplacants", []):
+        joueurs = [
+            j for p in POSTES_ORDER
+            for j in details.get(p, [])
+            if j and isinstance(j, dict) and j.get("Nom") == joueur_nom
+        ]
+        if joueurs or joueur_nom in [r.get("Nom") for r in match.get("remplacants", []) if isinstance(r, dict)]:
             selections += 1
-        if is_titulaire:
+        if joueurs:
             titularisations += 1
         events = match.get("events", {})
         buts += events.get("buteurs", {}).get(joueur_nom, 0)
         passes += events.get("passeurs", {}).get(joueur_nom, 0)
         cj += events.get("cartons_jaunes", {}).get(joueur_nom, 0)
         cr += events.get("cartons_rouges", {}).get(joueur_nom, 0)
-        if "notes" in events and joueur_nom in events["notes"]:
+        if joueur_nom in events.get("notes", {}):
             note_sum += events["notes"][joueur_nom]
             note_count += 1
-        if "homme_du_match" in match and match["homme_du_match"] == joueur_nom:
+        if match.get("homme_du_match") == joueur_nom:
             hdm += 1
     note = round(note_sum / note_count, 2) if note_count else 0
-    buts_passes = buts + passes
-    decisif_par_match = round(buts_passes / selections, 2) if selections > 0 else 0
+    decisif = round((buts + passes) / selections, 2) if selections else 0
     return {
         "Buts": buts,
         "Passes décisives": passes,
-        "Buts + Passes": buts_passes,
-        "Décisif par match": decisif_par_match,
+        "Buts + Passes": buts + passes,
+        "Décisif par match": decisif,
         "Cartons jaunes": cj,
         "Cartons rouges": cr,
         "Sélections": selections,
@@ -489,37 +358,31 @@ def compute_player_stats(joueur_nom):
     }
 
 def compute_clean_sheets():
-    # Returns a dict: {player_name: clean_sheet_count}
-    if "matchs" not in st.session_state:
-        return {}
+    matchs = st.session_state.get("matchs", {})
     clean_sheets = {}
-    for match in st.session_state.matchs.values():
-        # Only count if match is finished
-        if not match.get("noted", False):
+    for match in matchs.values():
+        if not match.get("noted"):
             continue
-        score_adv = match.get("score_adv", 0)
-        if score_adv != 0:
+        if match.get("score_adv", 1) > 0:
             continue
-        # Find the goalkeeper(s) in the match details
-        details = match.get("details", {})
-        for joueur in details.get("G", []):
+        for joueur in match.get("details", {}).get("G", []):
             if joueur and isinstance(joueur, dict) and joueur.get("Nom"):
                 name = joueur["Nom"]
                 clean_sheets[name] = clean_sheets.get(name, 0) + 1
     return clean_sheets
 
 def get_classement(championnat_scores, adversaires):
-    stats = {adv: {"Pts":0, "V":0, "N":0, "D":0, "BP":0, "BC":0} for adv in adversaires+["AFC"]}
+    stats = {adv: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for adv in adversaires + ["AFC"]}
     for journee, matchs in championnat_scores.items():
         for m in matchs:
             dom, ext = m["domicile"], m["exterieur"]
             sd, se = m["score_dom"], m["score_ext"]
-            # Buts
+            # Mise à jour des scores
             stats[dom]["BP"] += sd
             stats[dom]["BC"] += se
             stats[ext]["BP"] += se
             stats[ext]["BC"] += sd
-            # Victoire/nul/défaite/points
+            # Attribution des points
             if sd > se:
                 stats[dom]["V"] += 1
                 stats[ext]["D"] += 1
@@ -533,10 +396,8 @@ def get_classement(championnat_scores, adversaires):
                 stats[ext]["N"] += 1
                 stats[dom]["Pts"] += 1
                 stats[ext]["Pts"] += 1
-    # Différence de buts
     for v in stats.values():
         v["Diff"] = v["BP"] - v["BC"]
-    # Conversion DataFrame pour affichage
     classement = pd.DataFrame([
         {"Équipe": k, **v} for k, v in stats.items()
     ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
@@ -546,114 +407,182 @@ def style_classement(df):
     styles = []
     for i in range(len(df)):
         if i == 0:
-            styles.append(['background-color: #d4edda'] * len(df.columns))  # Vert clair
+            styles.append(['background-color: #d4edda'] * len(df.columns))  # 🟩 Premier
         elif i >= len(df) - 2:
-            styles.append(['background-color: #f8d7da'] * len(df.columns))  # Rouge clair
+            styles.append(['background-color: #f8d7da'] * len(df.columns))  # 🟥 Relégables
         else:
-            styles.append([''] * len(df.columns))
+            styles.append([''] * len(df.columns))  # ⚪ Milieu de tableau
     return pd.DataFrame(styles, columns=df.columns)
 
-if ("players" not in st.session_state or
-    "lineups" not in st.session_state or
-    "matchs" not in st.session_state):
-    reload_all()
-if not isinstance(st.session_state.players, pd.DataFrame):
-    st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
-for col in PLAYER_COLS:
-    if col not in st.session_state.players.columns:
-        st.session_state.players[col] = ""
-if "formation" not in st.session_state:
-    st.session_state.formation = DEFAULT_FORMATION
-if "adversaires" not in st.session_state:
-    st.session_state.adversaires = []
-if "championnat_scores" not in st.session_state:
-    st.session_state.championnat_scores = {}
-if "profondeur_effectif" not in st.session_state:
-    st.session_state.profondeur_effectif = {}
-if "matchs" not in st.session_state:
-    st.session_state.matchs={}
+# --- 🧩 Initialiser un terrain vide selon la formation ---
+def terrain_init(formation):
+    return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
-try:
-    response = requests.get(RAW_URL)
-    response.raise_for_status()
-    data = json.load(io.StringIO(response.text))
-    st.session_state.players = pd.DataFrame(data.get("players", []))
-    st.session_state.lineups = data.get("lineups", {})
-    st.session_state.matchs = data.get("matchs", {})
-    st.session_state.adversaires = data.get("adversaires", [])
-    st.session_state.championnat_scores = data.get("championnat_scores", {})
-    if st.session_state.lineups:
-        first_name, first_lineup = next(iter(st.session_state.lineups.items()))
-        st.session_state["profondeur_selected_compo"] = first_name
-    if st.session_state.championnat_scores and st.session_state.adversaires:
-        st.session_state.classement = get_classement(st.session_state.championnat_scores, st.session_state.adversaires)
-    else:
-        st.session_state.classement = []
-    if "matchs" in data:
-        st.session_state.matchs={**st.session_state.get("matchs",{}),**data["matchs"]}
-    #st.success("✅ Données importées dans la session.")
-except Exception as e:
-    st.error(f"❌ Erreur à l'import : {e}")
+# --- 🎮 Interface pour sélectionner les titulaires dynamiquement ---
+def terrain_interactif(formation, terrain_key, key_suffix=None):
+    if st.session_state.players.empty:
+        st.info("Aucun joueur dans la base. Merci d'importer ou d'ajouter des joueurs.")
+        return {poste: [] for poste in POSTES_ORDER}
 
+    if terrain_key not in st.session_state:
+        st.session_state[terrain_key] = terrain_init(formation)
+    terrain = st.session_state[terrain_key]
 
-st.title("⚽ Gestion Équipe AFC")
-tab_acc, tab1, tab2, tab3, tab4 = st.tabs(["🏠    ", "Gestion Matchs", "Suivi Championnat", "Gestion Equipe", "Tactique"])
+    stats_data = []
+    for _, row in st.session_state.players.iterrows():
+        s = compute_player_stats(row["Nom"])
+        stats_data.append({**row, **s})
+    stats_df = pd.DataFrame(stats_data)
 
-#--- ACCUEIL ----
+    # Tri des joueurs par titularisations
+    stats_df["Titularisations"] = pd.to_numeric(stats_df.get("Titularisations", 0), errors="coerce").fillna(0)
+    joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
+
+    for poste in POSTES_ORDER:
+        noms_postes = POSTES_NOMS.get(formation, {}).get(poste, [])
+        if not noms_postes:
+            noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
+        for i in range(FORMATION[formation][poste]):
+            all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and j]
+            current = terrain[poste][i]
+            current_nom = current["Nom"] if current and isinstance(current, dict) else ""
+            label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
+            options = [""] + [n for n in joueurs_tries if n == current_nom or n not in all_selected]
+            key_select = f"{terrain_key}_{poste}_{i}"
+            if key_suffix:
+                key_select += f"_{key_suffix}"
+            choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
+            if choix:
+                joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
+                num = st.text_input(f"Numéro de {choix}", value=current.get("Numero", "") if current else "", key=f"num_{terrain_key}_{poste}_{i}")
+                cap = st.checkbox(f"Capitaine ?", value=current.get("Capitaine", False) if current else False, key=f"cap_{terrain_key}_{poste}_{i}")
+                joueur_info["Numero"] = num
+                joueur_info["Capitaine"] = cap
+                terrain[poste][i] = joueur_info
+            else:
+                terrain[poste][i] = None
+
+    st.session_state[terrain_key] = terrain
+    return terrain
+
+def remplacants_interactif(key, titulaires, key_suffix=None):
+    if f"remp_{key}" not in st.session_state:
+        st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
+    remps = st.session_state[f"remp_{key}"]
+
+    stats_data = []
+    for _, row in st.session_state.players.iterrows():
+        s = compute_player_stats(row["Nom"])
+        stats_data.append({**row, **s})
+    stats_df = pd.DataFrame(stats_data)
+
+    stats_df["Titularisations"] = pd.to_numeric(stats_df.get("Titularisations", 0), errors="coerce").fillna(0)
+    noms_joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
+
+    dispo = [n for n in noms_joueurs_tries if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]]]
+
+    for i in range(MAX_REMPLACANTS):
+        current = remps[i]["Nom"]
+        options = dispo + ([current] if current and current not in dispo else [])
+        key_select = f"remp_choice_{key}_{i}"
+        if key_suffix:
+            key_select += f"_{key_suffix}"
+        choix = st.selectbox(
+            f"Remplaçant {i+1}",
+            [""] + options,
+            index=(options.index(current)+1) if current in options else 0,
+            key=key_select
+        )
+        if choix:
+            joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
+            num = st.text_input(f"Numéro de {choix}", value=remps[i].get("Numero",""), key=f"num_remp_{key}_{i}")
+            remps[i] = {"Nom": choix, "Numero": num}
+        else:
+            remps[i] = {"Nom": None, "Numero": ""}
+        dispo = [n for n in dispo if n != choix]
+
+    st.session_state[f"remp_{key}"] = remps
+    return [r for r in remps if r["Nom"]]
+
+# --- 🚀 Initialisation Streamlit globale ---
+st.set_page_config(
+    page_title="AFC Manager",
+    page_icon="⚽",
+    layout="wide"
+)
+
+# --- 🎨 En-tête visuel ---
+st.title("⚽ AFC Manager – Gestion complète de l'équipe")
+st.caption("🧪 Application Streamlit personnalisée pour suivre les performances, les compositions et les résultats du club AFC.")
+
+# --- 🧭 Bouton de rechargement des données (dans la sidebar) ---
+with st.sidebar:
+    st.header("🔧 Options")
+    if st.button("🔄 Recharger les données depuis GitHub"):
+        manager.load()
+        st.success("✅ Données rechargées")
+        st.experimental_rerun()
+
+# --- 🧹 Footer esthétique ---
+st.markdown("---")
+st.markdown("📁 Les données sont sauvegardées dans `afcdata.json` sur GitHub.")
+st.markdown("👨‍💻 Créé et maintenu par *Louis*")
+
+# --- 🧭 Onglets principaux de navigation ---
+tab_acc, tab1, tab2, tab3, tab4 = st.tabs([
+    "🏠 Accueil", 
+    "📅 Matchs", 
+    "📈 Championnat", 
+    "🧠 Gestion Équipe", 
+    "🧪 Tactiques"
+])
+
+# --- 🏟️ Onglet Accueil (Tableau de bord) ---
 with tab_acc:
     st.title("🏟️ Tableau de bord AFC")
 
     today = datetime.today().date()
     matchs = st.session_state.get("matchs", {})
-    classement = st.session_state.get("classement", [])
+    classement = get_classement(
+        st.session_state.get("championnat_scores", {}),
+        st.session_state.get("adversaires", [])
+    )
 
-    # 📊 Classement
+    # 📊 Classement championnat
     st.subheader("📊 Classement championnat")
-    if isinstance (classement,pd.DataFrame) and not classement.empty: 
-        df_classement = pd.DataFrame(classement)
-        df_classement = df_classement.sort_values(by=["Pts", "Diff"], ascending=False)
+    if not classement.empty:
         st.dataframe(
-            df_classement.reset_index(drop=True).style.apply(style_classement, axis=None),
+            classement.reset_index(drop=True).style.apply(style_classement, axis=None),
             use_container_width=True
         )
     else:
-        st.info("Classement non disponible. Assurez-vous d'avoir des scores de championnat enregistrés.")
+        st.info("Classement indisponible. Vérifiez les scores enregistrés.")
 
-
+    # 📈 Forme récente
     st.subheader("📈 Forme récente de l'équipe")
-
-    # Rechercher les 5 derniers matchs joués par l'AFC
     derniers_resultats = []
-    
     for match in sorted(matchs.values(), key=lambda m: m.get("date", ""), reverse=True):
         try:
             date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
-            if date_match < today and match.get("termine", False) and match.get("noted", False):
+            if date_match < today and match.get("termine") and match.get("noted"):
                 score_afc = match.get("score_afc")
                 score_adv = match.get("score_adv")
-                if score_afc is not None and score_adv is not None:
-                    if score_afc > score_adv:
-                        symbol = "✅"
-                    elif score_afc == score_adv:
-                        symbol = "⚖️"
-                    else:
-                        symbol = "❌"
-                    derniers_resultats.append(symbol)
+                symbol = "✅" if score_afc > score_adv else "⚖️" if score_afc == score_adv else "❌"
+                derniers_resultats.append(symbol)
             if len(derniers_resultats) == 5:
                 break
         except:
             continue
-    
+
     if derniers_resultats:
         st.markdown(" - ".join(derniers_resultats))
     else:
-        st.info("Pas encore de match joué cette saison.")
-    
-    # 🏆 Progression en coupe
+        st.info("Aucun match joué cette saison.")
+
+    # 🏆 Parcours en coupe
     st.subheader("🏆 Parcours en coupe")
     match_coupe_a_venir = None
     dernier_tour_coupe = None
-
     for match in matchs.values():
         if match.get("type", "").lower() == "coupe":
             try:
@@ -667,24 +596,22 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** vs {match_coupe_a_venir.get('adversaire', 'Adversaire inconnu')} ({match_coupe_a_venir.get('date')})")
+        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** vs {match_coupe_a_venir.get('adversaire', 'Inconnu')} ({match_coupe_a_venir.get('date')})")
     elif dernier_tour_coupe:
         st.warning(f"✅ Dernier match de coupe joué : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** vs {dernier_tour_coupe.get('adversaire', 'Adversaire')} ({dernier_tour_coupe.get('date')})")
     else:
-        st.info("🚩 Coupe à démarrer")
+        st.info("🚩 Coupe pas encore entamée.")
 
-    # 📅 Prochain match (tous types)
+    # 📅 Prochain match
     st.subheader("📅 Prochain match toutes compétitions")
     prochain_match = None
     date_min = None
-
-    for match_id, match in matchs.items():
+    for match in matchs.values():
         try:
             date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
-            if date_match >= today:
-                if not date_min or date_match < date_min:
-                    prochain_match = match
-                    date_min = date_match
+            if date_match >= today and (not date_min or date_match < date_min):
+                prochain_match = match
+                date_min = date_match
         except:
             continue
 
@@ -697,64 +624,57 @@ with tab_acc:
     else:
         st.info("Aucun match à venir.")
 
+    # 📅 Liste des prochains matchs
     st.subheader("📅 Prochains matchs")
     prochains = []
     for match in sorted(matchs.values(), key=lambda m: m.get("date", "")):
         try:
             date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
             if date_match >= today:
-                lignes = f"{match['date']} - {match.get("type","")} {match.get('journee', '')} vs {match['adversaire']} "
-                lieu = "🏠" if match.get("domicile", True) else "🚗"
-                lignes += f"({lieu})"
-                prochains.append(lignes)
+                ligne = f"{match['date']} – {match.get('type','')} {match.get('journee', '')} vs {match['adversaire']}"
+                ligne += " 🏠" if match.get("domicile", True) else " 🚗"
+                prochains.append(ligne)
             if len(prochains) == 5:
                 break
         except:
             continue
-    
+
     if prochains:
         for ligne in prochains:
             st.markdown(f"• {ligne}")
     else:
-        st.info("Aucun match à venir.")
+        st.info("Aucun match programmé.")
 
-# --- GESTION EQUIPE ---
+# --- 🧠 Onglet : Gestion Équipe ---
 with tab3:
-    subtab1, subtab2 = st.tabs(["Stats équipe","Base joueurs"])
+    subtab1, subtab2 = st.tabs(["📊 Stats équipe", "📋 Base joueurs"])
+
+    # -- 🟡 Sous-onglet : Statistiques équipe --
     with subtab1:
         st.title("📊 Statistiques de l'équipe")
+
         stats_data = []
         for _, row in st.session_state.players.iterrows():
             s = compute_player_stats(row["Nom"])
             stats_data.append({**row, **s})
-    
         df = pd.DataFrame(stats_data)
         clean_sheets = compute_clean_sheets()
+
         if not df.empty:
-            df["Clean sheets"] = df.apply(
-                lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
+            df["Clean sheets"] = df.apply(lambda r: clean_sheets.get(r["Nom"], 0) if r["Poste"] == "G" else None, axis=1)
             df["Bouchers"] = df["Cartons rouges"].fillna(0) + df["Cartons jaunes"].fillna(0)
-        
-            # Top 5 by rating
-            top_rating = df[df["Note générale"] > 0].sort_values("Note générale", ascending=False).head(5)
-            # Top 5 scorers
-            top_buts = df[df["Buts"] > 0].sort_values("Buts", ascending=False).head(5)
-            # Top 5 passers
-            top_passes = df[df["Passes décisives"] > 0].sort_values("Passes décisives", ascending=False).head(5)
-            # Top 5 decisive
-            top_decisive = df[df["Buts + Passes"] > 0].sort_values("Buts + Passes", ascending=False).head(5)
-            # Top 5 clean sheets (goalkeepers only)
-            top_clean = df[df["Poste"] == "G"].sort_values("Clean sheets", ascending=False).head(5)
-            # Top 5 ratio
-            top_ratio = df[df["Décisif par match"] > 0].sort_values("Décisif par match", ascending=False).head(5)
-            # Top 5 used
-            top_used = df[df["Titularisations"] > 0].sort_values("Titularisations", ascending=False).head(5)
-            # Top 5 bouchers (by red, then yellow)
-            top_bouchers = df[(df["Cartons rouges"] > 0) | (df["Cartons jaunes"] > 0)].sort_values(
-                by=["Cartons rouges", "Cartons jaunes"], ascending=[False, False]).head(5)
-        
+
+            # 🎯 Création des tops 5
+            top_rating     = df[df["Note générale"] > 0].sort_values("Note générale", ascending=False).head(5)
+            top_buts       = df[df["Buts"] > 0].sort_values("Buts", ascending=False).head(5)
+            top_passes     = df[df["Passes décisives"] > 0].sort_values("Passes décisives", ascending=False).head(5)
+            top_decisive   = df[df["Buts + Passes"] > 0].sort_values("Buts + Passes", ascending=False).head(5)
+            top_clean      = df[df["Poste"] == "G"].sort_values("Clean sheets", ascending=False).head(5)
+            top_ratio      = df[df["Décisif par match"] > 0].sort_values("Décisif par match", ascending=False).head(5)
+            top_used       = df[df["Titularisations"] > 0].sort_values("Titularisations", ascending=False).head(5)
+            top_bouchers   = df[(df["Cartons rouges"] > 0) | (df["Cartons jaunes"] > 0)].sort_values(["Cartons rouges", "Cartons jaunes"], ascending=False).head(5)
+
             col1, col2 = st.columns(2)
-        
             with col1:
                 st.subheader("⭐ Top 5 Notes")
                 st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
@@ -762,63 +682,50 @@ with tab3:
                 st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True, hide_index=True)
                 st.subheader("🎯 Top 5 Passeurs")
                 st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True, hide_index=True)
-                st.subheader("🔥 Top 5 Décisifs (Buts+Passes)")
+                st.subheader("🔥 Top 5 Décisifs")
                 st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True, hide_index=True)
-                st.subheader("🧤 Top 5 Clean Sheets (Gardiens)")
+                st.subheader("🧤 Clean Sheets")
                 st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True, hide_index=True)
-        
             with col2:
-                st.subheader("⚡ Top 5 Ratio Décisif/Match")
+                st.subheader("⚡ Ratio par match")
                 st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True, hide_index=True)
-                st.subheader("🔁 Top 5 Plus Utilisés")
+                st.subheader("🔁 Plus utilisés")
                 st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True, hide_index=True)
-                st.subheader("🟥🟨 Top 5 Bouchers")
+                st.subheader("🟥🟨 Bouchers")
                 st.dataframe(top_bouchers[["Nom", "Cartons rouges", "Cartons jaunes"]], use_container_width=True, hide_index=True)
-        
-            # Team stats
-            total_goals = df["Buts"].sum()
-            total_conceded = sum(
-                match.get("score_adv", 0)
-                for match in st.session_state.matchs.values()
-                if match.get("noted", False)
-            )
-            diff_scorers = df[df["Buts"] > 0]["Nom"].nunique()
-        
+
+            # 🏆 Statistiques globales de l'équipe
             st.markdown("---")
             col3, col4, col5 = st.columns(3)
-            with col3:
-                st.metric("Buts marqués", int(total_goals))
-            with col4:
-                st.metric("Buts encaissés", int(total_conceded))
-            with col5:
-                st.metric("Nombre de buteurs différents", int(diff_scorers))
+            st.metric("🧮 Buts marqués", int(df["Buts"].sum()))
+            st.metric("🔓 Buts encaissés", sum(m.get("score_adv", 0) for m in st.session_state.matchs.values() if m.get("noted")))
+            st.metric("👥 Nombre de buteurs", df[df["Buts"] > 0]["Nom"].nunique())
         else:
-            st.info("Aucun joueur dans la base, impossible de calculer les statistiques.")
+            st.info("Aucun joueur dans la base pour générer des stats.")
+
+    # -- 🟠 Sous-onglet : Base de données joueurs --
     with subtab2:
-        st.title("Base de données joueurs")
-        st.markdown("Vous pouvez **éditer, supprimer ou ajouter** des joueurs directement dans le tableau ci-dessous.")
+        st.title("📋 Base de données joueurs")
+        st.markdown("Ajoutez, éditez ou retirez des joueurs ci-dessous. Les colonnes statistiques sont calculées automatiquement.")
+
         stats_data = []
         for _, row in st.session_state.players.iterrows():
             s = compute_player_stats(row["Nom"])
             stats_data.append({**row, **s})
-        combined_df = pd.DataFrame(stats_data, columns=[
-            "Nom", "Poste", "Infos", "Buts", "Passes décisives", 
-            "Buts + Passes", "Décisif par match", "Cartons jaunes", 
-            "Cartons rouges", "Sélections", "Titularisations", 
-            "Note générale", "Homme du match"
+        df_stats = pd.DataFrame(stats_data, columns=[
+            "Nom", "Poste", "Infos", "Buts", "Passes décisives", "Buts + Passes",
+            "Décisif par match", "Cartons jaunes", "Cartons rouges", "Sélections",
+            "Titularisations", "Note générale", "Homme du match"
         ])
+
         edited_df = st.data_editor(
-            combined_df,
+            df_stats,
             num_rows="dynamic",
             use_container_width=True,
             hide_index=True,
             column_config={
                 "Nom": st.column_config.TextColumn(required=True),
-                "Poste": st.column_config.SelectboxColumn(
-                    options=POSTES_ORDER,
-                    required=True,
-                    default="G"
-                ),
+                "Poste": st.column_config.SelectboxColumn(options=POSTES_ORDER, required=True, default="G"),
                 "Infos": st.column_config.TextColumn(),
                 "Buts": st.column_config.NumberColumn(disabled=True),
                 "Passes décisives": st.column_config.NumberColumn(disabled=True),
@@ -829,176 +736,153 @@ with tab3:
                 "Sélections": st.column_config.NumberColumn(disabled=True),
                 "Titularisations": st.column_config.NumberColumn(disabled=True),
                 "Note générale": st.column_config.NumberColumn(disabled=True),
-                "Homme du match": st.column_config.NumberColumn(disabled=True)
+                "Homme du match": st.column_config.NumberColumn(disabled=True),
             },
-            key="data_edit"
+            key="data_edit_joueurs"
         )
-        if st.button("Sauvegarder les modifications"):
+
+        if st.button("💾 Sauvegarder les modifications", key="btn_save_joueurs"):
             edited_df = edited_df.fillna("")
             edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
             st.session_state.players = edited_df[PLAYER_COLS]
-            save_all()
+            manager.save()
+            st.success("Base de joueurs mise à jour ✅")
             st.rerun()
-            st.success("Base de joueurs mise à jour !")
-        st.caption("Pour supprimer une ligne, videz le nom du joueur puis cliquez sur Sauvegarder.")
+        st.caption("🗑️ Pour supprimer un joueur, videz son nom et cliquez sur Sauvegarder.")
 
-# --- TACTIQUES ---
+# --- 🧪 Onglet Tactiques ---
 with tab4:
-    st.title("Gestion des compositions")
-    subtab1, subtab2, subtab3 = st.tabs(["Créer une composition", "Mes compositions", "Profondeur effectif"])
+    st.title("🧪 Gestion des tactiques et compositions")
+
+    subtab1, subtab2, subtab3 = st.tabs([
+        "📐 Créer une composition", 
+        "🗂️ Mes compositions", 
+        "🔎 Profondeur d'effectif"
+    ])
+
+    # --- 📐 Créer une composition ---
     with subtab1:
         edit_key = "edit_compo"
         edit_compo = st.session_state.get(edit_key, None)
+
+        # Mode édition si compo à éditer
         if edit_compo:
             nom_compo, loaded = edit_compo
-            st.info(f"Édition de la compo : {nom_compo}")
+            st.info(f"✏️ Édition de la composition : **{nom_compo}**")
             st.session_state["formation_create_compo"] = loaded["formation"]
             st.session_state["terrain_create_compo"] = loaded["details"]
             del st.session_state[edit_key]
-        nom_compo = st.text_input("Nom de la composition", key="nom_compo_create", value=nom_compo if edit_compo else "")
-        formation = st.selectbox(
-            "Formation", list(FORMATION.keys()),
-            index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION)),
-            key="formation_create_compo"
-        )
+
+        nom_compo = st.text_input("📝 Nom de la composition", key="nom_compo_create", value=nom_compo if edit_compo else "")
+        formation = st.selectbox("📌 Formation", list(FORMATION.keys()), index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION)), key="formation_create_compo")
+
         col_left, col_right = st.columns([1, 2])
         with col_left:
             terrain = terrain_interactif(formation, "terrain_create_compo")
-            tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-            remplacants = remplacants_interactif("create_compo", tous_titulaires)
+            titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+            remplacants = remplacants_interactif("create_compo", titulaires)
+
         with col_right:
             fig = draw_football_pitch_vertical()
             fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
-        if st.button("Sauvegarder la composition"):
+
+        # Sauvegarde
+        if st.button("💾 Sauvegarder la composition"):
             if not nom_compo.strip():
-                st.error("Merci d'indiquer un nom pour la composition.")
+                st.error("🚫 Veuillez indiquer un nom pour la composition.")
                 st.stop()
             try:
                 lineup = {
                     "formation": formation,
-                    "details": copy.deepcopy(terrain),
-                    "remplacants": copy.deepcopy(remplacants)
+                    "details": terrain,
+                    "remplacants": remplacants
                 }
                 st.session_state.lineups[nom_compo] = lineup
-                save_all()
+                manager.save()
+                st.success("✅ Composition enregistrée !")
                 st.rerun()
-                st.success("Composition sauvegardée !")
             except Exception as e:
-                st.error(f"Erreur lors de la sauvegarde : {e}")
-                st.text(traceback.format_exc())
+                st.error(f"❌ Erreur : {e}")
+
+    # --- 🗂️ Compositions existantes ---
     with subtab2:
         if not st.session_state.lineups:
-            st.info("Aucune composition enregistrée.")
+            st.info("📭 Aucune composition enregistrée.")
         else:
             for nom, compo in st.session_state.lineups.items():
                 with st.expander(f"{nom} – {compo['formation']}"):
                     fig = draw_football_pitch_vertical()
                     fig = plot_lineup_on_pitch_vertical(fig, compo["details"], compo["formation"], compo.get("remplacants", []))
                     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_compo_{nom}")
+
                     col1, col2 = st.columns(2)
-                    if col1.button(f"Éditer {nom}", key=f"edit_{nom}"):
+                    if col1.button(f"✏️ Modifier {nom}", key=f"edit_{nom}"):
                         st.session_state["edit_compo"] = (nom, compo)
                         st.rerun()
-                    if col2.button(f"Supprimer {nom}", key=f"suppr_{nom}"):
+                    if col2.button(f"🗑️ Supprimer {nom}", key=f"delete_{nom}"):
                         del st.session_state.lineups[nom]
-                        save_all()
+                        manager.save()
+                        st.success("✅ Composition supprimée")
                         st.rerun()
-                        st.success("Composition supprimée !")
+
+    # --- 🔎 Profondeur d'effectif par poste ---
     with subtab3:
-        st.title("🔍 Profondeur d'effectif par poste")
-    
-        formations = list(FORMATION.keys())
-        formation_profondeur = st.selectbox("Choisir une formation", formations, key="formation_profondeur")
-    
-        # Initialisation si vide
-        if formation_profondeur not in st.session_state.profondeur_effectif:
-            st.session_state.profondeur_effectif[formation_profondeur] = {}
-    
-        profondeur_formation = st.session_state.profondeur_effectif[formation_profondeur]
-    
-        # 🔄 Injection automatique (une seule fois par session pour cette formation)
-        auto_key = f"loaded_{formation_profondeur}"
-        if auto_key not in st.session_state:
-            for poste in POSTES_ORDER:
-                poste_data = profondeur_formation.get(poste, {})
-                for idx_label, choix_list in poste_data.items():
-                    for i, nom in enumerate(choix_list):
-                        if nom:
-                            key = f"{formation_profondeur}_{poste}_{idx_label}_choix_{i}"
-                            st.session_state[key] = nom
-            st.session_state[auto_key] = True
-    
-        postes_formation = POSTES_NOMS[formation_profondeur]
+        st.title("🔍 Profondeur d'effectif")
+        formation_selected = st.selectbox("🎯 Choisissez une formation", list(FORMATION.keys()), key="formation_profondeur")
+
+        if formation_selected not in st.session_state.profondeur_effectif:
+            st.session_state.profondeur_effectif[formation_selected] = {}
+
+        profondeur = st.session_state.profondeur_effectif[formation_selected]
         joueurs = st.session_state.players["Nom"].dropna().tolist()
-    
+
         col_left, col_right = st.columns([3, 7])
         with col_left:
-            st.markdown("### Sélectionnez vos options par poste")
+            st.markdown("### Sélection par poste")
+            postes_formation = POSTES_NOMS[formation_selected]
             for poste in POSTES_ORDER:
                 if poste not in postes_formation:
                     continue
-                if poste not in profondeur_formation:
-                    profondeur_formation[poste] = {}
-    
-                poste_labels = postes_formation[poste]
-                for idx_label, label in enumerate(poste_labels):
-                    key_poste = f"{formation_profondeur}_{poste}_{idx_label}"
-                    choix_list = profondeur_formation[poste].get(idx_label, [])
-                    choix_list = choix_list if isinstance(choix_list, list) else []
-    
-                    # 🔁 Calcul du nombre de selectbox à afficher
-                    nb_keys_injected = len([k for k in st.session_state if k.startswith(f"{key_poste}_choix_")])
-                    n_choix = max(len(choix_list), nb_keys_injected, 1)
-    
-                    # 🔧 Extend la liste si nécessaire
-                    while len(choix_list) < n_choix:
-                        choix_list.append("")
-    
-                    st.markdown(f"**{label}**")
-                    for i in range(n_choix):
-                        key_select = f"{key_poste}_choix_{i}"
-                        options = [""] + joueurs
-                        if key_select not in st.session_state:
-                            st.session_state[key_select] = choix_list[i]
-                        choix = st.selectbox(f"Choix {i+1}", options, key=key_select)
-                        choix_list[i] = choix
-    
-                    # Ajout dynamique d’un champ si le dernier est rempli
-                    if choix_list and choix_list[-1]:
-                        choix_list.append("")
-                    while len(choix_list) > 1 and not choix_list[-1] and not choix_list[-2]:
-                        choix_list.pop()
-    
-                    profondeur_formation[poste][idx_label] = choix_list
-                    st.caption("Options sélectionnées : " + ", ".join([c for c in choix_list if c]))
-                    st.markdown("---")
-    
-            if st.button("💾 Sauvegarder la profondeur d'effectif"):
-                # Nettoyage des chaînes vides avant sauvegarde
-                for p in profondeur_formation:
-                    for k in profondeur_formation[p]:
-                        profondeur_formation[p][k] = [n for n in profondeur_formation[p][k] if n.strip()]
-                st.session_state.profondeur_effectif[formation_profondeur] = profondeur_formation
-                save_all()
-                st.success("Profondeur d'effectif sauvegardée pour cette formation ✅")
-    
-        with col_right:
-            st.markdown("### Terrain - joueurs sélectionnés")
-            fig = draw_football_pitch_vertical()
-            positions = positions_for_formation_vertical(formation_profondeur)
-            for poste in postes_formation:
-                poste_positions = positions[poste]
+                if poste not in profondeur:
+                    profondeur[poste] = {}
+
                 for idx_label, label in enumerate(postes_formation[poste]):
-                    noms = profondeur_formation.get(poste, {}).get(idx_label, [])
-                    noms = [n for n in noms if n]
+                    key_poste = f"{formation_selected}_{poste}_{idx_label}"
+                    noms = profondeur[poste].get(idx_label, [])
+                    noms = noms if isinstance(noms, list) else []
+                    while len(noms) < 1 or (noms and noms[-1].strip()):
+                        noms.append("")
+                    noms = [n.strip() for n in noms if isinstance(n, str)]
+
+                    st.markdown(f"**{label}**")
+                    for i in range(len(noms)):
+                        select_key = f"{key_poste}_choix_{i}"
+                        choix = st.selectbox(f"Option {i+1}", [""] + joueurs, index=([""] + joueurs).index(noms[i]) if noms[i] in joueurs else 0, key=select_key)
+                        noms[i] = choix
+
+                    # Nettoyage
+                    noms = [n for n in noms if n.strip()]
+                    profondeur[poste][idx_label] = noms
+
+            if st.button("💾 Sauvegarder profondeur"):
+                st.session_state.profondeur_effectif[formation_selected] = profondeur
+                manager.save()
+                st.success("✅ Profondeur sauvegardée")
+
+        with col_right:
+            st.markdown("### Visualisation du terrain")
+            fig = draw_football_pitch_vertical()
+            positions = positions_for_formation_vertical(formation_selected)
+            for poste in POSTES_ORDER:
+                for idx, label in enumerate(POSTES_NOMS[formation_selected].get(poste, [])):
+                    noms = profondeur.get(poste, {}).get(idx, [])
                     if noms:
-                        x, y = poste_positions[idx_label % len(poste_positions)]
-                        bloc_noms = "<br>".join([f"{i+1}. {nom}" for i, nom in enumerate(noms)])
+                        x, y = positions[poste][idx % len(positions[poste])]
+                        texte = "<br>".join([f"{i+1}. {nom}" for i, nom in enumerate(noms)])
                         fig.add_annotation(
-                            x=x,
-                            y=y,
-                            text=bloc_noms,
+                            x=x, y=y,
+                            text=texte,
                             showarrow=False,
                             font=dict(size=13, color="white"),
                             bgcolor="#0d47a1",
@@ -1007,529 +891,302 @@ with tab4:
                             borderpad=4,
                             align="center"
                         )
-            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_profondeur_all")
-            
-# --- GESTION MATCHS ---
+            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_profondeur")
+
+# --- 📅 Onglet Gestion des matchs ---
 with tab1:
-    st.title("Gestion des matchs")
-    subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
-    #---Créer match----
+    st.title("📅 Gestion des matchs")
+    subtab1, subtab2 = st.tabs(["⚙️ Créer un match", "📋 Mes matchs"])
+
+    # --- ⚙️ Créer un match ---
     with subtab1:
-        if st.button("Réinitialiser la création du match"):
-            for k in [
-                "terrain_new_match", "formation_new_match",
-                "remp_new_match", "nom_match_sugg", "adversaire", "lieu"
-            ]:
-                if k in st.session_state:
-                    del st.session_state[k]
+        st.markdown("### Paramètres du match")
+
+        type_match = st.selectbox("🧭 Type de match", ["Championnat", "Coupe", "Amical"])
+        journee = st.text_input("📌 Journée / Tour / Numéro", value="")
+        adversaires_list = st.session_state.get("adversaires", [])
+        adversaire_select = st.selectbox("👥 Adversaire", adversaires_list + ["Autre..."])
+        if adversaire_select == "Autre...":
+            adversaire = st.text_input("🆕 Nom de l'adversaire")
+        else:
+            adversaire = adversaire_select
+
+        date = st.date_input("📅 Date du match", value=datetime.today())
+        heure = st.time_input("🕒 Heure du match", value=datetime.strptime("21:00", "%H:%M").time())
+        domicile = st.radio("📍 Lieu du match", ["Domicile", "Extérieur"])
+        lieu = st.text_input("📌 Adresse / Terrain", value="")
+
+        nom_match = f"{type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
+
+        if st.button("✅ Enregistrer le match"):
+            match_id = str(uuid.uuid4())
+            st.session_state.matchs[match_id] = {
+                "type": type_match,
+                "adversaire": adversaire,
+                "date": str(date),
+                "heure": heure.strftime("%H:%M"),
+                "domicile": domicile,
+                "journee": journee,
+                "nom_match": nom_match,
+                "lieu": lieu,
+                "formation": "",
+                "details": [],
+                "remplacants": [],
+                "events": {},
+                "score": "",
+                "score_afc": 0,
+                "score_adv": 0,
+                "noted": False,
+                "termine": False,
+                "homme_du_match": ""
+            }
+            manager.save()
+            st.success("📦 Match enregistré")
             st.rerun()
-        type_match = st.selectbox("Type de match", ["Championnat", "Coupe", "Amical"], key="type_match")
-        adversaires_list = st.session_state.adversaires if "adversaires" in st.session_state and st.session_state.adversaires else []
-        adversaires_options = adversaires_list + ["Autre..."]
-        if type_match=="Championnat":
-            journee= st.text_input("journee", value="J", key="journee")
-            adversaire_select = st.selectbox("Adversaire", adversaires_options, key="adversaire_select")
-            if adversaire_select == "Autre...":
-                adversaire = st.text_input("Nom de l'adversaire (nouveau)", key="adversaire_new")
-            else:
-                adversaire = adversaire_select
-        else:
-            if type_match=="Coupe":
-                journee= st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"], key="journee")
-            else:
-                journee=st.text_input("Amical #", key="journee")
-            adversaire = st.text_input("Nom de l'adversaire", key="adversaire")
-        date = st.date_input("Date du match", value=datetime.today())
-        heure = st.time_input("Heure du match", value="21:00")
-        domicile = st.selectbox("Domicile/Extérieur", ["Domicile", "Extérieur"])
-        if domicile == "Domicile":
-            lieu = st.text_input("Lieu", value="Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac", key="lieu")
-            nom_match = f"{type_match} - {journee} - AFC vs {adversaire}" if adversaire else f"{type_match} - {journee}"
-        else:
-            lieu = st.text_input("Lieu", key="lieu")
-            nom_match = f"{type_match} - {journee} - {adversaire} vs AFC" if adversaire else f"{type_match} - {journee}"
-        if st.button("Enregistrer le match", key="btn_enregistrer_match"):
-            try:
-                match_id = str(uuid.uuid4())
-                st.session_state.matchs[match_id] = {
-                    "type": type_match,
-                    "adversaire": adversaire,
-                    "date": str(date),
-                    "heure": heure.strftime("%H:%M") if hasattr(heure, "strftime") else str(heure),
-                    "domicile" : domicile, 
-                    "journee" : journee, 
-                    "nom_match" : nom_match, 
-                    "lieu": lieu,
-                    "formation": "",
-                    "details": [],
-                    "remplacants": [],
-                    "events": {},
-                    "score": "",
-                    "score_afc": 0,
-                    "score_adv": 0,
-                    "noted": False,
-                    "termine": False,
-                    "homme_du_match": ""
-                }
-                save_all()
-                reload_all()
-                st.success("Match enregistré !")
-                st.rerun()
-            except Exception as e:
-                st.error(f"Erreur lors de la sauvegarde : {e}")
-                st.text(traceback.format_exc())
-    #----Mes Matchs----
+
+    # --- 📋 Mes matchs enregistrés ---
     with subtab2:
         if not st.session_state.matchs:
-            st.info("Aucun match enregistré.")
+            st.info("📭 Aucun match enregistré.")
         else:
             for mid, match in st.session_state.matchs.items():
-                with st.expander(match.get("nom_match", "Match sans nom")):
-                    match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
-                    if match_ended != match.get("termine", False):
-                        match["termine"] = match_ended
+                with st.expander(f"📅 {match.get('nom_match', 'Match sans nom')}"):
+                    
+                    # Match terminé ?
+                    is_finished = st.checkbox("✅ Match terminé", value=match.get("termine", False), key=f"end_{mid}")
+                    if is_finished != match.get("termine", False):
+                        match["termine"] = is_finished
                         st.session_state.matchs[mid] = match
-                        save_all()
+                        manager.save()
                         st.rerun()
-                    #--Créer compo---
-                    if not match.get("termine", False):
-                        with st.expander("🏟️ Créer compo"):
-                            use_compo = st.checkbox("Utiliser une composition enregistrée ?", key=f"use_compo_match_{mid}")
-                            if use_compo and st.session_state.lineups:
-                                compo_keys = list(st.session_state.lineups.keys())
-                                # Initialisation de la sélection si besoin
-                                if f"compo_choice_match_{mid}" not in st.session_state:
-                                    st.session_state.compo_choice_match = compo_keys[0] if compo_keys else ""
-                                compo_choice = st.selectbox(
-                                    "Choisir la composition",
-                                    compo_keys,
-                                    index=compo_keys.index(st.session_state.get("compo_choice_match", compo_keys[0])) if compo_keys else 0,
-                                    key=f"compo_choice_match_{mid}"
-                                )
-                                compo_data = st.session_state.lineups[compo_choice]
-                                formation = compo_data["formation"]
-                                terrain = copy.deepcopy(compo_data["details"])
-                                remplacants = list(compo_data.get("remplacants", []))
-                                st.session_state["formation_new_match"] = formation
-                                st.session_state["terrain_new_match"] = terrain
-                                st.session_state["remp_new_match"] = remplacants
-                                col_left, col_right = st.columns([1, 2])
-                                with col_left:
-                                    st.write("✔️ Composition chargée depuis vos compos enregistrées.")
-                                with col_right:
-                                    fig = draw_football_pitch_vertical()
-                                    fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-                                    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
-                            else:
-                                formation = st.selectbox("Formation", list(FORMATION.keys()), key=f"match_formation_{mid}")
-                                st.session_state["formation_new_match"] = formation
-                                col_left, col_right = st.columns([1, 2])
-                                with col_left:
-                                    terrain = terrain_interactif(formation, f"terrain_new_match_{mid}", key_suffix=mid)
-                                    tous_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-                                    remplacants = remplacants_interactif(f"new_match_{mid}", tous_titulaires, key_suffix=mid)
-                                with col_right:
-                                    fig = draw_football_pitch_vertical()
-                                    fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-                                    st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
-                            if st.button("Valider la compo", key=f"btn_enregistrer_compo_{mid}"):
-                                try:
-                                    match = st.session_state.matchs[mid]
-                                    match["formation"] = formation
-                                    match["details"] = copy.deepcopy(terrain)
-                                    match["remplacants"] = copy.deepcopy(remplacants)
-                                    save_all()
-                                    st.rerun()
-                                    st.success("Composition enregistrée dans le match !")
-                                except Exception as e:
-                                    st.error(f"Erreur lors de la sauvegarde : {e}")
-                                    st.text(traceback.format_exc())
-                            if st.button("Sauvegarder la composition", key=f"btn_sauvegarde_compo_{mid}"):
-                                lineup = {
-                                    "formation": formation,
-                                    "details": copy.deepcopy(terrain),
-                                    "remplacants": copy.deepcopy(remplacants)
-                                }
-                                st.session_state.lineups[nom_match] = lineup
-                                save_all()
-                                st.rerun()
-                                st.success("Composition sauvegardée !")
 
-                        with st.expander("👥 Convocation des joueurs"):
-                            try:
-                                terrain = match.get("details", {})
-                                remplacants = match.get("remplacants", [])
-                                joueurs_convoques = []
-                                for p in POSTES_ORDER:
-                                    joueurs_poste = terrain.get(p, [])
-                                    for j in joueurs_poste:
-                                        if j and isinstance(j, dict) and "Nom" in j:
-                                            joueurs_convoques.append(j["Nom"])
-                                joueurs_convoques += [r["Nom"] for r in remplacants if isinstance(r, dict) and "Nom" in r and r["Nom"]]
-                                joueurs_convoques = list(dict.fromkeys(joueurs_convoques))  # Supprime les doublons en conservant l'ordre
-                    
-                                # Base joueurs sous forme dict rapide : {Nom: Poste}
-                                df_joueurs = st.session_state.players
-                                postes_dict = dict(zip(df_joueurs["Nom"], df_joueurs["Poste"]))
-                    
-                                # Tri des convoqués selon POSTES_ORDER de la base
-                                joueurs_tries = []
-                                for poste in POSTES_ORDER:
-                                    for nom in joueurs_convoques:
-                                        if postes_dict.get(nom) == poste:
-                                            joueurs_tries.append(nom)
-                    
-                                # Affichage
-                                type_match = match.get("type", "")
-                                journee = match.get("journee", "")
-                                adversaire = match.get("adversaire", "")
-                                domicile = match.get("domicile", "")
-                                lieu = match.get("lieu", "")
-                                date = match.get("date", "")
-                                heure_str = match.get("heure", "21:00")
-                                # Calcul heure convoc
-                                try:
-                                    heure_obj = datetime.strptime(heure_str, "%H:%M")
-                                    heure_convoc = (heure_obj - timedelta(hours=1)).strftime("%H:%M")
-                                except Exception:
-                                    heure_convoc = "?"
-                                st.write("# 🚨 Convocation de match")
-                                st.write(f"## 🏟 {type_match} - {journee}")
-                                if domicile == "Domicile":
-                                    st.write(f"## AFC vs {adversaire}")
-                                else:
-                                    st.write(f"## {adversaire} vs AFC")
-                                st.markdown("---")
-                                st.markdown(f"🗓️ Date: {date}")
-                                st.markdown(f"🕒 Heure: {heure_str} (rdv {heure_convoc})")
-                                st.markdown(f"📍 Lieu: {lieu}")
-                                st.markdown("---")
-                                if joueurs_tries:
-                                    for nom in joueurs_tries:
-                                        st.markdown(f"- {nom}")
-                                else:
-                                    st.info("Aucun joueur convoqué pour l'instant.")
-                            except Exception as e:
-                                st.warning(f"Impossible d'afficher la convocation : {e}")
-                    #--Noter match---
-                    else :  
-                        if not match.get("noted", False):
-                            with st.expander("📊 Stats du match"):
-                                st.write("### Saisie des stats du match")
-                                titularies = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-                                remplaçants = [r["Nom"] for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]
-                                joueurs_all = list(dict.fromkeys(titularies + remplaçants))  # Keeps order, removes duplicates
-                                score_afc = st.number_input("Buts AFC", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
-                                score_adv = st.number_input(f"Buts {match['adversaire']}", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
-                                buteurs_qte = {}
-                                st.write("#### Buteurs")
-                                for nom in joueurs_all:
-                                    q = st.number_input(f"{nom} - Buts", min_value=0, max_value=10, value=0, step=1, key=f"but_{mid}_{nom}")
-                                    if q > 0:
-                                        buteurs_qte[nom] = q
-                                passeurs_qte = {}
-                                st.write("#### Passeurs")
-                                for nom in joueurs_all:
-                                    q = st.number_input(f"{nom} - Passes", min_value=0, max_value=10, value=0, step=1, key=f"pass_{mid}_{nom}")
-                                    if q > 0:
-                                        passeurs_qte[nom] = q
-                                cj_qte = {}
-                                st.write("#### Cartons jaunes")
-                                for nom in joueurs_all:
-                                    q = st.number_input(f"{nom} - Jaunes", min_value=0, max_value=5, value=0, step=1, key=f"cj_{mid}_{nom}")
-                                    if q > 0:
-                                        cj_qte[nom] = q
-                                cr_qte = {}
-                                st.write("#### Cartons rouges")
-                                for nom in joueurs_all:
-                                    q = st.number_input(f"{nom} - Rouges", min_value=0, max_value=2, value=0, step=1, key=f"cr_{mid}_{nom}")
-                                    if q > 0:
-                                        cr_qte[nom] = q
-                                notes = {}
-                                st.write("#### Notes")
-                                for nom in joueurs_all:
-                                    n = st.number_input(f"{nom} - Note", min_value=0.0, max_value=10.0, value=5.0, step=0.5, key=f"note_{mid}_{nom}")
-                                    if n > 0:
-                                        notes[nom] = n
-                                homme_du_match = st.selectbox("Homme du match", [""] + joueurs_all, key=f"hdm_{mid}")
-                                if st.button("Valider le match", key=f"valide_{mid}"):
-                                    match["score"] = f"{score_afc}-{score_adv}"
-                                    match["score_afc"] = score_afc
-                                    match["score_adv"] = score_adv
-                                    match["events"] = {
-                                        "buteurs": buteurs_qte,
-                                        "passeurs": passeurs_qte,
-                                        "cartons_jaunes": cj_qte,
-                                        "cartons_rouges": cr_qte,
-                                        "notes": notes
-                                    }
-                                    match["noted"] = True
-                                    match["termine"] = True
-                                    match["homme_du_match"] = homme_du_match
-                                    st.session_state.matchs[mid] = match
-                                    save_all()
-                                    st.success("Stats du match enregistrées !")
-                                    st.rerun()
-                        #---Résumé match----
-                        else :
-                            with st.expander("📝 Résumé du match"):
-                                st.write(f"### {match['nom_match']}")
-                                if match.get('domicile')=="Domicile":
-                                    st.markdown(f"### AFC {match.get('score_afc', 0)} - {match.get('score_adv', 0)} {match['adversaire']}")
-                                else:
-                                    st.markdown(f"### {match['adversaire']} {match.get('score_afc', 0)} - {match.get('score_adv', 0)} AFC")
-                                st.markdown("---")
-                                col1, col2 = st.columns(2)
-                                with col1:
-                                    st.markdown("#### 📊 Stats du match")
-                                    ev = match.get("events", {})
-                                    but_col, pass_col = st.columns(2)
-                                    with but_col:
-                                        st.markdown("**⚽ Buteurs**")
-                                        for nom, nb in ev.get("buteurs", {}).items():
-                                            st.markdown(f"- {nom} ({nb})")
-                                    with pass_col:
-                                        st.markdown("**👟 Passeurs**")
-                                        for nom, nb in ev.get("passeurs", {}).items():
-                                            st.markdown(f"- {nom} ({nb})")
-                                with col2:
-                                    st.markdown("#### 🎯 Performance")
-                                    st.markdown(f"**🏆 Homme du match :** {match.get('homme_du_match','')}")
-                                    notes = ev.get("notes", {})
-                                    if notes:
-                                        st.markdown("**⭐ Meilleures notes:**")
-                                        sorted_notes = sorted(notes.items(), key=lambda x: x[1], reverse=True)
-                                        for nom, note in sorted_notes[:3]:
-                                            st.markdown(f"- {nom}: {note}/10")
-                                st.markdown("#### 📋 Discipline")
-                                disc_col1, disc_col2 = st.columns(2)
-                                with disc_col1:
-                                    st.markdown("**🟨 Cartons jaunes**")
-                                    for nom, nb in ev.get("cartons_jaunes", {}).items():
-                                        st.markdown(f"- {nom} ({nb})")
-                                with disc_col2:
-                                    st.markdown("**🟥 Cartons rouges**")
-                                    for nom, nb in ev.get("cartons_rouges", {}).items():
-                                        st.markdown(f"- {nom} ({nb})")
-                                st.markdown("---")
-                                
-                                fig = draw_football_pitch_vertical()
-                                # Prepare player stats for display
-                                ev = match.get("events", {})
-                                joueurs_all = [j['Nom'] for p in POSTES_ORDER for j in match["details"].get(p, []) if j and isinstance(j, dict) and "Nom" in j]
-                                player_stats = {}
-                                for nom in joueurs_all:
-                                    player_stats[nom] = {
-                                        "buts": ev.get("buteurs", {}).get(nom, 0),
-                                        "passes": ev.get("passeurs", {}).get(nom, 0),
-                                        "cj": ev.get("cartons_jaunes", {}).get(nom, 0),
-                                        "cr": ev.get("cartons_rouges", {}).get(nom, 0),
-                                        "note": ev.get("notes", {}).get(nom, None),
-                                        "hdm": match.get("homme_du_match", "") == nom
-                                    }
-                                fig = plot_lineup_on_pitch_vertical(
-                                    fig,
-                                    match["details"],
-                                    match["formation"],
-                                    match.get("remplacants", []),
-                                    player_stats=player_stats
-                                )
-                                st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
-                                st.markdown("---")
+                    # Composition interactive
+                    if not match.get("termine"):
+                        st.markdown("### 🏟️ Composition du match")
+                        formation = st.selectbox("📌 Formation", list(FORMATION.keys()), key=f"form_{mid}", index=0)
+                        terrain = terrain_interactif(formation, f"terrain_match_{mid}", key_suffix=mid)
+                        titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+                        remps = remplacants_interactif(f"match_{mid}", titulaires, key_suffix=mid)
 
-                                if st.button(f"Éditer les stats", key=f"edit_stats_{mid}"):
-                                    match["noted"] = False
-                                    st.session_state.matchs[mid] = match  # obligatoire pour que Streamlit détecte
-                                    save_all()
-                                    st.rerun()
+                        fig = draw_football_pitch_vertical()
+                        fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remps)
+                        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
 
-                    if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
-                        try:
-                            del st.session_state.matchs[mid]
-                            save_all()
-                            reload_all()
-                            st.success("Match supprimé !")
+                        if st.button("💾 Valider la compo", key=f"save_compo_{mid}"):
+                            match["formation"] = formation
+                            match["details"] = terrain
+                            match["remplacants"] = remps
+                            st.session_state.matchs[mid] = match
+                            manager.save()
+                            st.success("✅ Composition enregistrée")
                             st.rerun()
-                        except Exception as e:
-                            st.error(f"Erreur lors de la suppression : {e}")
 
-#----SUIVI CHAMPIONNAT-----
+                    # Saisie des stats
+                    elif not match.get("noted"):
+                        st.markdown("### 📊 Saisie des statistiques")
+                        joueurs = [j["Nom"] for p in POSTES_ORDER for j in match.get("details", {}).get(p, []) if j]
+                        joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
+                        joueurs = list(dict.fromkeys(joueurs))
+
+                        score_afc = st.number_input("⚽ Buts AFC", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
+                        score_adv = st.number_input(f"⚽ Buts {match['adversaire']}", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
+                        stats_events = {
+                            "buteurs": {},
+                            "passeurs": {},
+                            "cartons_jaunes": {},
+                            "cartons_rouges": {},
+                            "notes": {}
+                        }
+
+                        for nom in joueurs:
+                            st.markdown(f"#### 🎯 {nom}")
+                            stats_events["buteurs"][nom] = st.number_input("Buts", min_value=0, value=0, key=f"but_{mid}_{nom}")
+                            stats_events["passeurs"][nom] = st.number_input("Passes", min_value=0, value=0, key=f"pass_{mid}_{nom}")
+                            stats_events["cartons_jaunes"][nom] = st.number_input("🟨 Jaunes", min_value=0, value=0, key=f"cj_{mid}_{nom}")
+                            stats_events["cartons_rouges"][nom] = st.number_input("🟥 Rouges", min_value=0, value=0, key=f"cr_{mid}_{nom}")
+                            stats_events["notes"][nom] = st.slider("⭐ Note", min_value=0.0, max_value=10.0, value=5.0, step=0.5, key=f"note_{mid}_{nom}")
+
+                        hdm = st.selectbox("🏆 Homme du match", [""] + joueurs, key=f"hdm_{mid}")
+
+                        if st.button("💾 Valider les stats", key=f"save_stats_{mid}"):
+                            match["score_afc"] = score_afc
+                            match["score_adv"] = score_adv
+                            match["score"] = f"{score_afc}-{score_adv}"
+                            match["events"] = stats_events
+                            match["homme_du_match"] = hdm
+                            match["noted"] = True
+                            match["termine"] = True
+                            st.session_state.matchs[mid] = match
+                            manager.save()
+                            st.success("📊 Statistiques enregistrées")
+                            st.rerun()
+
+                    # Résumé du match
+                    elif match.get("noted"):
+                        st.markdown("### 📝 Résumé du match")
+                        st.markdown(f"**{match['nom_match']}**")
+                        st.markdown(f"AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}" if match.get("domicile") == "Domicile" else f"{match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
+                        st.markdown(f"🏆 Homme du match : **{match.get('homme_du_match','')}**")
+
+                        ev = match.get("events", {})
+                        for label, key in [("⚽ Buteurs", "buteurs"), ("🎯 Passeurs", "passeurs"), ("🟨 Jaunes", "cartons_jaunes"), ("🟥 Rouges", "cartons_rouges")]:
+                            st.markdown(f"**{label}**")
+                            for nom, val in ev.get(key, {}).items():
+                                if val:
+                                    st.markdown(f"- {nom} ({val})")
+
+                        st.markdown("**⭐ Notes**")
+                        for nom, note in ev.get("notes", {}).items():
+                            st.markdown(f"- {nom}: {note}/10")
+
+                        fig = draw_football_pitch_vertical()
+                        stats_overlay = {
+                            nom: {
+                                "buts": ev.get("buteurs", {}).get(nom, 0),
+                                "passes": ev.get("passeurs", {}).get(nom, 0),
+                                "cj": ev.get("cartons_jaunes", {}).get(nom, 0),
+                                "cr": ev.get("cartons_rouges", {}).get(nom, 0),
+                                "note": ev.get("notes", {}).get(nom),
+                                "hdm": match.get("homme_du_match") == nom
+                            }
+                            for nom in joueurs
+                        }
+
+                        fig = plot_lineup_on_pitch_vertical(
+                            fig,
+                            match["details"],
+                            match["formation"],
+                            match.get("remplacants", []),
+                            player_stats=stats_overlay
+                        )
+                        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_resume_{mid}")
+
+                    if st.button("✏️ Modifier les stats", key=f"edit_stats_{mid}"):
+                        match["noted"] = False
+                        st.session_state.matchs[mid] = match
+                        manager.save()
+                        st.rerun()
+                        if st.button("🗑️ Supprimer ce match", key=f"delete_match_{mid}"):
+                    del st.session_state.matchs[mid]
+                    manager.save()
+                    st.success("🧹 Match supprimé")
+                    st.rerun()
+
+# --- 📈 Onglet Suivi Championnat ---
 with tab2:
-    subtab1, subtab2, subtab3 = st.tabs(["Classement", "Saisie scores", "Adversaires"])
+    subtab1, subtab2, subtab3 = st.tabs([
+        "🏆 Classement", 
+        "📋 Saisie des scores", 
+        "🧑‍🤝‍🧑 Gestion des adversaires"
+    ])
+
+    # --- 🏆 Classement automatique ---
     with subtab1:
-        st.title("Classement automatique")
-        # Récupération de la liste des équipes (AFC + adversaires)
-        equipes = ["AFC"] + st.session_state.adversaires
-        stats = {equipe: {"MJ":0, "Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for equipe in equipes}
-        # Calcul des stats à partir des scores saisis
-        for journee, matchs in st.session_state.championnat_scores.items():
-            for match in matchs:
-                dom, ext = match["domicile"], match["exterieur"]
-                sd, se = match["score_dom"], match["score_ext"]
+        st.title("🏆 Classement du championnat")
+
+        equipes = ["AFC"] + st.session_state.get("adversaires", [])
+        scores = st.session_state.get("championnat_scores", {})
+        stats = {team: {"MJ": 0, "Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for team in equipes}
+
+        for journee, matchs in scores.items():
+            for m in matchs:
+                dom, ext = m["domicile"], m["exterieur"]
+                sd, se = m["score_dom"], m["score_ext"]
+
                 if sd is not None and se is not None:
                     stats[dom]["MJ"] += 1
                     stats[ext]["MJ"] += 1
-                # Buts pour/contre
-                stats[dom]["BP"] += sd
-                stats[dom]["BC"] += se
-                stats[ext]["BP"] += se
-                stats[ext]["BC"] += sd
-                # Résultat
-                if sd > se:
-                    stats[dom]["V"] += 1
-                    stats[ext]["D"] += 1
-                    stats[dom]["Pts"] += 3
-                elif se > sd:
-                    stats[ext]["V"] += 1
-                    stats[dom]["D"] += 1
-                    stats[ext]["Pts"] += 3
-                else:
-                    stats[dom]["N"] += 1
-                    stats[ext]["N"] += 1
-                    stats[dom]["Pts"] += 1
-                    stats[ext]["Pts"] += 1
-        # Différence de buts
+                    stats[dom]["BP"] += sd
+                    stats[dom]["BC"] += se
+                    stats[ext]["BP"] += se
+                    stats[ext]["BC"] += sd
+
+                    # Résultat
+                    if sd > se:
+                        stats[dom]["V"] += 1
+                        stats[ext]["D"] += 1
+                        stats[dom]["Pts"] += 3
+                    elif se > sd:
+                        stats[ext]["V"] += 1
+                        stats[dom]["D"] += 1
+                        stats[ext]["Pts"] += 3
+                    else:
+                        stats[dom]["N"] += 1
+                        stats[ext]["N"] += 1
+                        stats[dom]["Pts"] += 1
+                        stats[ext]["Pts"] += 1
+
         for v in stats.values():
             v["Diff"] = v["BP"] - v["BC"]
-        classement = pd.DataFrame([
+
+        df = pd.DataFrame([
             {"Équipe": k, **v} for k, v in stats.items()
         ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
-        st.dataframe(classement, hide_index=True, use_container_width=True)
+
+        st.dataframe(df, hide_index=True, use_container_width=True)
+
+    # --- 📋 Saisie des scores par journée ---
     with subtab2:
-        st.title("Saisie des scores de championnat")
-    
-        def get_next_journee_key():
-            #"""Trouve la prochaine clé de journee sous la forme J01, J02, etc."""
-            existing = [int(j[1:]) for j in st.session_state.championnat_scores.keys() if j.startswith("J")]
-            next_num = max(existing, default=0) + 1
-            return f"J{next_num:02d}"
-    
-        # Initialisation si aucune journee
-        if "championnat_scores" not in st.session_state:
-            st.session_state.championnat_scores = {}
+        st.title("📋 Saisie des scores")
+
+        def next_journee_key():
+            existing = [int(j[1:]) for j in st.session_state.championnat_scores if j.startswith("J")]
+            return f"J{max(existing, default=0)+1:02d}"
+
         if not st.session_state.championnat_scores:
             st.session_state.championnat_scores["J01"] = []
-    
+
         journees = sorted(st.session_state.championnat_scores.keys())
-        if "selected_journee" not in st.session_state or st.session_state.selected_journee not in journees:
-            st.session_state.selected_journee = journees[0]
-    
-        # --- BOUTONS NAVIGATION journeeS & AJOUT journee ---
-        col_nav1, col_nav2, col_nav3, col_nav4 = st.columns([1, 2, 2, 1])
-        with col_nav1:
-            idx = journees.index(st.session_state.selected_journee)
-            if idx >0:
-                if st.button("←", key="prev_journee"):
-                    st.session_state.selected_journee = journees[idx - 1]
-                    st.rerun()
-        with col_nav2:
-            st.markdown(f"<h4 style='text-align:center;'>journee : {st.session_state.selected_journee}</h4>", unsafe_allow_html=True)
-        with col_nav3:
-            if idx < len(journees)-1:
-                if st.button("→", key="next_journee"):
-                    st.session_state.selected_journee = journees[idx + 1]
-                    st.rerun()
-        with col_nav4:
-            if st.button("Ajouter une journee"):
-                next_journee = get_next_journee_key()
-                st.session_state.championnat_scores[next_journee] = []
-                st.session_state.selected_journee = next_journee
-                save_all()
-                st.rerun()
-    
-        selected_journee = st.session_state.selected_journee
-        matchs = st.session_state.championnat_scores.get(selected_journee, [])
-    
-        equipes = ["AFC"] + st.session_state.adversaires
-    
-        # --- AFFICHAGE/EDITION DES MATCHS EXISTANTS ---
-        st.subheader(f"Matchs de la {selected_journee}")
-        to_delete = []
+        selected = st.selectbox("📅 Choisir une journée", journees, key="selected_journee")
+
+        matchs = st.session_state.championnat_scores.get(selected, [])
+
+        # Affichage/édition des matchs
         for i, match in enumerate(matchs):
-            cols = st.columns([3,1,1,1,3,1])
-            with cols[0]:
-                dom = st.selectbox(
-                    f"Domicile {i+1}", equipes, 
-                    index=equipes.index(match["domicile"]) if match.get("domicile") in equipes else 0,
-                    key=f"dom_{selected_journee}_{i}"
-                )
-            with cols[1]:
-                score_dom = st.number_input(
-                    "", min_value=0, max_value=30, value=match.get("score_dom", 0),
-                    key=f"score_dom_{selected_journee}_{i}"
-                )
-            with cols[2]:
-                st.markdown("—")
-            with cols[3]:
-                score_ext = st.number_input(
-                    "", min_value=0, max_value=30, value=match.get("score_ext", 0),
-                    key=f"score_ext_{selected_journee}_{i}"
-                )
-            with cols[4]:
-                # Filtre équipes déjà prises ce jour-là (hors ce match)
-                exclus = [dom]
-                autres_ext = [m["exterieur"] for j, m in enumerate(matchs) if j != i]
-                options_ext = [e for e in equipes if e not in exclus + autres_ext or e == match.get("exterieur")]
-                ext = st.selectbox(
-                    f"Extérieur {i+1}", 
-                    options_ext if match.get("exterieur") in options_ext else options_ext + [match.get("exterieur","")],
-                    index=options_ext.index(match["exterieur"]) if match.get("exterieur") in options_ext else 0,
-                    key=f"ext_{selected_journee}_{i}"
-                )
-            with cols[5]:
-                if st.button("❌", key=f"del_match_{selected_journee}_{i}"):
-                    to_delete.append(i)
-            # Met à jour le match si modifié
-            match["domicile"] = dom
-            match["exterieur"] = ext
-            match["score_dom"] = score_dom
-            match["score_ext"] = score_ext
-        # Supprime les matchs demandés
-        for i in sorted(to_delete, reverse=True):
-            matchs.pop(i)
-        st.session_state.championnat_scores[selected_journee] = matchs
-    
-        # --- FORMULAIRE AJOUT MATCH ---
+            col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 3])
+            dom = col1.selectbox(f"🏠 Domicile {i+1}", equipes, index=equipes.index(match["domicile"]), key=f"dom_{selected}_{i}")
+            score_dom = col2.number_input("⚽", value=match.get("score_dom", 0), min_value=0, max_value=30, key=f"score_dom_{selected}_{i}")
+            score_ext = col4.number_input("⚽", value=match.get("score_ext", 0), min_value=0, max_value=30, key=f"score_ext_{selected}_{i}")
+            ext = col5.selectbox(f"🚗 Extérieur {i+1}", equipes, index=equipes.index(match["exterieur"]), key=f"ext_{selected}_{i}")
+            match.update({"domicile": dom, "score_dom": score_dom, "exterieur": ext, "score_ext": score_ext})
+
+        # Ajouter un match
         st.markdown("---")
-        st.subheader("Ajouter un match")
-        with st.form(f"add_match_form_{selected_journee}"):
-            equipes_dom = equipes
-            dom_new = st.selectbox("Équipe à domicile", equipes_dom, key=f"new_dom_{selected_journee}")
-            equipes_ext = [e for e in equipes if e != dom_new and e not in [m["exterieur"] for m in matchs]]
-            ext_new = st.selectbox("Équipe à l'extérieur", equipes_ext, key=f"new_ext_{selected_journee}")
-            score_dom_new = st.number_input("Score domicile", min_value=0, max_value=30, value=0, key=f"new_score_dom_{selected_journee}")
-            score_ext_new = st.number_input("Score extérieur", min_value=0, max_value=30, value=0, key=f"new_score_ext_{selected_journee}")
-            submitted = st.form_submit_button("Ajouter le match")
-            if submitted:
+        st.markdown("### ➕ Ajouter un match à cette journée")
+        with st.form(f"add_match_form_{selected}"):
+            dom_new = st.selectbox("🏠 Équipe à domicile", equipes)
+            ext_new = st.selectbox("🚗 Équipe à l'extérieur", [e for e in equipes if e != dom_new])
+            score_dom_new = st.number_input("⚽ Score domicile", min_value=0, value=0)
+            score_ext_new = st.number_input("⚽ Score extérieur", min_value=0, value=0)
+            if st.form_submit_button("📦 Ajouter"):
                 matchs.append({
-                    "domicile": dom_new, 
-                    "exterieur": ext_new, 
-                    "score_dom": score_dom_new, 
+                    "domicile": dom_new,
+                    "exterieur": ext_new,
+                    "score_dom": score_dom_new,
                     "score_ext": score_ext_new
                 })
-                st.session_state.championnat_scores[selected_journee] = matchs
-                save_all()
+                st.session_state.championnat_scores[selected] = matchs
+                manager.save()
+                st.success("✅ Match ajouté")
                 st.rerun()
-    
-        # --- SAUVEGARDE DES SCORES DE LA journee ---
-        if st.button("Sauvegarder les scores de la journee", key=f"save_scores_{selected_journee}"):
-            st.session_state.championnat_scores[selected_journee] = matchs
-            save_all()
-            st.success(f"Scores de {selected_journee} sauvegardés !")
-            
+
+        # Ajouter une nouvelle journée
+        if st.button("🗓️ Ajouter une journée"):
+            new_key = next_journee_key()
+            st.session_state.championnat_scores[new_key] = []
+            manager.save()
+            st.success(f"📅 {new_key} créée")
+            st.rerun()
+
+    # --- 🧑‍🤝‍🧑 Gestion des adversaires ---
     with subtab3:
-        st.title("Gestion des adversaires")
-        adv_df = pd.DataFrame({"Nom": st.session_state.adversaires if st.session_state.adversaires else [""]}, dtype="object")
-        edited_adv = st.data_editor(
-            adv_df,
-            num_rows="dynamic",
-            hide_index=True,
-            use_container_width=True,
-            key="edit_adv"
-        )
-    
-        if st.button("Sauvegarder les adversaires", key="save_adv"):
-            st.session_state.adversaires = edited_adv["Nom"].dropna().tolist()
-            save_all()  # Utilise ta fonction actuelle
-            st.success("Liste des adversaires mise à jour !")
-    
+        st.title("🧑‍🤝‍🧑 Adversaires du championnat")
+
+        adv_df = pd.DataFrame({"Nom": st.session_state.adversaires}, dtype="object")
+        edited_df = st.data_editor(adv_df, num_rows="dynamic", hide_index=True)
+
+        if st.button("💾 Sauvegarder les adversaires"):
+            st.session_state.adversaires = edited_df["Nom"].dropna().astype(str).tolist()
+            manager.save()
+            st.success("✅ Liste mise à jour")
+                            
