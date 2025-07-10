@@ -1071,7 +1071,7 @@ with tab1:
                                 if match["events"].get("buteurs"):
                                     st.markdown("**⚽ Buteurs**")
                                     for nom, nb in match["events"]["buteurs"].items():
-                                        if nb and nb>0:
+                                        if isinstance(nb, int) and nb > 0:
                                             st.markdown(f"- {nom} : {nb}")
                             
                                 if match["events"].get("passeurs"):
