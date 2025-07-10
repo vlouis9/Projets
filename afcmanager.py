@@ -955,7 +955,7 @@ with tab1:
 
                     # --- 🏟️ Créer composition pour ce match ---
                     if not match.get("termine"):
-                        with st.expander("### 🏟️ Composition du match")
+                        with st.expander("### 🏟️ Composition du match"):
 
                             use_compo = st.checkbox("🔁 Utiliser une compo enregistrée ?", key=f"use_compo_{mid}")
                             if use_compo and st.session_state.lineups:
@@ -985,7 +985,7 @@ with tab1:
 
                         # --- 👥 Convocation des joueurs ---
                         if terrain:
-                            with st.expander("### 👥 Convocation des joueurs")
+                            with st.expander("### 👥 Convocation des joueurs"):
                             
                                 joueurs_convoques = []
                                 for p in POSTES_ORDER:
@@ -1008,7 +1008,7 @@ with tab1:
 
                     # --- 📝 Saisie des statistiques du match ---
                     elif match_ended and not match.get("noted", False):
-                        with st.expander("### 📝 Statistiques du match")
+                        with st.expander("### 📝 Statistiques du match"):
 
                             joueurs = [j["Nom"] for p in POSTES_ORDER for j in match.get("details", {}).get(p, []) if j]
                             joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
@@ -1053,7 +1053,7 @@ with tab1:
 
                     # --- 🧾 Résumé si match noté ---
                     elif match.get("noted", False):
-                        with st.expander("### 📝 Résumé du match")
+                        with st.expander("### 📝 Résumé du match"):
                             st.markdown(f"**{match['nom_match']}**")
                             
                             # Score
