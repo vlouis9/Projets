@@ -1074,41 +1074,84 @@ with tab1:
 
                     # --- 🧾 Résumé si match noté ---
                     elif match.get("noted", False):
-                        st.markdown("### 🧾 Résumé du match")
-                        st.markdown(f"**Score :** AFC {match['score_afc']} – {match['score_adv']} {match['adversaire']}")
-                        st.markdown(f"**🏆 Homme du match :** {match['homme_du_match']}")
+                        st.markdown("### 📝 Résumé du match")
+                        st.markdown(f"**{match['nom_match']}**")
+                        
+                        # Score
+                        if match.get("domicile") == "Domicile":
+                            st.markdown(f"### AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}")
+                        else:
+                            st.markdown(f"### {match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
+                        
+                        st.markdown("---")
+                        
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            st.markdown("#### 📊 Événements du match")
+                        
+                            if match["events"].get("buteurs"):
+                                st.markdown("**⚽ Buteurs**")
+                                for nom, nb in match["events"]["buteurs"].items():
+                                    st.markdown(f"- {nom} ({nb})")
+                        
+                            if match["events"].get("passeurs"):
+                                st.markdown("**🎯 Passeurs**")
+                                for nom, nb in match["events"]["passeurs"].items():
+                                    st.markdown(f"- {nom} ({nb})")
+                        
+                        with col2:
+                            st.markdown("#### 🎯 Performances & Discipline")
+                        
+                            hdm = match.get("homme_du_match")
+                            if hdm:
+                                st.markdown(f"**🏆 Homme du match :** {hdm}")
+                        
+                            if match["events"].get("cartons_jaunes"):
+                                st.markdown("**🟨 Cartons jaunes**")
+                                for nom, nb in match["events"]["cartons_jaunes"].items():
+                                    st.markdown(f"- {nom} ({nb})")
+                        
+                            if match["events"].get("cartons_rouges"):
+                                st.markdown("**🟥 Cartons rouges**")
+                                for nom, nb in match["events"]["cartons_rouges"].items():
+                                    st.markdown(f"- {nom} ({nb})")
+                        
+                        st.markdown("---")
 
-                        for label, key in [("⚽ Buteurs", "buteurs"), ("🎯 Passeurs", "passeurs"),
-                                           ("🟨 Jaunes", "cartons_jaunes"), ("🟥 Rouges", "cartons_rouges")]:
-                            st.markdown(f"**{label}**")
-                            for nom, val in match["events"].get(key, {}).items():
-                                if val: st.markdown(f"- {nom} ({val})")
-
-                        st.markdown("**⭐ Notes**")
-                        for nom, note in match["events"].get("notes", {}).items():
-                            st.markdown(f"- {nom}: {note}/10")
-
-                        # Terrain avec stats
                         fig = draw_football_pitch_vertical()
-                        stats_overlay = {
+
+                        # Prépare les stats pour tous les joueurs (y compris remplaçants)
+                        joueurs_titulaires = [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
+                        joueurs_remplacants = [r["Nom"] for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]
+                        joueurs_all = list(dict.fromkeys(joueurs_titulaires + joueurs_remplacants))
+                        
+                        player_stats = {
                             nom: {
                                 "buts": match["events"]["buteurs"].get(nom, 0),
                                 "passes": match["events"]["passeurs"].get(nom, 0),
                                 "cj": match["events"]["cartons_jaunes"].get(nom, 0),
                                 "cr": match["events"]["cartons_rouges"].get(nom, 0),
-                                "note": match["events"]["notes"].get(nom),
-                                "hdm": match["homme_du_match"] == nom
+                                #"note": None,
+                                "hdm": match.get("homme_du_match") == nom
                             }
-                            for nom in joueurs
+                            for nom in joueurs_all
                         }
-                        fig = plot_lineup_on_pitch_vertical(fig, match["details"], match["formation"], match.get("remplacants", []), player_stats=stats_overlay)
-                        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_resume_{mid}")
-
+                        
+                        fig = plot_lineup_on_pitch_vertical(
+                            fig,
+                            match["details"],
+                            match["formation"],
+                            match.get("remplacants", []),
+                            player_stats=player_stats
+                        )
+                        
+                        st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
                         if st.button("✏️ Modifier les statistiques", key=f"edit_stats_{mid}"):
                             match["noted"] = False
                             st.session_state.matchs[mid] = match
                             manager.save()
                             st.rerun()
+                            
                     if st.button("🗑️ Supprimer ce match", key=f"delete_match_{mid}"):
                         del st.session_state.matchs[mid]
                         manager.save()
