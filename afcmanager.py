@@ -1152,8 +1152,8 @@ with tab2:
             st.session_state.championnat_scores["J01"] = []
 
         journees = sorted(st.session_state.championnat_scores.keys())
-            if "selected_journee" not in st.session_state:
-                st.session_state.selected_journee = journees[0]
+        if "selected_journee" not in st.session_state:
+            st.session_state.selected_journee = journees[0]
             
             idx = journees.index(st.session_state.selected_journee)
             col1, col2, col3 = st.columns([1, 4, 1])
