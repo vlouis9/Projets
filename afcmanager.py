@@ -571,7 +571,6 @@ with tab_acc:
     )
 
     # 📊 Classement championnat
-    st.subheader("📊 Classement championnat")
     try:
         rang_afc = classement.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
         st.markdown(f"***{rang_afc}ᵉ***")
@@ -579,7 +578,6 @@ with tab_acc:
         st.warning("AFC ne figure pas encore dans le classement.")
 
      # 🏆 Parcours en coupe
-    st.subheader("🏆 Parcours en coupe")
     match_coupe_a_venir = None
     dernier_tour_coupe = None
     for match in matchs.values():
@@ -595,9 +593,9 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.success(f"🏆 Coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** ")
+        st.markdown(f"🏆 Coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** ")
     elif dernier_tour_coupe:
-        st.warning(f"🏆 Coupe : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** ")
+        st.markdown(f"🏆 Coupe : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** ")
     else:
         st.info("Coupe pas encore entamée.")
     
@@ -1090,8 +1088,8 @@ with tab1:
                                 st.markdown(f"### {match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
 
                             hdm = match.get("homme_du_match")
-                                if hdm:
-                                    st.markdown(f"**🏆 Homme du match :** {hdm}")
+                            if hdm:
+                                st.markdown(f"**🏆 Homme du match :** {hdm}")
 
                             st.markdown("---")
                             
