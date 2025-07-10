@@ -292,6 +292,33 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
             nom = remp.get("Nom", "") if isinstance(remp, dict) else remp
             numero = remp.get("Numero", "") if isinstance(remp, dict) else ""
 
+            stats = ""
+            if player_stats and nom in player_stats:
+                s = player_stats[nom]
+                parts = []
+                if s.get("buts"):
+                    parts.append(f"⚽ {s['buts']}")
+                if s.get("passes"):
+                    parts.append(f"🎯 {s['passes']}")
+                if s.get("cj"):
+                    parts.append(f"🟨 {s['cj']}")
+                if s.get("cr"):
+                    parts.append(f"🟥 {s['cr']}")
+                if s.get("note"):
+                    parts.append(f"⭐ {s['note']}")
+                if s.get("hdm"):
+                    parts.append("🏆")
+                stats = " | ".join(parts)
+        
+            if stats:
+                fig.add_trace(go.Scatter(
+                    x=[x_r], y=[y_r - 9],
+                    mode="text",
+                    text=[stats],
+                    textfont=dict(color="yellow", size=12, family="Arial Black"),
+                    showlegend=False
+                ))
+            
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[y_r],
                 mode="markers+text",
@@ -1061,7 +1088,11 @@ with tab1:
                                 st.markdown(f"### AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}")
                             else:
                                 st.markdown(f"### {match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
-                            
+
+                            hdm = match.get("homme_du_match")
+                                if hdm:
+                                    st.markdown(f"**🏆 Homme du match :** {hdm}")
+
                             st.markdown("---")
                             
                             col1, col2 = st.columns(2)
@@ -1077,26 +1108,23 @@ with tab1:
                                 if match["events"].get("passeurs"):
                                     st.markdown("**🎯 Passeurs**")
                                     for nom, nb in match["events"]["passeurs"].items():
-                                        if nb and nb>0:
+                                        if isinstance(nb, int) and nb > 0:
                                             st.markdown(f"- {nom} : {nb}")
                             
                             with col2:
-                                st.markdown("#### 🎯 Performances & Discipline")
-                            
-                                hdm = match.get("homme_du_match")
-                                if hdm:
-                                    st.markdown(f"**🏆 Homme du match :** {hdm}")
+                                st.markdown("#### 👮🏼‍♂️ Discipline")
+                        
                             
                                 if match["events"].get("cartons_jaunes"):
                                     st.markdown("**🟨 Cartons jaunes**")
                                     for nom, nb in match["events"]["cartons_jaunes"].items():
-                                        if nb and nb>0:
+                                        if isinstance(nb, int) and nb > 0:
                                             st.markdown(f"- {nom} : {nb}")
                             
                                 if match["events"].get("cartons_rouges"):
                                     st.markdown("**🟥 Cartons rouges**")
                                     for nom, nb in match["events"]["cartons_rouges"].items():
-                                        if nb and nb>0:
+                                        if isinstance(nb, int) and nb > 0:
                                             st.markdown(f"- {nom} : {nb}")
                             
                             st.markdown("---")
@@ -1114,7 +1142,7 @@ with tab1:
                                     "passes": match["events"]["passeurs"].get(nom, 0),
                                     "cj": match["events"]["cartons_jaunes"].get(nom, 0),
                                     "cr": match["events"]["cartons_rouges"].get(nom, 0),
-                                    #"note": None,
+                                    "note": None,
                                     "hdm": match.get("homme_du_match") == nom
                                 }
                                 for nom in joueurs_all
