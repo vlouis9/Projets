@@ -1168,6 +1168,7 @@ with tab2:
                     st.session_state.selected_journee = journees[idx + 1]
                     st.rerun()
 
+        selected = st.session_state.selected_journee
         matchs = st.session_state.championnat_scores.get(selected, [])
 
         # Affichage/édition des matchs
