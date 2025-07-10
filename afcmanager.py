@@ -1071,14 +1071,14 @@ with tab1:
                                 if match["events"].get("buteurs"):
                                     st.markdown("**⚽ Buteurs**")
                                     for nom, nb in match["events"]["buteurs"].items():
-                                        if val>0:
-                                            st.markdown(f"- {nom} ({nb})")
+                                        if nb>0:
+                                            st.markdown(f"- {nom} : {nb}")
                             
                                 if match["events"].get("passeurs"):
                                     st.markdown("**🎯 Passeurs**")
                                     for nom, nb in match["events"]["passeurs"].items():
-                                        if val>0:
-                                            st.markdown(f"- {nom} ({nb})")
+                                        if nb>0:
+                                            st.markdown(f"- {nom} : {nb}")
                             
                             with col2:
                                 st.markdown("#### 🎯 Performances & Discipline")
@@ -1090,14 +1090,14 @@ with tab1:
                                 if match["events"].get("cartons_jaunes"):
                                     st.markdown("**🟨 Cartons jaunes**")
                                     for nom, nb in match["events"]["cartons_jaunes"].items():
-                                        if val>0:
-                                            st.markdown(f"- {nom} ({nb})")
+                                        if nb>0:
+                                            st.markdown(f"- {nom} : {nb}")
                             
                                 if match["events"].get("cartons_rouges"):
                                     st.markdown("**🟥 Cartons rouges**")
                                     for nom, nb in match["events"]["cartons_rouges"].items():
-                                        if val>0:
-                                            st.markdown(f"- {nom} ({nb})")
+                                        if nb>0:
+                                            st.markdown(f"- {nom} : {nb}")
                             
                             st.markdown("---")
     
