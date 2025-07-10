@@ -1236,18 +1236,18 @@ with tab2:
             st.session_state.selected_journee = journees[0]
         selected = st.session_state.selected_journee
             
-            idx = journees.index(st.session_state.selected_journee)
-            col1, col2, col3 = st.columns([1, 4, 1])
-            with col1:
-                if idx > 0 and st.button("←", key="journee_prev"):
-                    st.session_state.selected_journee = journees[idx - 1]
-                    st.rerun()
-            with col2:
-                st.markdown(f"### 📅 Journée : {st.session_state.selected_journee}")
-            with col3:
-                if idx < len(journees) - 1 and st.button("→", key="journee_next"):
-                    st.session_state.selected_journee = journees[idx + 1]
-                    st.rerun()
+        idx = journees.index(st.session_state.selected_journee)
+        col1, col2, col3 = st.columns([1, 4, 1])
+        with col1:
+            if idx > 0 and st.button("←", key="journee_prev"):
+                st.session_state.selected_journee = journees[idx - 1]
+                st.rerun()
+        with col2:
+            st.markdown(f"### 📅 Journée : {st.session_state.selected_journee}")
+        with col3:
+            if idx < len(journees) - 1 and st.button("→", key="journee_next"):
+                st.session_state.selected_journee = journees[idx + 1]
+                st.rerun()
 
         selected = st.session_state.selected_journee
         matchs = st.session_state.championnat_scores.get(selected, [])
