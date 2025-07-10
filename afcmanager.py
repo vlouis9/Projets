@@ -1067,10 +1067,10 @@ with tab1:
                         manager.save()
                         st.rerun()
                         if st.button("🗑️ Supprimer ce match", key=f"delete_match_{mid}"):
-                    del st.session_state.matchs[mid]
-                    manager.save()
-                    st.success("🧹 Match supprimé")
-                    st.rerun()
+                            del st.session_state.matchs[mid]
+                            manager.save()
+                            st.success("🧹 Match supprimé")
+                            st.rerun()
 
 # --- 📈 Onglet Suivi Championnat ---
 with tab2:
