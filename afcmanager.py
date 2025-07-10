@@ -523,11 +523,6 @@ with st.sidebar:
         st.success("✅ Données rechargées")
         st.experimental_rerun()
 
-# --- 🧹 Footer esthétique ---
-st.markdown("---")
-st.markdown("📁 Les données sont sauvegardées dans `afcdata.json` sur GitHub.")
-st.markdown("👨‍💻 Créé et maintenu par *Louis*")
-
 # --- 🧭 Onglets principaux de navigation ---
 tab_acc, tab1, tab2, tab3, tab4 = st.tabs([
     "🏠 Accueil", 
@@ -829,7 +824,17 @@ with tab4:
     # --- 🔎 Profondeur d'effectif par poste ---
     with subtab3:
         st.title("🔍 Profondeur d'effectif")
-        formation_selected = st.selectbox("🎯 Choisissez une formation", list(FORMATION.keys()), key="formation_profondeur")
+        formation_selected = st.selectbox("🎯 Formation", list(FORMATION.keys()), key="formation_profondeur")
+
+        # 🔍 Affichage récapitulatif de la profondeur existante
+        st.markdown("#### 📋 Profondeur enregistrée")
+        prof = st.session_state.profondeur_effectif.get(formation_selected, {})
+        for poste in POSTES_ORDER:
+            if poste in POSTES_NOMS.get(formation_selected, {}):
+                for idx, label in enumerate(POSTES_NOMS[formation_selected][poste]):
+                    options = prof.get(poste, {}).get(idx, [])
+                    if options:
+                        st.markdown(f"- **{label}** : {', '.join(options)}")
 
         if formation_selected not in st.session_state.profondeur_effectif:
             st.session_state.profondeur_effectif[formation_selected] = {}
@@ -963,15 +968,25 @@ with tab1:
                     # Composition interactive
                     if not match.get("termine"):
                         st.markdown("### 🏟️ Composition du match")
-                        formation = st.selectbox("📌 Formation", list(FORMATION.keys()), key=f"form_{mid}", index=0)
-                        terrain = terrain_interactif(formation, f"terrain_match_{mid}", key_suffix=mid)
-                        titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
-                        remps = remplacants_interactif(f"match_{mid}", titulaires, key_suffix=mid)
-
+                        # ➕ Ajouter au début du bloc “Créer compo” dans Mes Matchs
+                        use_existing = st.checkbox("🔁 Utiliser une composition existante", key=f"use_existing_compo_{mid}")
+                        if use_existing and st.session_state.lineups:
+                            compo_keys = list(st.session_state.lineups.keys())
+                            compo_choice = st.selectbox("📂 Choisir une compo enregistrée", compo_keys, key=f"compo_choice_{mid}")
+                            selected_compo = st.session_state.lineups[compo_choice]
+                            formation = selected_compo["formation"]
+                            terrain = selected_compo["details"]
+                            remplacants = selected_compo.get("remplacants", [])
+                        else:
+                            formation = st.selectbox("📌 Formation", list(FORMATION.keys()), key=f"form_{mid}", index=0)
+                            terrain = terrain_interactif(formation, f"terrain_match_{mid}", key_suffix=mid)
+                            titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+                            remps = remplacants_interactif(f"match_{mid}", titulaires, key_suffix=mid)
+    
                         fig = draw_football_pitch_vertical()
                         fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remps)
                         st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
-
+    
                         if st.button("💾 Valider la compo", key=f"save_compo_{mid}"):
                             match["formation"] = formation
                             match["details"] = terrain
@@ -1137,7 +1152,21 @@ with tab2:
             st.session_state.championnat_scores["J01"] = []
 
         journees = sorted(st.session_state.championnat_scores.keys())
-        selected = st.selectbox("📅 Choisir une journée", journees, key="selected_journee")
+            if "selected_journee" not in st.session_state:
+                st.session_state.selected_journee = journees[0]
+            
+            idx = journees.index(st.session_state.selected_journee)
+            col1, col2, col3 = st.columns([1, 4, 1])
+            with col1:
+                if idx > 0 and st.button("←", key="journee_prev"):
+                    st.session_state.selected_journee = journees[idx - 1]
+                    st.rerun()
+            with col2:
+                st.markdown(f"### 📅 Journée : {st.session_state.selected_journee}")
+            with col3:
+                if idx < len(journees) - 1 and st.button("→", key="journee_next"):
+                    st.session_state.selected_journee = journees[idx + 1]
+                    st.rerun()
 
         matchs = st.session_state.championnat_scores.get(selected, [])
 
