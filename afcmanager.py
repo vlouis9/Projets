@@ -403,7 +403,7 @@ def get_classement(championnat_scores, adversaires):
     ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
     return classement
 
-def style_classement(df):
+#def style_classement(df):
     styles = []
     for i in range(len(df)):
         if i == 0:
@@ -547,7 +547,7 @@ with tab_acc:
     st.subheader("📊 Classement championnat")
     if not classement.empty:
         st.dataframe(
-            classement.reset_index(drop=True).style.apply(style_classement, axis=None),
+            #classement.reset_index(drop=True).style.apply(style_classement, axis=None),
             use_container_width=True
         )
     else:
