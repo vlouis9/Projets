@@ -230,7 +230,7 @@ def save_all():
     #data = {
         #"players": st.session_state.players.to_dict(orient="records"),
         #"lineups": st.session_state.lineups,
-        #"matches": st.session_state.matches,
+        #"matchs": st.session_state.matchs,
         #"adversaires": st.session_state.get("adversaires", []),
         #"championnat_scores": st.session_state.get("championnat_scores", {}),
         #"profondeur_effectif": st.session_state.get("profondeur_effectif", {})
@@ -243,7 +243,7 @@ def save_all():
             #data = json.load(f)
         #st.session_state.players = pd.DataFrame(data.get("players", []))
         #st.session_state.lineups = data.get("lineups", {})
-        #st.session_state.matches = data.get("matches", {})
+        #st.session_state.matchs = data.get("matchs", {})
     #except Exception as e:
         #st.error(f"Erreur lors de la sauvegarde du fichier JSON : {e}")
         #st.text(traceback.format_exc())
@@ -253,7 +253,7 @@ def save_all():
         new_data = json.dumps({
             "players": st.session_state.players.to_dict(orient="records"),
             "lineups": st.session_state.lineups,
-            "matches": st.session_state.matches,
+            "matchs": st.session_state.matchs,
             "adversaires": st.session_state.get("adversaires", []),
             "championnat_scores": st.session_state.get("championnat_scores", {}),
             "profondeur_effectif": st.session_state.get("profondeur_effectif", {})
@@ -313,15 +313,15 @@ def reload_all():
         #json_lineups = data.get("lineups", {})
         #st.session_state.lineups = fusion_dictionnaires(json_lineups, session_lineups)
 
-        #session_matches = st.session_state.get("matches", {})
-        #json_matches = data.get("matches", {})
-        #st.session_state.matches = fusion_dictionnaires(json_matches, session_matches)
+        #session_matchs = st.session_state.get("matchs", {})
+        #json_matchs = data.get("matchs", {})
+        #st.session_state.matchs = fusion_dictionnaires(json_matchs, session_matchs)
         #st.session_state.adversaires = data.get("adversaires", st.session_state.get("adversaires", []))
         #st.session_state.championnat_scores = data.get("championnat_scores", st.session_state.get("championnat_scores", {}))
     #else:
         #st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
         #st.session_state.lineups = {}
-        #st.session_state.matches = {}
+        #st.session_state.matchs = {}
         #st.session_state.adversaires = []
         #st.session_state.championnat_scores = {}
 
@@ -332,12 +332,12 @@ def reload_all():
         
         st.session_state.players = pd.DataFrame(data.get("players", []))
         st.session_state.lineups = data.get("lineups", {})
-        st.session_state.matches = data.get("matches", {})
+        st.session_state.matchs = data.get("matchs", {})
         st.session_state.adversaires = data.get("adversaires", [])
         st.session_state.championnat_scores = data.get("championnat_scores", {})
         st.session_state.profondeur_effectif = data.get("profondeur_effectif", {})
-        if "matches" not in st.session_state:
-            st.session_state.matches = {}
+        if "matchs" not in st.session_state:
+            st.session_state.matchs = {}
     except Exception as e:
         st.error(f"Erreur lors du chargement depuis GitHub : {e}")
 
@@ -450,7 +450,7 @@ def remplacants_interactif(key, titulaires, key_suffix=None):
 
 def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
-    for mid, match in st.session_state.matches.items():
+    for mid, match in st.session_state.matchs.items():
         
         if not match.get("termine", False) and not match.get("noted", False):
             continue
@@ -490,10 +490,10 @@ def compute_player_stats(joueur_nom):
 
 def compute_clean_sheets():
     # Returns a dict: {player_name: clean_sheet_count}
-    if "matches" not in st.session_state:
+    if "matchs" not in st.session_state:
         return {}
     clean_sheets = {}
-    for match in st.session_state.matches.values():
+    for match in st.session_state.matchs.values():
         # Only count if match is finished
         if not match.get("noted", False):
             continue
@@ -555,7 +555,7 @@ def style_classement(df):
 
 if ("players" not in st.session_state or
     "lineups" not in st.session_state or
-    "matches" not in st.session_state):
+    "matchs" not in st.session_state):
     reload_all()
 if not isinstance(st.session_state.players, pd.DataFrame):
     st.session_state.players = pd.DataFrame(columns=PLAYER_COLS)
@@ -570,6 +570,8 @@ if "championnat_scores" not in st.session_state:
     st.session_state.championnat_scores = {}
 if "profondeur_effectif" not in st.session_state:
     st.session_state.profondeur_effectif = {}
+if "matchs" not in st.session_state:
+    st.session_state.matchs={}
 
 try:
     response = requests.get(RAW_URL)
@@ -577,7 +579,7 @@ try:
     data = json.load(io.StringIO(response.text))
     st.session_state.players = pd.DataFrame(data.get("players", []))
     st.session_state.lineups = data.get("lineups", {})
-    st.session_state.matches = data.get("matches", {})
+    st.session_state.matchs = data.get("matchs", {})
     st.session_state.adversaires = data.get("adversaires", [])
     st.session_state.championnat_scores = data.get("championnat_scores", {})
     if st.session_state.lineups:
@@ -587,6 +589,8 @@ try:
         st.session_state.classement = get_classement(st.session_state.championnat_scores, st.session_state.adversaires)
     else:
         st.session_state.classement = []
+    if "matchs" in data:
+        st.session_state.matchs={**st.session_state.get("matchs",{}),**data["matchs"]}
     #st.success("✅ Données importées dans la session.")
 except Exception as e:
     st.error(f"❌ Erreur à l'import : {e}")
@@ -600,7 +604,7 @@ with tab_acc:
     st.title("🏟️ Tableau de bord AFC")
 
     today = datetime.today().date()
-    matchs = st.session_state.get("matches", {})
+    matchs = st.session_state.get("matchs", {})
     classement = st.session_state.get("classement", [])
 
     # 📊 Classement
@@ -663,9 +667,9 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journée', 'Tour à venir')}** vs {match_coupe_a_venir.get('adversaire', 'Adversaire inconnu')} ({match_coupe_a_venir.get('date')})")
+        st.success(f"📅 Prochain match de coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** vs {match_coupe_a_venir.get('adversaire', 'Adversaire inconnu')} ({match_coupe_a_venir.get('date')})")
     elif dernier_tour_coupe:
-        st.warning(f"✅ Dernier match de coupe joué : **{dernier_tour_coupe.get('journée', 'Tour inconnu')}** vs {dernier_tour_coupe.get('adversaire', 'Adversaire')} ({dernier_tour_coupe.get('date')})")
+        st.warning(f"✅ Dernier match de coupe joué : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** vs {dernier_tour_coupe.get('adversaire', 'Adversaire')} ({dernier_tour_coupe.get('date')})")
     else:
         st.info("🚩 Coupe à démarrer")
 
@@ -685,7 +689,7 @@ with tab_acc:
             continue
 
     if prochain_match:
-        st.markdown(f"**{prochain_match.get('type','')} - {prochain_match.get('journée', '')}**")
+        st.markdown(f"**{prochain_match.get('type','')} - {prochain_match.get('journee', '')}**")
         st.markdown(f"🆚 **Adversaire** : {prochain_match['adversaire']}")
         st.markdown(f"📅 **Date** : {prochain_match['date']}")
         lieu = "🏠 Domicile" if prochain_match.get("domicile", True) else "🚗 Extérieur"
@@ -699,7 +703,7 @@ with tab_acc:
         try:
             date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
             if date_match >= today:
-                lignes = f"{match['date']} - {match.get("type","")} {match.get('journée', '')} vs {match['adversaire']} "
+                lignes = f"{match['date']} - {match.get("type","")} {match.get('journee', '')} vs {match['adversaire']} "
                 lieu = "🏠" if match.get("domicile", True) else "🚗"
                 lignes += f"({lieu})"
                 prochains.append(lignes)
@@ -775,7 +779,7 @@ with tab3:
             total_goals = df["Buts"].sum()
             total_conceded = sum(
                 match.get("score_adv", 0)
-                for match in st.session_state.matches.values()
+                for match in st.session_state.matchs.values()
                 if match.get("noted", False)
             )
             diff_scorers = df[df["Buts"] > 0]["Nom"].nunique()
@@ -1023,7 +1027,7 @@ with tab1:
         adversaires_list = st.session_state.adversaires if "adversaires" in st.session_state and st.session_state.adversaires else []
         adversaires_options = adversaires_list + ["Autre..."]
         if type_match=="Championnat":
-            journee= st.text_input("Journée", value="J", key="journee")
+            journee= st.text_input("journee", value="J", key="journee")
             adversaire_select = st.selectbox("Adversaire", adversaires_options, key="adversaire_select")
             if adversaire_select == "Autre...":
                 adversaire = st.text_input("Nom de l'adversaire (nouveau)", key="adversaire_new")
@@ -1047,13 +1051,13 @@ with tab1:
         if st.button("Enregistrer le match", key="btn_enregistrer_match"):
             try:
                 match_id = str(uuid.uuid4())
-                st.session_state.matches[match_id] = {
+                st.session_state.matchs[match_id] = {
                     "type": type_match,
                     "adversaire": adversaire,
                     "date": str(date),
                     "heure": heure.strftime("%H:%M") if hasattr(heure, "strftime") else str(heure),
                     "domicile" : domicile, 
-                    "journée" : journee, 
+                    "journee" : journee, 
                     "nom_match" : nom_match, 
                     "lieu": lieu,
                     "formation": "",
@@ -1064,25 +1068,27 @@ with tab1:
                     "score_afc": 0,
                     "score_adv": 0,
                     "noted": False,
+                    "termine": False,
                     "homme_du_match": ""
                 }
                 save_all()
                 reload_all()
                 st.success("Match enregistré !")
+                st.rerun()
             except Exception as e:
                 st.error(f"Erreur lors de la sauvegarde : {e}")
                 st.text(traceback.format_exc())
     #----Mes Matchs----
     with subtab2:
-        if not st.session_state.matches:
+        if not st.session_state.matchs:
             st.info("Aucun match enregistré.")
         else:
-            for mid, match in st.session_state.matches.items():
+            for mid, match in st.session_state.matchs.items():
                 with st.expander(match.get("nom_match", "Match sans nom")):
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
                     if match_ended != match.get("termine", False):
                         match["termine"] = match_ended
-                        st.session_state.matches[mid] = match
+                        st.session_state.matchs[mid] = match
                         save_all()
                         st.rerun()
                     #--Créer compo---
@@ -1128,7 +1134,7 @@ with tab1:
                                     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_create_match_{mid}")
                             if st.button("Valider la compo", key=f"btn_enregistrer_compo_{mid}"):
                                 try:
-                                    match = st.session_state.matches[mid]
+                                    match = st.session_state.matchs[mid]
                                     match["formation"] = formation
                                     match["details"] = copy.deepcopy(terrain)
                                     match["remplacants"] = copy.deepcopy(remplacants)
@@ -1175,7 +1181,7 @@ with tab1:
                     
                                 # Affichage
                                 type_match = match.get("type", "")
-                                journee = match.get("journée", "")
+                                journee = match.get("journee", "")
                                 adversaire = match.get("adversaire", "")
                                 domicile = match.get("domicile", "")
                                 lieu = match.get("lieu", "")
@@ -1260,7 +1266,7 @@ with tab1:
                                     match["noted"] = True
                                     match["termine"] = True
                                     match["homme_du_match"] = homme_du_match
-                                    st.session_state.matches[mid] = match
+                                    st.session_state.matchs[mid] = match
                                     save_all()
                                     st.success("Stats du match enregistrées !")
                                     st.rerun()
@@ -1333,14 +1339,19 @@ with tab1:
 
                                 if st.button(f"Éditer les stats", key=f"edit_stats_{mid}"):
                                     match["noted"] = False
-                                    st.session_state.matches[mid] = match  # obligatoire pour que Streamlit détecte
+                                    st.session_state.matchs[mid] = match  # obligatoire pour que Streamlit détecte
                                     save_all()
                                     st.rerun()
 
                     if st.button(f"Supprimer ce match", key=f"suppr_match_{mid}"):
-                        del st.session_state.matches[mid]
-                        save_all()
-                        st.rerun()
+                        try:
+                            del st.session_state.matchs[mid]
+                            save_all()
+                            reload_all()
+                            st.success("Match supprimé !")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Erreur lors de la suppression : {e}")
 
 #----SUIVI CHAMPIONNAT-----
 with tab2:
@@ -1388,12 +1399,12 @@ with tab2:
         st.title("Saisie des scores de championnat")
     
         def get_next_journee_key():
-            #"""Trouve la prochaine clé de journée sous la forme J01, J02, etc."""
+            #"""Trouve la prochaine clé de journee sous la forme J01, J02, etc."""
             existing = [int(j[1:]) for j in st.session_state.championnat_scores.keys() if j.startswith("J")]
             next_num = max(existing, default=0) + 1
             return f"J{next_num:02d}"
     
-        # Initialisation si aucune journée
+        # Initialisation si aucune journee
         if "championnat_scores" not in st.session_state:
             st.session_state.championnat_scores = {}
         if not st.session_state.championnat_scores:
@@ -1403,7 +1414,7 @@ with tab2:
         if "selected_journee" not in st.session_state or st.session_state.selected_journee not in journees:
             st.session_state.selected_journee = journees[0]
     
-        # --- BOUTONS NAVIGATION JOURNÉES & AJOUT JOURNÉE ---
+        # --- BOUTONS NAVIGATION journeeS & AJOUT journee ---
         col_nav1, col_nav2, col_nav3, col_nav4 = st.columns([1, 2, 2, 1])
         with col_nav1:
             idx = journees.index(st.session_state.selected_journee)
@@ -1412,14 +1423,14 @@ with tab2:
                     st.session_state.selected_journee = journees[idx - 1]
                     st.rerun()
         with col_nav2:
-            st.markdown(f"<h4 style='text-align:center;'>Journée : {st.session_state.selected_journee}</h4>", unsafe_allow_html=True)
+            st.markdown(f"<h4 style='text-align:center;'>journee : {st.session_state.selected_journee}</h4>", unsafe_allow_html=True)
         with col_nav3:
             if idx < len(journees)-1:
                 if st.button("→", key="next_journee"):
                     st.session_state.selected_journee = journees[idx + 1]
                     st.rerun()
         with col_nav4:
-            if st.button("Ajouter une journée"):
+            if st.button("Ajouter une journee"):
                 next_journee = get_next_journee_key()
                 st.session_state.championnat_scores[next_journee] = []
                 st.session_state.selected_journee = next_journee
@@ -1500,8 +1511,8 @@ with tab2:
                 save_all()
                 st.rerun()
     
-        # --- SAUVEGARDE DES SCORES DE LA JOURNÉE ---
-        if st.button("Sauvegarder les scores de la journée", key=f"save_scores_{selected_journee}"):
+        # --- SAUVEGARDE DES SCORES DE LA journee ---
+        if st.button("Sauvegarder les scores de la journee", key=f"save_scores_{selected_journee}"):
             st.session_state.championnat_scores[selected_journee] = matchs
             save_all()
             st.success(f"Scores de {selected_journee} sauvegardés !")
