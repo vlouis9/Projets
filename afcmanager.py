@@ -561,7 +561,7 @@ tab_acc, tab1, tab2, tab3, tab4 = st.tabs([
 
 # --- 🏟️ Onglet Accueil (Tableau de bord) ---
 with tab_acc:
-    st.title("🏟️ Tableau de bord AFC")
+    st.write("🏟️ Tableau de bord AFC")
 
     today = datetime.today().date()
     matchs = st.session_state.get("matchs", {})
@@ -573,7 +573,7 @@ with tab_acc:
     # 📊 Classement championnat
     try:
         rang_afc = classement.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
-        st.markdown(f"***{rang_afc}ᵉ***")
+        st.markdown(f"### 📊 Championnat ***{rang_afc}ᵉ***")
     except IndexError:
         st.warning("AFC ne figure pas encore dans le classement.")
 
@@ -593,9 +593,9 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.markdown(f"🏆 Coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** ")
+        st.markdown(f"### 🏆 Coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** ")
     elif dernier_tour_coupe:
-        st.markdown(f"🏆 Coupe : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** ")
+        st.markdown(f"### 🏆 Coupe : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** ")
     else:
         st.info("Coupe pas encore entamée.")
     
@@ -1140,7 +1140,7 @@ with tab1:
                                     "passes": match["events"]["passeurs"].get(nom, 0),
                                     "cj": match["events"]["cartons_jaunes"].get(nom, 0),
                                     "cr": match["events"]["cartons_rouges"].get(nom, 0),
-                                    "note": match["events"]["note"].get(nom,0),
+                                    "note": match["events"]["notes"].get(nom,0),
                                     "hdm": match.get("homme_du_match") == nom
                                 }
                                 for nom in joueurs_all
