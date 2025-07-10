@@ -545,13 +545,11 @@ with tab_acc:
 
     # 📊 Classement championnat
     st.subheader("📊 Classement championnat")
-    if not classement.empty:
-        st.dataframe(
-            classement.reset_index(drop=True).style.apply(axis=None),
-            use_container_width=True
-        )
-    else:
-        st.info("Classement indisponible. Vérifiez les scores enregistrés.")
+    try:
+        rang_afc = classement.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
+        st.markdown(f"🏆 **Classement actuel d’AFC : {rang_afc}ᵉ**")
+    except IndexError:
+        st.warning("AFC ne figure pas encore dans le classement.")
 
     # 📈 Forme récente
     st.subheader("📈 Forme récente de l'équipe")
