@@ -908,7 +908,13 @@ with tab1:
         st.markdown("### Paramètres du match")
 
         type_match = st.selectbox("🧭 Type de match", ["Championnat", "Coupe", "Amical"])
-        journee = st.text_input("📌 Journée / Tour / Numéro", value="")
+        if type_match=="Championnat":
+            journee = st.text_input("📌 Journée", value="J")
+        else:
+            if type_match=="Coupe":
+                journee=st.selectbox(📌 Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"])
+            else:
+                journee = st.text_input("📌 Numéro", value="#")
         adversaires_list = st.session_state.get("adversaires", [])
         adversaire_select = st.selectbox("👥 Adversaire", adversaires_list + ["Autre..."])
         if adversaire_select == "Autre...":
@@ -919,7 +925,12 @@ with tab1:
         date = st.date_input("📅 Date du match", value=datetime.today())
         heure = st.time_input("🕒 Heure du match", value=datetime.strptime("21:00", "%H:%M").time())
         domicile = st.radio("📍 Lieu du match", ["Domicile", "Extérieur"])
-        lieu = st.text_input("📌 Adresse / Terrain", value="")
+        if domicile == "Domicile":
+            lieu_default = "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac"
+        else:
+            lieu_default = ""
+        
+        lieu = st.text_input("📌 Lieu du match", value=lieu_default)
 
         nom_match = f"{type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
 
