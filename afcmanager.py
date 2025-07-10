@@ -912,7 +912,7 @@ with tab1:
             journee = st.text_input("📌 Journée", value="J")
         else:
             if type_match=="Coupe":
-                journee=st.selectbox(📌 Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"])
+                journee=st.selectbox("📌 Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"])
             else:
                 journee = st.text_input("📌 Numéro", value="#")
         adversaires_list = st.session_state.get("adversaires", [])
