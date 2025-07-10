@@ -493,6 +493,26 @@
       "noted": true,
       "termine": true,
       "homme_du_match": "Louis Vermeulen"
+    },
+    "5921f78c-0515-4799-8639-74fa923cdce2": {
+      "type": "Coupe",
+      "adversaire": "TOAC 2",
+      "date": "2025-07-24",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "Quarts",
+      "nom_match": "Coupe - Quarts - AFC vs TOAC 2",
+      "lieu": "Altran",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
