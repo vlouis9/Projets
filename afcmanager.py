@@ -543,12 +543,12 @@ st.title("⚽ AFC Manager – Gestion complète de l'équipe")
 #st.caption("🧪 Application Streamlit personnalisée pour suivre les performances, les compositions et les résultats du club AFC.")
 
 # --- 🧭 Bouton de rechargement des données (dans la sidebar) ---
-with st.sidebar:
-    st.header("🔧 Options")
-    if st.button("🔄 Recharger les données depuis GitHub"):
-        manager.load()
-        st.success("✅ Données rechargées")
-        st.experimental_rerun()
+#with st.sidebar:
+    #st.header("🔧 Options")
+    #if st.button("🔄 Recharger les données depuis GitHub"):
+        #manager.load()
+        #st.success("✅ Données rechargées")
+        #st.rerun()
 
 # --- 🧭 Onglets principaux de navigation ---
 tab_acc, tab1, tab2, tab3, tab4 = st.tabs([
@@ -1140,7 +1140,7 @@ with tab1:
                                     "passes": match["events"]["passeurs"].get(nom, 0),
                                     "cj": match["events"]["cartons_jaunes"].get(nom, 0),
                                     "cr": match["events"]["cartons_rouges"].get(nom, 0),
-                                    "note": None,
+                                    "note": match["events"]["note"].get(nom,0),
                                     "hdm": match.get("homme_du_match") == nom
                                 }
                                 for nom in joueurs_all
