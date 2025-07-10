@@ -275,6 +275,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "bb97d691-1d04-455a-955a-fc57251d27b9": {
+      "type": "Championnat",
+      "adversaire": "Altran Foot",
+      "date": "2025-07-08",
+      "heure": "21:00",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "J03",
+      "nom_match": "Championnat - J03 -  Altran Foot vs AFC",
+      "lieu": "Altran",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
@@ -363,12 +383,7 @@
           "Pierre Tarasinski",
           ""
         ],
-        "0": [
-          "William Toumelin",
-          "Thibault Defaye",
-          "Pierre Tarasinski",
-          ""
-        ]
+        "0": []
       },
       "D": {
         "0": [
@@ -394,29 +409,10 @@
           "Pierre Pavia",
           ""
         ],
-        "0": [
-          "Arthur Bouchet",
-          "Marouane Habachi",
-          "Walid Chouchi",
-          ""
-        ],
-        "1": [
-          "Jason Cuvelier",
-          "Thibault Rigal",
-          "Pierre Pavia",
-          ""
-        ],
-        "2": [
-          "Charles Plun",
-          "Maxime Pujol",
-          ""
-        ],
-        "3": [
-          "Quentin Dauris",
-          "Arthur Couto",
-          "Pierre Pavia",
-          ""
-        ]
+        "0": [],
+        "1": [],
+        "2": [],
+        "3": []
       },
       "M": {
         "0": [
@@ -453,40 +449,11 @@
           "Nicolas Gardan",
           ""
         ],
-        "0": [
-          "Thibault Rigal",
-          "Florentin Reynaud",
-          "Louis Vermeulen",
-          "Yoann Perzynski",
-          ""
-        ],
-        "1": [
-          "Maxime Pujol",
-          "Walid Chouchi",
-          "Yoann Perzynski",
-          ""
-        ],
-        "2": [
-          "Louis Vermeulen",
-          "Axel Soldadi\u00e9",
-          "Hicham Grerifa",
-          ""
-        ],
-        "3": [
-          "Adrien Gric",
-          "Florentin Reynaud",
-          "Louis Vermeulen",
-          "Abdel Ouachouo",
-          "Yoann Perzynski",
-          ""
-        ],
-        "4": [
-          "Axel Soldadi\u00e9",
-          "Abdel Jalil",
-          "Emmanuel Pannier",
-          "Nicolas Gardan",
-          ""
-        ]
+        "0": [],
+        "1": [],
+        "2": [],
+        "3": [],
+        "4": []
       },
       "A": {
         "0": [
@@ -496,13 +463,7 @@
           "Credo Atake",
           ""
         ],
-        "0": [
-          "Gregory Perrot",
-          "Axel Soldadi\u00e9",
-          "Abdel Jalil",
-          "Credo Atake",
-          ""
-        ]
+        "0": []
       }
     }
   }
