@@ -265,9 +265,116 @@
       "journee": "J04",
       "nom_match": "Championnat - J04 - AFC vs ASFP Lusitanos",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jason Cuvelier",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Charles Plun",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Quentin Dauris",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Yoann Perzynski",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11",
+            "Capitaine": true
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Maxime Pujol",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Adrien Gric",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Pierre Pavia",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Abdel Jalil",
+          "Numero": "15"
+        },
+        {
+          "Nom": "Nicolas Mitrano",
+          "Numero": "16"
+        }
+      ],
       "events": {},
       "score": "",
       "score_afc": 0,
