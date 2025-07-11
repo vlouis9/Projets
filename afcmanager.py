@@ -858,35 +858,35 @@ with tab4:
                     profondeur[poste] = {}
 
                 for poste in POSTES_ORDER:
-    if poste not in postes_formation:
-        continue
-    if poste not in profondeur:
-        profondeur[poste] = {}
-
-    for idx_label, label in enumerate(postes_formation[poste]):
-        key_poste = f"{formation_selected}_{poste}_{idx_label}"
-        noms = profondeur[poste].get(idx_label, [])
-        noms = noms if isinstance(noms, list) else []
-        noms = [n.strip() for n in noms if isinstance(n, str)]
-
-        # 🔁 Ajouter une entrée vide si la dernière est remplie
-        if not noms or noms[-1]:
-            noms.append("")
-
-        st.markdown(f"**{label}**")
-        new_noms = []
-        for i, nom in enumerate(noms):
-            select_key = f"{key_poste}_choix_{i}"
-            choix = st.selectbox(
-                f"Option {i+1}",
-                [""] + joueurs,
-                index=([""] + joueurs).index(nom) if nom in joueurs else 0,
-                key=select_key
-            )
-            if choix.strip():
-                new_noms.append(choix)
-
-        profondeur[poste][idx_label] = new_noms
+                    if poste not in postes_formation:
+                        continue
+                    if poste not in profondeur:
+                        profondeur[poste] = {}
+                
+                    for idx_label, label in enumerate(postes_formation[poste]):
+                        key_poste = f"{formation_selected}_{poste}_{idx_label}"
+                        noms = profondeur[poste].get(idx_label, [])
+                        noms = noms if isinstance(noms, list) else []
+                        noms = [n.strip() for n in noms if isinstance(n, str)]
+                
+                        # 🔁 Ajouter une entrée vide si la dernière est remplie
+                        if not noms or noms[-1]:
+                            noms.append("")
+                
+                        st.markdown(f"**{label}**")
+                        new_noms = []
+                        for i, nom in enumerate(noms):
+                            select_key = f"{key_poste}_choix_{i}"
+                            choix = st.selectbox(
+                                f"Option {i+1}",
+                                [""] + joueurs,
+                                index=([""] + joueurs).index(nom) if nom in joueurs else 0,
+                                key=select_key
+                            )
+                            if choix.strip():
+                                new_noms.append(choix)
+                
+                        profondeur[poste][idx_label] = new_noms
 
             if st.button("💾 Sauvegarder profondeur"):
                 st.session_state.profondeur_effectif[formation_selected] = profondeur
