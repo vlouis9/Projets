@@ -573,7 +573,7 @@ with tab_acc:
         rang_afc = classement.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
         #st.markdown(f"📊 Championnat ### ***{rang_afc}ᵉ***")
         st.markdown(
-            f"<span style='font-size:22px;'>📊 Championnat :</span> {rang_afc} <span style='font-size:36px; font-weight:bold;'>{rang_afc}ᵉ</span>",
+            f"<span style='font-size:22px;'>📊 Championnat :</span> <span style='font-size:36px; font-weight:bold;'>{rang_afc}ᵉ</span>",
             unsafe_allow_html=True
         )
     except IndexError:
@@ -595,9 +595,15 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.markdown(f"🏆 Coupe : ### **{match_coupe_a_venir.get('journee', 'Tour à venir')}** ")
+        st.markdown(
+            f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{match_coupe_a_venir.get('journee', 'Tour à venir')}</span>",
+            unsafe_allow_html=True
+        )
     elif dernier_tour_coupe:
-        st.markdown(f"🏆 Coupe : ### **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** ")
+        st.markdown(
+            f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{dernier_tour_coupe.get('journee', 'Tour inconnu')}</span>",
+            unsafe_allow_html=True
+        )
     else:
         st.info("Coupe pas encore entamée.")
     
@@ -1223,14 +1229,20 @@ with tab2:
         selected = st.session_state.selected_journee
             
         idx = journees.index(st.session_state.selected_journee)
-        col1, col2, col3 = st.columns([1, 4, 1])
-        with col1:
+        col_prev, col_center, col_next = st.columns([1, 6, 1])
+
+        with col_prev:
             if idx > 0 and st.button("←", key="journee_prev"):
                 st.session_state.selected_journee = journees[idx - 1]
                 st.rerun()
-        with col2:
-            st.markdown(f"### 📅 Journée : {st.session_state.selected_journee}")
-        with col3:
+        
+        with col_center:
+            st.markdown(
+                f"<h2 style='text-align: center;'>📅 Journée : {selected}</h2>",
+                unsafe_allow_html=True
+            )
+        
+        with col_next:
             if idx < len(journees) - 1 and st.button("→", key="journee_next"):
                 st.session_state.selected_journee = journees[idx + 1]
                 st.rerun()
@@ -1246,6 +1258,17 @@ with tab2:
             score_ext = col4.number_input("⚽", value=match.get("score_ext", 0), min_value=0, max_value=30, key=f"score_ext_{selected}_{i}")
             ext = col5.selectbox(f"🚗 Extérieur {i+1}", equipes, index=equipes.index(match["exterieur"]), key=f"ext_{selected}_{i}")
             match.update({"domicile": dom, "score_dom": score_dom, "exterieur": ext, "score_ext": score_ext})
+            if st.button("💾 Enregistrer les scores de la journée"):
+                st.session_state.championnat_scores[selected] = matchs
+                manager.save()
+                st.success("✅ Scores mis à jour")
+                st.rerun()
+            if st.button(f"🗑️ Supprimer le match {i+1}", key=f"delete_match_{selected}_{i}"):
+                del matchs[i]
+                st.session_state.championnat_scores[selected] = matchs
+                manager.save()
+                st.success("🧹 Match supprimé")
+                st.rerun()
 
         # Ajouter un match
         st.markdown("---")
