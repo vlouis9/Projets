@@ -571,7 +571,11 @@ with tab_acc:
     # 📊 Classement championnat
     try:
         rang_afc = classement.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
-        st.markdown(f"📊 Championnat ### ***{rang_afc}ᵉ***")
+        #st.markdown(f"📊 Championnat ### ***{rang_afc}ᵉ***")
+        st.markdown(
+            f"<span style='font-size:22px;'>📊 Championnat :</span> {rang_afc} <span style='font-size:36px; font-weight:bold;'>{rang_afc}ᵉ</span>",
+            unsafe_allow_html=True
+        )
     except IndexError:
         st.warning("AFC ne figure pas encore dans le classement.")
 
