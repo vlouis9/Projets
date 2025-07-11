@@ -1258,7 +1258,7 @@ with tab2:
             score_ext = col4.number_input("⚽", value=match.get("score_ext", 0), min_value=0, max_value=30, key=f"score_ext_{selected}_{i}")
             ext = col5.selectbox(f"🚗 Extérieur {i+1}", equipes, index=equipes.index(match["exterieur"]), key=f"ext_{selected}_{i}")
             match.update({"domicile": dom, "score_dom": score_dom, "exterieur": ext, "score_ext": score_ext})
-            if st.button("💾 Enregistrer les scores de la journée"):
+            if st.button("💾 Enregistrer les scores de la journée",key=f"savescores{selected}"):
                 st.session_state.championnat_scores[selected] = matchs
                 manager.save()
                 st.success("✅ Scores mis à jour")
