@@ -1286,12 +1286,12 @@ with tab2:
         # Ajouter un match
         st.markdown("---")
         st.markdown("### ➕ Ajouter un match à cette journée")
-        with st.form(f"add_match_form_{selected}"):
+        with st.expander(f"add_match_form_{selected}"):
             col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 3, 1])
-            dom_new = col1.st.selectbox("Domicile", equipes)
-            ext_new = col4.st.selectbox("Extérieur", [e for e in equipes if e != dom_new])
-            score_dom_new = col2.st.number_input("⚽ Score domicile", min_value=0, value=0)
-            score_ext_new = col3.st.number_input("⚽ Score extérieur", min_value=0, value=0)
+            dom_new = col1.selectbox("Domicile", equipes)
+            ext_new = col4.selectbox("Extérieur", [e for e in equipes if e != dom_new])
+            score_dom_new = col2.number_input("⚽ Score domicile", min_value=0, value=0)
+            score_ext_new = col3.number_input("⚽ Score extérieur", min_value=0, value=0)
             if col5.form_submit_button("➕"):
                 matchs.append({
                     "domicile": dom_new,
