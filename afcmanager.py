@@ -555,8 +555,8 @@ tab_acc, tab1, tab2, tab3, tab4 = st.tabs([
     "🏠", 
     "📅 Matchs", 
     "📈 Championnat", 
-    "🧠 Gestion Équipe", 
-    "🧪 Tactiques"
+    "👥 Gestion Équipe", 
+    "🧠 Tactiques"
 ])
 
 # --- 🏟️ Onglet Accueil (Tableau de bord) ---
@@ -567,12 +567,11 @@ with tab_acc:
         st.session_state.get("championnat_scores", {}),
         st.session_state.get("adversaires", [])
     )
-
+    col1, col2 = st.columns(2)
     # 📊 Classement championnat
     try:
         rang_afc = classement.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
-        #st.markdown(f"📊 Championnat ### ***{rang_afc}ᵉ***")
-        st.markdown(
+        col1.markdown(
             f"<span style='font-size:22px;'>📊 Championnat :</span> <span style='font-size:36px; font-weight:bold;'>{rang_afc}ᵉ</span>",
             unsafe_allow_html=True
         )
@@ -595,12 +594,12 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.markdown(
+        col2.markdown(
             f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{match_coupe_a_venir.get('journee', 'Tour à venir')}</span>",
             unsafe_allow_html=True
         )
     elif dernier_tour_coupe:
-        st.markdown(
+        col2.markdown(
             f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{dernier_tour_coupe.get('journee', 'Tour inconnu')}</span>",
             unsafe_allow_html=True
         )
@@ -623,7 +622,10 @@ with tab_acc:
             continue
 
     if derniers_resultats:
-        st.markdown(" 📈 Forme récente de l'équipe ".join(derniers_resultats))
+       col1.markdown(
+        f"<span style='font-size:22px;'>📈 Forme récente :</span> <span style='font-size:36px; font-weight:bold;'>{' '.join(derniers_resultats)}</span>",
+            unsafe_allow_html=True
+       )
     else:
         st.info("Aucun match joué cette saison.")
 
@@ -641,11 +643,10 @@ with tab_acc:
             continue
 
     if prochain_match:
-        st.markdown(f"**{prochain_match.get('type','')} - {prochain_match.get('journee', '')}**")
-        st.markdown(f"🆚 **Adversaire** : {prochain_match['adversaire']}")
-        st.markdown(f"📅 **Date** : {prochain_match['date']}")
-        lieu = "🏠 Domicile" if prochain_match.get("domicile", True) else "🚗 Extérieur"
-        st.markdown(f"📍 **Lieu** : {lieu}")
+        col2.markdown(
+        f"<span style='font-size:22px;'>📅 Prochain match</span> <span style='font-size:36px; font-weight:bold;'>{prochain_match.get('type','')} - {prochain_match.get('journee', '')} - {prochain_match['adversaire']}</span>",
+            unsafe_allow_html=True
+       )
     else:
         st.info("Aucun match à venir.")
 
@@ -746,7 +747,7 @@ with tab3:
             key="data_edit_joueurs"
         )
 
-        if st.button("💾 Sauvegarder les modifications", key="btn_save_joueurs"):
+        if st.button("💾", key="btn_save_joueurs"):
             edited_df = edited_df.fillna("")
             edited_df = edited_df[edited_df["Nom"].str.strip() != ""]
             st.session_state.players = edited_df[PLAYER_COLS]
@@ -778,7 +779,7 @@ with tab4:
             del st.session_state[edit_key]
 
         nom_compo = st.text_input("📝 Nom de la composition", key="nom_compo_create", value=nom_compo if edit_compo else "")
-        formation = st.selectbox("📌 Formation", list(FORMATION.keys()), index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION)), key="formation_create_compo")
+        formation = st.selectbox("🏟 Formation", list(FORMATION.keys()), index=list(FORMATION.keys()).index(st.session_state.get("formation_create_compo", DEFAULT_FORMATION)), key="formation_create_compo")
 
         col_left, col_right = st.columns([1, 2])
         with col_left:
@@ -792,7 +793,7 @@ with tab4:
             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
 
         # Sauvegarde
-        if st.button("💾 Sauvegarder la composition"):
+        if st.button("💾"):
             if not nom_compo.strip():
                 st.error("🚫 Veuillez indiquer un nom pour la composition.")
                 st.stop()
@@ -821,10 +822,10 @@ with tab4:
                     st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_compo_{nom}")
 
                     col1, col2 = st.columns(2)
-                    if col1.button(f"✏️ Modifier {nom}", key=f"edit_{nom}"):
+                    if col1.button(f"✏️", key=f"edit_{nom}"):
                         st.session_state["edit_compo"] = (nom, compo)
                         st.rerun()
-                    if col2.button(f"🗑️ Supprimer {nom}", key=f"delete_{nom}"):
+                    if col2.button(f"🗑️", key=f"delete_{nom}"):
                         del st.session_state.lineups[nom]
                         manager.save()
                         st.success("✅ Composition supprimée")
@@ -859,22 +860,22 @@ with tab4:
                     idx_key = str(idx_label)
                     if idx_key not in profondeur[poste]:
                         profondeur[poste][idx_key] = [""]
-                    st.markdown(f"**{label}**")
-                    new_noms = []
-                    for i, nom in enumerate(profondeur[poste][idx_key]):
-                        select_key = f"{formation_selected}_{poste}_{idx_key}_choix_{i}"
-                        choix = st.selectbox(
-                            f"Option {i+1}", [""] + joueurs,
-                            index=([""] + joueurs).index(nom) if nom in joueurs else 0,
-                            key=select_key
-                        )
-                        if choix.strip():
-                            new_noms.append(choix)
-                    if new_noms and new_noms[-1] != "":
-                        new_noms.append("")
-                    profondeur[poste][idx_key] = new_noms
+                    with st.expander(f"**{label}**"):
+                        new_noms = []
+                        for i, nom in enumerate(profondeur[poste][idx_key]):
+                            select_key = f"{formation_selected}_{poste}_{idx_key}_choix_{i}"
+                            choix = st.selectbox(
+                                f"Option {i+1}", [""] + joueurs,
+                                index=([""] + joueurs).index(nom) if nom in joueurs else 0,
+                                key=select_key
+                            )
+                            if choix.strip():
+                                new_noms.append(choix)
+                        if new_noms and new_noms[-1] != "":
+                            new_noms.append("")
+                        profondeur[poste][idx_key] = new_noms
         
-            if st.button("💾 Sauvegarder profondeur"):
+            if st.button("💾"):
                 st.session_state.profondeur_effectif[formation_selected] = profondeur
                 manager.save()
                 st.success("✅ Profondeur sauvegardée")
@@ -908,34 +909,40 @@ with tab1:
 
     # --- ⚙️ Créer un match ---
     with subtab1:
-        type_match = st.selectbox("🧭 Type de match", ["Championnat", "Coupe", "Amical"])
+        type_match = st.selectbox("Compétition", ["Championnat", "Coupe", "Amical"])
         if type_match=="Championnat":
-            journee = st.text_input("📌 Journée", value="J")
+            journee = st.text_input("Journée", value="J")
         else:
             if type_match=="Coupe":
-                journee=st.selectbox("📌 Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"])
+                journee=st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"])
             else:
-                journee = st.text_input("📌 Numéro", value="#")
+                journee = st.text_input("Numéro", value="#")
         adversaires_list = st.session_state.get("adversaires", [])
-        adversaire_select = st.selectbox("👥 Adversaire", adversaires_list + ["Autre..."])
+        adversaire_select = st.selectbox("Adversaire", adversaires_list + ["Autre..."])
         if adversaire_select == "Autre...":
             adversaire = st.text_input("🆕 Nom de l'adversaire")
         else:
             adversaire = adversaire_select
 
-        date = st.date_input("📅 Date du match", value=datetime.today())
-        heure = st.time_input("🕒 Heure du match", value=datetime.strptime("21:00", "%H:%M").time())
-        domicile = st.radio("📍 Lieu du match", ["Domicile", "Extérieur"])
+        date = st.date_input("Date du match", value=datetime.today())
+        heure = st.time_input("Heure du match", value=datetime.strptime("21:00", "%H:%M").time())
+        domicile = st.selectbox("Lieu du match", ["Domicile", "Extérieur"])
         if domicile == "Domicile":
             lieu_default = "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac"
         else:
             lieu_default = ""
         
-        lieu = st.text_input("📌 Lieu du match", value=lieu_default)
+        lieu = st.text_input("Lieu du match", value=lieu_default)
+        if type_match=="Championnat":
+            nom_match = f"📈 {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
+        else:
+            if type_match=="Coupe":
+                nom_match = f"🏆 {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
+            else:
+                nom_match = f"🤝 {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
+        
 
-        nom_match = f"{type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
-
-        if st.button("✅ Enregistrer le match"):
+        if st.button("💾"):
             match_id = str(uuid.uuid4())
             st.session_state.matchs[match_id] = {
                 "type": type_match,
@@ -958,7 +965,7 @@ with tab1:
                 "homme_du_match": ""
             }
             manager.save()
-            st.success("📦 Match enregistré")
+            st.success("✅ Match enregistré")
             st.rerun()
 
     # --- 📋 Mes matchs enregistrés ---
@@ -980,25 +987,26 @@ with tab1:
                     # --- 🏟️ Créer composition pour ce match ---
                     if not match.get("termine"):
                         with st.expander("### 🏟️ Composition du match"):
-
-                            use_compo = st.checkbox("🔁 Utiliser une compo enregistrée ?", key=f"use_compo_{mid}")
-                            if use_compo and st.session_state.lineups:
-                                compo_choice = st.selectbox("📂 Choisir une compo", list(st.session_state.lineups.keys()), key=f"compo_choice_{mid}")
-                                compo_data = st.session_state.lineups[compo_choice]
-                                formation = compo_data["formation"]
-                                terrain = compo_data["details"]
-                                remplacants = compo_data.get("remplacants", [])
-                            else:
-                                formation = st.selectbox("📌 Formation", list(FORMATION.keys()), key=f"form_{mid}")
-                                terrain = terrain_interactif(formation, f"terrain_match_{mid}", key_suffix=mid)
-                                titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
-                                remplacants = remplacants_interactif(f"match_{mid}", titulaires, key_suffix=mid)
+                            col_left, col_right = st.columns([3, 7])
+                            with col_left:
+                                use_compo = st.checkbox("🔁 Utiliser une compo enregistrée ?", key=f"use_compo_{mid}")
+                                if use_compo and st.session_state.lineups:
+                                    compo_choice = st.selectbox("📂 Choisir une compo", list(st.session_state.lineups.keys()), key=f"compo_choice_{mid}")
+                                    compo_data = st.session_state.lineups[compo_choice]
+                                    formation = compo_data["formation"]
+                                    terrain = compo_data["details"]
+                                    remplacants = compo_data.get("remplacants", [])
+                                else:
+                                    formation = st.selectbox("📌 Formation", list(FORMATION.keys()), key=f"form_{mid}")
+                                    terrain = terrain_interactif(formation, f"terrain_match_{mid}", key_suffix=mid)
+                                    titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+                                    remplacants = remplacants_interactif(f"match_{mid}", titulaires, key_suffix=mid)
+                            with col_right:
+                                fig = draw_football_pitch_vertical()
+                                fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
+                                st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
     
-                            fig = draw_football_pitch_vertical()
-                            fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
-                            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
-    
-                            if st.button("💾 Valider la composition", key=f"btn_compo_{mid}"):
+                            if st.button("💾", key=f"btn_compo_{mid}"):
                                 match["formation"] = formation
                                 match["details"] = terrain
                                 match["remplacants"] = remplacants
@@ -1010,25 +1018,40 @@ with tab1:
                         # --- 👥 Convocation des joueurs ---
                         if terrain:
                             with st.expander("### 👥 Convocation des joueurs"):
+                                noms_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+                                noms_remplaçants = [r["Nom"] for r in remplacants if r.get("Nom")]
+                                noms_convoques = list(dict.fromkeys(noms_titulaires + noms_remplaçants))
                             
-                                joueurs_convoques = []
-                                for p in POSTES_ORDER:
-                                    joueurs_convoques += [j["Nom"] for j in terrain.get(p, []) if j]
-                                joueurs_convoques += [r["Nom"] for r in remplacants if r.get("Nom")]
-                                joueurs_convoques = list(dict.fromkeys(joueurs_convoques))
-    
-                                # Heure de RDV
+                                joueurs_df = st.session_state.players.set_index("Nom")
+                                convoques_par_poste = {poste: [] for poste in POSTES_ORDER}
+                                
+                                for nom in noms_convoques:
+                                    poste = joueurs_df.at[nom, "Poste"] if nom in joueurs_df.index else ""
+                                    if poste in convoques_par_poste:
+                                        convoques_par_poste[poste].append(nom)
+                                    else:
+                                        convoques_par_poste.setdefault("?", []).append(nom)
+                            
                                 heure_match = match.get("heure", "21:00")
                                 try:
                                     rdv = (datetime.strptime(heure_match, "%H:%M") - timedelta(hours=1)).strftime("%H:%M")
                                 except:
                                     rdv = "?"
-    
+                            
                                 st.write(f"📅 {match['date']} à {heure_match} – **RDV : {rdv}**")
-                                st.write(f"{match.get('adversaire')}")
+                                st.write(f"🆚 {match.get('adversaire')}")
                                 st.write(f"📍 Lieu : {match.get('lieu')}")
-                                for nom in joueurs_convoques:
-                                    st.markdown(f"- {nom}")
+                                POSTES_EMOJIS = {"G": "🧤", "D": "🛡️", "M": "🎯", "A": "⚽"}
+                                for poste in POSTES_ORDER:
+                                    joueurs = convoques_par_poste.get(poste, [])
+                                    if joueurs:
+                                        emoji = POSTES_EMOJIS.get(poste, "")
+                                        label = POSTES_LONG.get(poste, "Inconnu")
+                                        st.markdown(f"**{emoji} {label}s :**")
+                                        for nom in joueurs:
+                                            st.markdown(f"- {nom}")
+
+                            
 
                     # --- 📝 Saisie des statistiques du match ---
                     elif match_ended and not match.get("noted", False):
@@ -1038,9 +1061,18 @@ with tab1:
                             joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
                             joueurs = list(dict.fromkeys(joueurs))
     
-                            score_afc = st.number_input("⚽ Buts AFC", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
-                            score_adv = st.number_input(f"⚽ Buts {match['adversaire']}", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
-    
+                            col_eqdom,col_scoredom,col_scoreext,col_eqext = st.columns([3,2,2,3])
+                            if match['domicile']="domicile":
+                                col_eqdom.markdown("AFC")
+                                col_eqext.markdown(f"{match['adversaire']}")
+                                score_afc = col_scoredom.number_input("⚽", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
+                                score_adv = col_scoreext.number_input(f"⚽", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
+                            else:
+                                col_eqdom.markdown(f"{match['adversaire']}")
+                                col_eqext.markdown("AFC")
+                                score_afc = col_scoreext.number_input("⚽", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
+                                score_adv = col_scoredom.number_input(f"⚽", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
+                            
                             events = {
                                 "buteurs": {},
                                 "passeurs": {},
@@ -1050,19 +1082,22 @@ with tab1:
                             }
     
                             for nom in joueurs:
-                                col1, col2, col3 = st.columns(3)
+                                col1, col2, col3,col4,col5 = st.columns([1,1,1,1,4])
+                                st.markdown(f"{nom}")
                                 with col1:
-                                    events["buteurs"][nom] = st.number_input(f"{nom} - Buts", min_value=0, value=0, key=f"but_{mid}_{nom}")
+                                    events["buteurs"][nom] = st.number_input(f"Buts", min_value=0, value=0, key=f"but_{mid}_{nom}")
                                 with col2:
-                                    events["passeurs"][nom] = st.number_input(f"{nom} - Passes", min_value=0, value=0, key=f"pass_{mid}_{nom}")
+                                    events["passeurs"][nom] = st.number_input(f"Passes", min_value=0, value=0, key=f"pass_{mid}_{nom}")
+                                with col5:
+                                    events["notes"][nom] = st.slider(f"Note", min_value=0.0, max_value=10.0, value=5.0, step=0.5, key=f"note_{mid}_{nom}")
                                 with col3:
-                                    events["notes"][nom] = st.slider(f"{nom} - Note", min_value=0.0, max_value=10.0, value=5.0, step=0.5, key=f"note_{mid}_{nom}")
-                                events["cartons_jaunes"][nom] = st.number_input(f"{nom} - 🟨 Jaunes", min_value=0, value=0, key=f"cj_{mid}_{nom}")
-                                events["cartons_rouges"][nom] = st.number_input(f"{nom} - 🟥 Rouges", min_value=0, value=0, key=f"cr_{mid}_{nom}")
-    
+                                    events["cartons_jaunes"][nom] = st.number_input(f"🟨", min_value=0, value=0, key=f"cj_{mid}_{nom}")
+                                with col4:
+                                        events["cartons_rouges"][nom] = st.number_input(f"🟥", min_value=0, value=0, key=f"cr_{mid}_{nom}")
+                            st.markdown("----")
                             hdm = st.selectbox("🏆 Homme du match", [""] + joueurs, key=f"hdm_{mid}")
     
-                            if st.button("✅ Valider les stats", key=f"valide_{mid}"):
+                            if st.button("💾", key=f"valide_{mid}"):
                                 match["events"] = events
                                 match["score_afc"] = score_afc
                                 match["score_adv"] = score_adv
@@ -1078,13 +1113,15 @@ with tab1:
                     # --- 🧾 Résumé si match noté ---
                     elif match.get("noted", False):
                         with st.expander("### 📝 Résumé du match"):
-                            st.markdown(f"**{match['nom_match']}**")
-                            
+                            st.title(f"{match['nom_match']}")
+                            col1, col2 = st.columns(2)
                             # Score
                             if match.get("domicile") == "Domicile":
-                                st.markdown(f"### AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}")
+                                col1.markdown(f"### AFC {match['score_afc']}")
+                                col2.markdown(f"### {match['score_adv']} {match['adversaire']}")
                             else:
-                                st.markdown(f"### {match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
+                                col1.markdown(f"### {match['adversaire']} {match['score_adv']}")
+                                col2.markdown(f"### {match['score_afc']} AFC")
 
                             hdm = match.get("homme_du_match")
                             if hdm:
@@ -1092,7 +1129,7 @@ with tab1:
 
                             st.markdown("---")
                             
-                            col1, col2 = st.columns(2)
+                            
                             with col1:
                                 st.markdown("#### 📊 Événements du match")
                             
@@ -1160,7 +1197,7 @@ with tab1:
                                 manager.save()
                                 st.rerun()
                             
-                    if st.button("🗑️ Supprimer ce match", key=f"delete_match_{mid}"):
+                    if st.button("🗑️", key=f"delete_match_{mid}"):
                         del st.session_state.matchs[mid]
                         manager.save()
                         st.success("🧹 Match supprimé")
@@ -1275,7 +1312,7 @@ with tab2:
                 st.rerun()
                 
         uniquekeysave = f"savescores_{selected}"
-        if st.button("💾 Enregistrer les scores de la journée",key=uniquekeysave):
+        if st.button("💾",key=uniquekeysave):
                 st.session_state.championnat_scores[selected] = matchs
                 manager.save()
                 classement = get_classement(
@@ -1319,7 +1356,7 @@ with tab2:
         adv_df = pd.DataFrame({"Nom": st.session_state.adversaires}, dtype="object")
         edited_df = st.data_editor(adv_df, num_rows="dynamic", hide_index=True)
 
-        if st.button("💾 Sauvegarder les adversaires"):
+        if st.button("💾"):
             st.session_state.adversaires = edited_df["Nom"].dropna().astype(str).tolist()
             manager.save()
             st.success("✅ Liste mise à jour")
