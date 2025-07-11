@@ -925,7 +925,7 @@ with tab1:
 
         date = st.date_input("Date du match", value=datetime.today())
         heure = st.time_input("Heure du match", value=datetime.strptime("21:00", "%H:%M").time())
-        domicile = st.selectbox("Lieu du match", ["Domicile", "Extérieur"])
+        domicile = st.selectbox("Réception", ["Domicile", "Extérieur"])
         if domicile == "Domicile":
             lieu_default = "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac"
         else:
