@@ -1062,7 +1062,7 @@ with tab1:
                             joueurs = list(dict.fromkeys(joueurs))
     
                             col_eqdom,col_scoredom,col_scoreext,col_eqext = st.columns([3,2,2,3])
-                            if match['domicile']="domicile":
+                            if match['domicile']=="domicile":
                                 col_eqdom.markdown("AFC")
                                 col_eqext.markdown(f"{match['adversaire']}")
                                 score_afc = col_scoredom.number_input("⚽", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
