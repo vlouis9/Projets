@@ -637,9 +637,9 @@
     "J01": [
       {
         "domicile": "AFC",
-        "score_dom": 3,
+        "score_dom": 0,
         "exterieur": "Athletico Tolosa B",
-        "score_ext": 0
+        "score_ext": 2
       },
       {
         "domicile": "Forza Viola FC",
