@@ -1292,7 +1292,7 @@ with tab2:
             ext_new = col4.selectbox("Extérieur", [e for e in equipes if e != dom_new])
             score_dom_new = col2.number_input("⚽ Score domicile", min_value=0, value=0)
             score_ext_new = col3.number_input("⚽ Score extérieur", min_value=0, value=0)
-            if col5.form_submit_button("➕"):
+            if col5.button("➕"):
                 matchs.append({
                     "domicile": dom_new,
                     "exterieur": ext_new,
