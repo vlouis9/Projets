@@ -1113,22 +1113,16 @@ with tab1:
                     elif match.get("noted", False):
                         with st.expander("### 📝 Résumé du match"):
                             st.title(f"{match['nom_match']}")
-                            col_dom, col_ext = st.columns(2)
-                            # Score
                             if match.get("domicile") == "Domicile":
-                                col_dom.markdown(f"### AFC {match['score_afc']}")
-                                col_ext.markdown(f"### {match['score_adv']} {match['adversaire']}")
+                                st.markdown(f"### AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}"
                             else:
-                                col_dom.markdown(f"### {match['adversaire']} {match['score_adv']}")
-                                col_ext.markdown(f"### {match['score_afc']} AFC")
+                                st.markdown(f"### {match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
 
+                            st.markdown("---")
                             hdm = match.get("homme_du_match")
                             if hdm:
                                 st.markdown("**🏆 Homme du match**")
                                 st.markdown(f"{hdm}")
-
-                            st.markdown("---")
-                            
                             col1, col2 = st.columns(2)
                             with col1:
                                 st.markdown("#### 📊 Événements du match")
