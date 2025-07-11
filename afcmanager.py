@@ -469,25 +469,27 @@ def terrain_interactif(formation, terrain_key, key_suffix=None):
         noms_postes = POSTES_NOMS.get(formation, {}).get(poste, [])
         if not noms_postes:
             noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
-        for i in range(FORMATION[formation][poste]):
-            all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and j]
-            current = terrain[poste][i]
-            current_nom = current["Nom"] if current and isinstance(current, dict) else ""
-            label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
-            options = [""] + [n for n in joueurs_tries if n == current_nom or n not in all_selected]
-            key_select = f"{terrain_key}_{poste}_{i}"
-            if key_suffix:
-                key_select += f"_{key_suffix}"
-            choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
-            if choix:
-                joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
-                num = st.text_input(f"Numéro de {choix}", value=current.get("Numero", "") if current else "", key=f"num_{terrain_key}_{poste}_{i}")
-                cap = st.checkbox(f"Capitaine ?", value=current.get("Capitaine", False) if current else False, key=f"cap_{terrain_key}_{poste}_{i}")
-                joueur_info["Numero"] = num
-                joueur_info["Capitaine"] = cap
-                terrain[poste][i] = joueur_info
-            else:
-                terrain[poste][i] = None
+    
+        with st.expander(f"{POSTES_LONG[poste]}s"):
+            for i in range(FORMATION[formation][poste]):
+                all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and j]
+                current = terrain[poste][i]
+                current_nom = current["Nom"] if current and isinstance(current, dict) else ""
+                label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
+                options = [""] + [n for n in joueurs_tries if n == current_nom or n not in all_selected]
+                key_select = f"{terrain_key}_{poste}_{i}"
+                if key_suffix:
+                    key_select += f"_{key_suffix}"
+                choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
+                if choix:
+                    joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
+                    num = st.text_input(f"Numéro de {choix}", value=current.get("Numero", "") if current else "", key=f"num_{terrain_key}_{poste}_{i}")
+                    cap = st.checkbox(f"Capitaine ?", value=current.get("Capitaine", False) if current else False, key=f"cap_{terrain_key}_{poste}_{i}")
+                    joueur_info["Numero"] = num
+                    joueur_info["Capitaine"] = cap
+                    terrain[poste][i] = joueur_info
+                else:
+                    terrain[poste][i] = None
 
     st.session_state[terrain_key] = terrain
     return terrain
@@ -508,25 +510,26 @@ def remplacants_interactif(key, titulaires, key_suffix=None):
 
     dispo = [n for n in noms_joueurs_tries if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]]]
 
-    for i in range(MAX_REMPLACANTS):
-        current = remps[i]["Nom"]
-        options = dispo + ([current] if current and current not in dispo else [])
-        key_select = f"remp_choice_{key}_{i}"
-        if key_suffix:
-            key_select += f"_{key_suffix}"
-        choix = st.selectbox(
-            f"Remplaçant {i+1}",
-            [""] + options,
-            index=(options.index(current)+1) if current in options else 0,
-            key=key_select
-        )
-        if choix:
-            joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
-            num = st.text_input(f"Numéro de {choix}", value=remps[i].get("Numero",""), key=f"num_remp_{key}_{i}")
-            remps[i] = {"Nom": choix, "Numero": num}
-        else:
-            remps[i] = {"Nom": None, "Numero": ""}
-        dispo = [n for n in dispo if n != choix]
+    with st.expander("Remplaçants"):
+        for i in range(MAX_REMPLACANTS):
+            current = remps[i]["Nom"]
+            options = dispo + ([current] if current and current not in dispo else [])
+            key_select = f"remp_choice_{key}_{i}"
+            if key_suffix:
+                key_select += f"_{key_suffix}"
+            choix = st.selectbox(
+                f"Remplaçant {i+1}",
+                [""] + options,
+                index=(options.index(current)+1) if current in options else 0,
+                key=key_select
+            )
+            if choix:
+                joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
+                num = st.text_input(f"Numéro de {choix}", value=remps[i].get("Numero",""), key=f"num_remp_{key}_{i}")
+                remps[i] = {"Nom": choix, "Numero": num}
+            else:
+                remps[i] = {"Nom": None, "Numero": ""}
+            dispo = [n for n in dispo if n != choix]
 
     st.session_state[f"remp_{key}"] = remps
     return [r for r in remps if r["Nom"]]
