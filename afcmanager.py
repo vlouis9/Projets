@@ -561,8 +561,6 @@ tab_acc, tab1, tab2, tab3, tab4 = st.tabs([
 
 # --- 🏟️ Onglet Accueil (Tableau de bord) ---
 with tab_acc:
-    st.write("🏟️ Tableau de bord AFC")
-
     today = datetime.today().date()
     matchs = st.session_state.get("matchs", {})
     classement = get_classement(
@@ -573,7 +571,7 @@ with tab_acc:
     # 📊 Classement championnat
     try:
         rang_afc = classement.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
-        st.markdown(f"### 📊 Championnat ***{rang_afc}ᵉ***")
+        st.markdown(f"📊 Championnat ### ***{rang_afc}ᵉ***")
     except IndexError:
         st.warning("AFC ne figure pas encore dans le classement.")
 
@@ -593,9 +591,9 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        st.markdown(f"### 🏆 Coupe : **{match_coupe_a_venir.get('journee', 'Tour à venir')}** ")
+        st.markdown(f"🏆 Coupe : ### **{match_coupe_a_venir.get('journee', 'Tour à venir')}** ")
     elif dernier_tour_coupe:
-        st.markdown(f"### 🏆 Coupe : **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** ")
+        st.markdown(f"🏆 Coupe : ### **{dernier_tour_coupe.get('journee', 'Tour inconnu')}** ")
     else:
         st.info("Coupe pas encore entamée.")
     
@@ -644,12 +642,10 @@ with tab_acc:
 
 # --- 🧠 Onglet : Gestion Équipe ---
 with tab3:
-    subtab1, subtab2 = st.tabs(["📊 Stats équipe", "📋 Base joueurs"])
+    subtab1, subtab2 = st.tabs(["Stats équipe", "Base joueurs"])
 
     # -- 🟡 Sous-onglet : Statistiques équipe --
     with subtab1:
-        st.title("📊 Statistiques de l'équipe")
-
         stats_data = []
         for _, row in st.session_state.players.iterrows():
             s = compute_player_stats(row["Nom"])
@@ -702,7 +698,6 @@ with tab3:
 
     # -- 🟠 Sous-onglet : Base de données joueurs --
     with subtab2:
-        st.title("📋 Base de données joueurs")
         st.markdown("Ajoutez, éditez ou retirez des joueurs ci-dessous. Les colonnes statistiques sont calculées automatiquement.")
 
         stats_data = []
@@ -749,12 +744,11 @@ with tab3:
 
 # --- 🧪 Onglet Tactiques ---
 with tab4:
-    st.title("🧪 Gestion des tactiques et compositions")
 
     subtab1, subtab2, subtab3 = st.tabs([
-        "📐 Créer une composition", 
-        "🗂️ Mes compositions", 
-        "🔎 Profondeur d'effectif"
+        "Créer une composition", 
+        "Mes compositions", 
+        "Profondeur d'effectif"
     ])
 
     # --- 📐 Créer une composition ---
@@ -824,44 +818,38 @@ with tab4:
                         st.rerun()
 
     # --- 🔎 Profondeur d'effectif par poste ---
-    with subtab3:
-        st.title("🔍 Profondeur d'effectif")
+    with subtab3
         formation_selected = st.selectbox("🎯 Formation", list(FORMATION.keys()), key="formation_profondeur")
-    
-        # 🔧 Initialisation si absente
+        
+        # 🔧 Initialisation
         if "profondeur_effectif" not in st.session_state:
             st.session_state.profondeur_effectif = {}
         if formation_selected not in st.session_state.profondeur_effectif:
             st.session_state.profondeur_effectif[formation_selected] = {}
-    
+        
         profondeur = st.session_state.profondeur_effectif[formation_selected]
         joueurs = st.session_state.players["Nom"].dropna().tolist()
         postes_formation = POSTES_NOMS.get(formation_selected, {})
-    
+        positions = positions_for_formation_vertical(formation_selected)
+        
+        # 🧭 Deux colonnes : Sélection / Terrain
         col_left, col_right = st.columns([3, 7])
+        
         with col_left:
             st.markdown("### Sélection par poste")
-    
             for poste in POSTES_ORDER:
                 if poste not in postes_formation:
                     continue
                 if poste not in profondeur:
                     profondeur[poste] = {}
-    
                 for idx_label, label in enumerate(postes_formation[poste]):
-                    key_poste = f"{formation_selected}_{poste}_{idx_label}"
-                    noms = profondeur[poste].get(idx_label, [])
-                    noms = noms if isinstance(noms, list) else []
-                    noms = [n.strip() for n in noms if isinstance(n, str)]
-    
-                    # 🔁 Ajouter une entrée vide si la dernière est remplie
-                    if not noms or noms[-1]:
-                        noms.append("")
-    
+                    idx_key = str(idx_label)
+                    if idx_key not in profondeur[poste]:
+                        profondeur[poste][idx_key] = [""]
                     st.markdown(f"**{label}**")
                     new_noms = []
-                    for i, nom in enumerate(noms):
-                        select_key = f"{key_poste}_choix_{i}"
+                    for i, nom in enumerate(profondeur[poste][idx_key]):
+                        select_key = f"{formation_selected}_{poste}_{idx_key}_choix_{i}"
                         choix = st.selectbox(
                             f"Option {i+1}", [""] + joueurs,
                             index=([""] + joueurs).index(nom) if nom in joueurs else 0,
@@ -869,22 +857,22 @@ with tab4:
                         )
                         if choix.strip():
                             new_noms.append(choix)
-    
-                    profondeur[poste][idx_label] = new_noms
-    
+                    if new_noms and new_noms[-1] != "":
+                        new_noms.append("")
+                    profondeur[poste][idx_key] = new_noms
+        
             if st.button("💾 Sauvegarder profondeur"):
                 st.session_state.profondeur_effectif[formation_selected] = profondeur
                 manager.save()
                 st.success("✅ Profondeur sauvegardée")
-    
+        
         with col_right:
             st.markdown("### Visualisation du terrain")
             fig = draw_football_pitch_vertical()
-            positions = positions_for_formation_vertical(formation_selected)
-    
             for poste in POSTES_ORDER:
                 for idx, label in enumerate(postes_formation.get(poste, [])):
-                    noms = profondeur.get(poste, {}).get(idx, [])
+                    noms = profondeur.get(poste, {}).get(str(idx), [])
+                    noms = [n for n in noms if n]
                     if noms:
                         x, y = positions[poste][idx % len(positions[poste])]
                         texte = "<br>".join([f"{i+1}. {nom}" for i, nom in enumerate(noms)])
@@ -903,13 +891,10 @@ with tab4:
 
 # --- 📅 Onglet Gestion des matchs ---
 with tab1:
-    st.title("📅 Gestion des matchs")
-    subtab1, subtab2 = st.tabs(["⚙️ Créer un match", "📋 Mes matchs"])
+    subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
 
     # --- ⚙️ Créer un match ---
     with subtab1:
-        st.markdown("### Paramètres du match")
-
         type_match = st.selectbox("🧭 Type de match", ["Championnat", "Coupe", "Amical"])
         if type_match=="Championnat":
             journee = st.text_input("📌 Journée", value="J")
@@ -1171,15 +1156,13 @@ with tab1:
 # --- 📈 Onglet Suivi Championnat ---
 with tab2:
     subtab1, subtab2, subtab3 = st.tabs([
-        "🏆 Classement", 
-        "📋 Saisie des scores", 
-        "🧑‍🤝‍🧑 Gestion des adversaires"
+        "Classement", 
+        "Saisie des scores", 
+        "Gestion des adversaires"
     ])
 
     # --- 🏆 Classement automatique ---
     with subtab1:
-        st.title("🏆 Classement du championnat")
-
         equipes = ["AFC"] + st.session_state.get("adversaires", [])
         scores = st.session_state.get("championnat_scores", {})
         stats = {team: {"MJ": 0, "Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for team in equipes}
@@ -1223,8 +1206,6 @@ with tab2:
 
     # --- 📋 Saisie des scores par journée ---
     with subtab2:
-        st.title("📋 Saisie des scores")
-
         def next_journee_key():
             existing = [int(j[1:]) for j in st.session_state.championnat_scores if j.startswith("J")]
             return f"J{max(existing, default=0)+1:02d}"
@@ -1292,8 +1273,6 @@ with tab2:
 
     # --- 🧑‍🤝‍🧑 Gestion des adversaires ---
     with subtab3:
-        st.title("🧑‍🤝‍🧑 Adversaires du championnat")
-
         adv_df = pd.DataFrame({"Nom": st.session_state.adversaires}, dtype="object")
         edited_df = st.data_editor(adv_df, num_rows="dynamic", hide_index=True)
 
