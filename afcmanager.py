@@ -1229,7 +1229,7 @@ with tab2:
         selected = st.session_state.selected_journee
             
         idx = journees.index(st.session_state.selected_journee)
-        col_spacer1, col_prev, col_title, col_next, col_spacer2 = st.columns([1, 1, 6, 1, 1])
+        col_spacer1, col_prev, col_title, col_next, col_spacer2 = st.columns([3, 1, 2, 1, 3])
 
         with col_prev:
             if idx > 0 and st.button("←", key="journee_prev"):
@@ -1271,7 +1271,7 @@ with tab2:
                 st.success("🧹 Match supprimé")
                 st.rerun()
                 
-        uniquekeysave = f"savescores{selected}_{uuid.uuid4()}"
+        uniquekeysave = f"savescores_{selected}"
         if st.button("💾 Enregistrer les scores de la journée",key=uniquekeysave):
                 st.session_state.championnat_scores[selected] = matchs
                 manager.save()
