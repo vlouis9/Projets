@@ -1114,7 +1114,7 @@ with tab1:
                         with st.expander("### 📝 Résumé du match"):
                             st.title(f"{match['nom_match']}")
                             if match.get("domicile") == "Domicile":
-                                st.markdown(f"### AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}"
+                                st.markdown(f"### AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}")
                             else:
                                 st.markdown(f"### {match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
 
