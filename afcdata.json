@@ -637,33 +637,39 @@
     "J01": [
       {
         "domicile": "AFC",
-        "exterieur": "Athletico Tolosa B",
         "score_dom": 3,
+        "exterieur": "Athletico Tolosa B",
         "score_ext": 0
       },
       {
         "domicile": "Forza Viola FC",
-        "exterieur": "AJ Saint-Exupery",
         "score_dom": 2,
+        "exterieur": "AJ Saint-Exupery",
         "score_ext": 0
       },
       {
         "domicile": "ASFP Lusitanos",
-        "exterieur": "Forza Viola FC",
         "score_dom": 1,
+        "exterieur": "Forza Viola FC",
         "score_ext": 1
       },
       {
         "domicile": "AS DRT",
-        "exterieur": "Altran Foot",
         "score_dom": 2,
+        "exterieur": "Altran Foot",
         "score_ext": 1
       },
       {
         "domicile": "CHU Toulouse FC",
-        "exterieur": "ASFP Lusitanos",
         "score_dom": 2,
+        "exterieur": "ASFP Lusitanos",
         "score_ext": 2
+      },
+      {
+        "domicile": "AFC",
+        "exterieur": "Athletico Tolosa B",
+        "score_dom": 0,
+        "score_ext": 0
       }
     ],
     "J02": [
@@ -708,38 +714,9 @@
           "Thibault Defaye",
           "Pierre Tarasinski",
           ""
-        ],
-        "0": [
-          "William Toumelin",
-          "Thibault Defaye",
-          "Pierre Tarasinski",
-          ""
         ]
       },
       "D": {
-        "0": [
-          "Arthur Bouchet",
-          "Marouane Habachi",
-          "Walid Chouchi",
-          ""
-        ],
-        "1": [
-          "Jason Cuvelier",
-          "Thibault Rigal",
-          "Pierre Pavia",
-          ""
-        ],
-        "2": [
-          "Charles Plun",
-          "Maxime Pujol",
-          ""
-        ],
-        "3": [
-          "Quentin Dauris",
-          "Arthur Couto",
-          "Pierre Pavia",
-          ""
-        ],
         "0": [
           "Arthur Bouchet",
           "Marouane Habachi",
@@ -798,50 +775,9 @@
           "Emmanuel Pannier",
           "Nicolas Gardan",
           ""
-        ],
-        "0": [
-          "Thibault Rigal",
-          "Florentin Reynaud",
-          "Louis Vermeulen",
-          "Yoann Perzynski",
-          ""
-        ],
-        "1": [
-          "Maxime Pujol",
-          "Walid Chouchi",
-          "Yoann Perzynski",
-          ""
-        ],
-        "2": [
-          "Louis Vermeulen",
-          "Axel Soldadi\u00e9",
-          "Hicham Grerifa",
-          ""
-        ],
-        "3": [
-          "Adrien Gric",
-          "Florentin Reynaud",
-          "Louis Vermeulen",
-          "Abdel Ouachouo",
-          "Yoann Perzynski",
-          ""
-        ],
-        "4": [
-          "Axel Soldadi\u00e9",
-          "Abdel Jalil",
-          "Emmanuel Pannier",
-          "Nicolas Gardan",
-          ""
         ]
       },
       "A": {
-        "0": [
-          "Gregory Perrot",
-          "Axel Soldadi\u00e9",
-          "Abdel Jalil",
-          "Credo Atake",
-          ""
-        ],
         "0": [
           "Gregory Perrot",
           "Axel Soldadi\u00e9",
