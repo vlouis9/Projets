@@ -704,43 +704,150 @@
     "4-2-3-1": {
       "G": {
         "0": [
-          "William Toumelin"
+          "William Toumelin",
+          "Thibault Defaye",
+          "Pierre Tarasinski",
+          ""
+        ],
+        "0": [
+          "William Toumelin",
+          "Thibault Defaye",
+          "Pierre Tarasinski",
+          ""
         ]
       },
       "D": {
         "0": [
-          "Arthur Bouchet"
+          "Arthur Bouchet",
+          "Marouane Habachi",
+          "Walid Chouchi",
+          ""
         ],
         "1": [
-          "Jason Cuvelier"
+          "Jason Cuvelier",
+          "Thibault Rigal",
+          "Pierre Pavia",
+          ""
         ],
         "2": [
-          "Charles Plun"
+          "Charles Plun",
+          "Maxime Pujol",
+          ""
         ],
         "3": [
-          "Quentin Dauris"
+          "Quentin Dauris",
+          "Arthur Couto",
+          "Pierre Pavia",
+          ""
+        ],
+        "0": [
+          "Arthur Bouchet",
+          "Marouane Habachi",
+          "Walid Chouchi",
+          ""
+        ],
+        "1": [
+          "Jason Cuvelier",
+          "Thibault Rigal",
+          "Pierre Pavia",
+          ""
+        ],
+        "2": [
+          "Charles Plun",
+          "Maxime Pujol",
+          ""
+        ],
+        "3": [
+          "Quentin Dauris",
+          "Arthur Couto",
+          "Pierre Pavia",
+          ""
         ]
       },
       "M": {
         "0": [
-          "Thibault Rigal"
+          "Thibault Rigal",
+          "Florentin Reynaud",
+          "Louis Vermeulen",
+          "Yoann Perzynski",
+          ""
         ],
         "1": [
-          "Walid Chouchi"
+          "Maxime Pujol",
+          "Walid Chouchi",
+          "Yoann Perzynski",
+          ""
         ],
         "2": [
-          "Louis Vermeulen"
+          "Louis Vermeulen",
+          "Axel Soldadi\u00e9",
+          "Hicham Grerifa",
+          ""
         ],
         "3": [
-          "Yoann Perzynski"
+          "Adrien Gric",
+          "Florentin Reynaud",
+          "Louis Vermeulen",
+          "Abdel Ouachouo",
+          "Yoann Perzynski",
+          ""
         ],
         "4": [
-          "Axel Soldadi\u00e9"
+          "Axel Soldadi\u00e9",
+          "Abdel Jalil",
+          "Emmanuel Pannier",
+          "Nicolas Gardan",
+          ""
+        ],
+        "0": [
+          "Thibault Rigal",
+          "Florentin Reynaud",
+          "Louis Vermeulen",
+          "Yoann Perzynski",
+          ""
+        ],
+        "1": [
+          "Maxime Pujol",
+          "Walid Chouchi",
+          "Yoann Perzynski",
+          ""
+        ],
+        "2": [
+          "Louis Vermeulen",
+          "Axel Soldadi\u00e9",
+          "Hicham Grerifa",
+          ""
+        ],
+        "3": [
+          "Adrien Gric",
+          "Florentin Reynaud",
+          "Louis Vermeulen",
+          "Abdel Ouachouo",
+          "Yoann Perzynski",
+          ""
+        ],
+        "4": [
+          "Axel Soldadi\u00e9",
+          "Abdel Jalil",
+          "Emmanuel Pannier",
+          "Nicolas Gardan",
+          ""
         ]
       },
       "A": {
         "0": [
-          "Gregory Perrot"
+          "Gregory Perrot",
+          "Axel Soldadi\u00e9",
+          "Abdel Jalil",
+          "Credo Atake",
+          ""
+        ],
+        "0": [
+          "Gregory Perrot",
+          "Axel Soldadi\u00e9",
+          "Abdel Jalil",
+          "Credo Atake",
+          ""
         ]
       }
     }
