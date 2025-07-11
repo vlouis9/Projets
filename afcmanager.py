@@ -676,11 +676,14 @@ with tab3:
             top_ratio      = df[df["Décisif par match"] > 0].sort_values("Décisif par match", ascending=False).head(5)
             top_used       = df[df["Titularisations"] > 0].sort_values("Titularisations", ascending=False).head(5)
             top_bouchers   = df[(df["Cartons rouges"] > 0) | (df["Cartons jaunes"] > 0)].sort_values(["Cartons rouges", "Cartons jaunes"], ascending=False).head(5)
+            top_hdm = df[df["Homme du match"] > 0].sort_values("Homme du match", ascending=False).head(5)
 
             col1, col2 = st.columns(2)
             with col1:
                 st.subheader("⭐ Top 5 Notes")
                 st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
+                st.subheader("🏆 Top 5 Homme du match")
+                st.dataframe(top_hdm[["Nom", "Homme du match"]], use_container_width=True, hide_index=True)
                 st.subheader("⚽ Top 5 Buteurs")
                 st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True, hide_index=True)
                 st.subheader("🎯 Top 5 Passeurs")
