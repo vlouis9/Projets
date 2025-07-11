@@ -1238,7 +1238,7 @@ with tab2:
         
         with col_center:
             st.markdown(
-                f"<h2 style='text-align: center;'>📅 Journée : {selected}</h2>",
+                f"<h2 style='text-align: center;'>📅 {selected}</h2>",
                 unsafe_allow_html=True
             )
         
@@ -1285,8 +1285,7 @@ with tab2:
 
         # Ajouter un match
         st.markdown("---")
-        st.markdown("### ➕ Ajouter un match à cette journée")
-        with st.expander(f"add_match_form_{selected}"):
+        with st.expander("➕ Ajouter un match à cette journée"):
             col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 3, 1])
             dom_new = col1.selectbox("Domicile", equipes)
             ext_new = col4.selectbox("Extérieur", [e for e in equipes if e != dom_new])
@@ -1303,7 +1302,7 @@ with tab2:
                 manager.save()
                 st.success("✅ Match ajouté")
                 st.rerun()
-
+        st.markdown("---")
         # Ajouter une nouvelle journée
         if st.button("🗓️ Ajouter une journée"):
             new_key = next_journee_key()
