@@ -1229,14 +1229,14 @@ with tab2:
         selected = st.session_state.selected_journee
             
         idx = journees.index(st.session_state.selected_journee)
-        col_prev, col_center, col_next = st.columns([1, 1, 1])
+        col_spacer1, col_prev, col_title, col_next, col_spacer2 = st.columns([1, 1, 6, 1, 1])
 
         with col_prev:
             if idx > 0 and st.button("←", key="journee_prev"):
                 st.session_state.selected_journee = journees[idx - 1]
                 st.rerun()
         
-        with col_center:
+        with col_title:
             st.markdown(
                 f"<h2 style='text-align: center;'>📅 {selected}</h2>",
                 unsafe_allow_html=True
