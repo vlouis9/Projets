@@ -875,7 +875,7 @@ with tab4:
                             new_noms.append("")
                         profondeur[poste][idx_key] = new_noms
         
-            if st.button("💾", key=save_profondeur):
+            if st.button("💾", key=f"save_profondeur_{formation_selected}"):
                 st.session_state.profondeur_effectif[formation_selected] = profondeur
                 manager.save()
                 st.success("✅ Profondeur sauvegardée")
