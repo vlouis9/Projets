@@ -1356,7 +1356,7 @@ with tab2:
         adv_df = pd.DataFrame({"Nom": st.session_state.adversaires}, dtype="object")
         edited_df = st.data_editor(adv_df, num_rows="dynamic", hide_index=True)
 
-        if st.button("💾"):
+        if st.button("💾",key=f"save_{adv_df}"):
             st.session_state.adversaires = edited_df["Nom"].dropna().astype(str).tolist()
             manager.save()
             st.success("✅ Liste mise à jour")
