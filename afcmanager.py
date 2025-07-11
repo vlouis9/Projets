@@ -1229,7 +1229,7 @@ with tab2:
         selected = st.session_state.selected_journee
             
         idx = journees.index(st.session_state.selected_journee)
-        col_prev, col_center, col_next = st.columns([1, 6, 1])
+        col_prev, col_center, col_next = st.columns([1, 1, 1])
 
         with col_prev:
             if idx > 0 and st.button("←", key="journee_prev"):
@@ -1252,7 +1252,7 @@ with tab2:
 
         # Affichage/édition des matchs
         for i, match in enumerate(matchs):
-            col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 3])
+            col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 3, 1])
             dom = col1.selectbox(f"Domicile {i+1}", equipes, index=equipes.index(match["domicile"]), key=f"dom_{selected}_{i}")
             score_dom = col2.number_input("⚽", value=match.get("score_dom", 0), min_value=0, max_value=30, key=f"score_dom_{selected}_{i}")
             score_ext = col3.number_input("⚽", value=match.get("score_ext", 0), min_value=0, max_value=30, key=f"score_ext_{selected}_{i}")
@@ -1264,7 +1264,7 @@ with tab2:
                 "score_ext": score_ext
             }
             
-            if col5.st.button("🗑️", key=f"delete_match_{selected}_{i}"):
+            if col5.button("🗑️", key=f"delete_match_{selected}_{i}"):
                 del matchs[i]
                 st.session_state.championnat_scores[selected] = matchs
                 manager.save()
@@ -1287,12 +1287,12 @@ with tab2:
         st.markdown("---")
         st.markdown("### ➕ Ajouter un match à cette journée")
         with st.form(f"add_match_form_{selected}"):
-            col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 1, 3])
+            col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 3, 1])
             dom_new = col1.st.selectbox("Domicile", equipes)
             ext_new = col4.st.selectbox("Extérieur", [e for e in equipes if e != dom_new])
             score_dom_new = col2.st.number_input("⚽ Score domicile", min_value=0, value=0)
             score_ext_new = col3.st.number_input("⚽ Score extérieur", min_value=0, value=0)
-            if col5.st.form_submit_button("➕"):
+            if col5.form_submit_button("➕"):
                 matchs.append({
                     "domicile": dom_new,
                     "exterieur": ext_new,
