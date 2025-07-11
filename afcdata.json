@@ -703,16 +703,26 @@
   "profondeur_effectif": {
     "4-2-3-1": {
       "G": {
-        "0": [],
+        "0": [
+          "William Toumelin"
+        ],
         "0": [
           "William Toumelin"
         ]
       },
       "D": {
-        "0": [],
-        "1": [],
-        "2": [],
-        "3": [],
+        "0": [
+          "Arthur Bouchet"
+        ],
+        "1": [
+          "Jason Cuvelier"
+        ],
+        "2": [
+          "Charles Plun"
+        ],
+        "3": [
+          "Quentin Dauris"
+        ],
         "0": [
           "Arthur Bouchet"
         ],
@@ -732,15 +742,27 @@
         "2": [],
         "3": [],
         "4": [],
-        "0": [],
-        "1": [],
-        "2": [],
-        "3": [],
-        "4": []
+        "0": [
+          "Thibault Rigal"
+        ],
+        "1": [
+          "Walid Chouchi"
+        ],
+        "2": [
+          "Louis Vermeulen"
+        ],
+        "3": [
+          "Yoann Perzynski"
+        ],
+        "4": [
+          "Axel Soldadi\u00e9"
+        ]
       },
       "A": {
         "0": [],
-        "0": []
+        "0": [
+          "Gregory Perrot"
+        ]
       }
     }
   }
