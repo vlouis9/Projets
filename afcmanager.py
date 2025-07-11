@@ -818,7 +818,7 @@ with tab4:
                         st.rerun()
 
     # --- 🔎 Profondeur d'effectif par poste ---
-    with subtab3
+    with subtab3 : 
         formation_selected = st.selectbox("🎯 Formation", list(FORMATION.keys()), key="formation_profondeur")
         
         # 🔧 Initialisation
