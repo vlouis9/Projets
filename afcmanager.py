@@ -160,7 +160,7 @@ def draw_football_pitch_vertical():
 
     fig.update_layout(
         width=460,
-        height=800,
+        height=1000,
         plot_bgcolor="#154734",
         margin=dict(l=10, r=10, t=10, b=10),
         showlegend=False
@@ -1116,15 +1116,16 @@ with tab1:
                             col_dom, col_ext = st.columns(2)
                             # Score
                             if match.get("domicile") == "Domicile":
-                                col1.markdown(f"### AFC {match['score_afc']}")
-                                col2.markdown(f"### {match['score_adv']} {match['adversaire']}")
+                                col_dom.markdown(f"### AFC {match['score_afc']}")
+                                col_ext.markdown(f"### {match['score_adv']} {match['adversaire']}")
                             else:
-                                col1.markdown(f"### {match['adversaire']} {match['score_adv']}")
-                                col2.markdown(f"### {match['score_afc']} AFC")
+                                col_dom.markdown(f"### {match['adversaire']} {match['score_adv']}")
+                                col_ext.markdown(f"### {match['score_afc']} AFC")
 
                             hdm = match.get("homme_du_match")
                             if hdm:
-                                st.markdown(f"**🏆 Homme du match :** {hdm}")
+                                st.markdown("**🏆 Homme du match**")
+                                st.markdown(f"{hdm}")
 
                             st.markdown("---")
                             
