@@ -680,21 +680,22 @@ with tab3:
 
             col1, col2 = st.columns(2)
             with col1:
-                st.subheader("⭐ Top 5 Notes")
-                st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
-                st.subheader("🏆 Top 5 Homme du match")
-                st.dataframe(top_hdm[["Nom", "Homme du match"]], use_container_width=True, hide_index=True)
+                
                 st.subheader("⚽ Top 5 Buteurs")
                 st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True, hide_index=True)
                 st.subheader("🎯 Top 5 Passeurs")
                 st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True, hide_index=True)
                 st.subheader("🔥 Top 5 Décisifs")
                 st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True, hide_index=True)
+                st.subheader("⚡ Ratio par match")
+                st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True, hide_index=True)
                 st.subheader("🧤 Clean Sheets")
                 st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True, hide_index=True)
             with col2:
-                st.subheader("⚡ Ratio par match")
-                st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True, hide_index=True)
+                st.subheader("⭐ Top 5 Notes")
+                st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
+                st.subheader("🏆 Top 5 Homme du match")
+                st.dataframe(top_hdm[["Nom", "Homme du match"]], use_container_width=True, hide_index=True)
                 st.subheader("🔁 Plus utilisés")
                 st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True, hide_index=True)
                 st.subheader("🟥🟨 Bouchers")
@@ -703,9 +704,9 @@ with tab3:
             # 🏆 Statistiques globales de l'équipe
             st.markdown("---")
             col3, col4, col5 = st.columns(3)
-            st.metric("🧮 Buts marqués", int(df["Buts"].sum()))
-            st.metric("🔓 Buts encaissés", sum(m.get("score_adv", 0) for m in st.session_state.matchs.values() if m.get("noted")))
-            st.metric("👥 Nombre de buteurs", df[df["Buts"] > 0]["Nom"].nunique())
+            col3.metric("🧮 Buts marqués", int(df["Buts"].sum()))
+            col4.metric("🔓 Buts encaissés", sum(m.get("score_adv", 0) for m in st.session_state.matchs.values() if m.get("noted")))
+            col5.metric("👥 Nombre de buteurs", df[df["Buts"] > 0]["Nom"].nunique())
         else:
             st.info("Aucun joueur dans la base pour générer des stats.")
 
