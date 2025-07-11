@@ -1259,16 +1259,21 @@ with tab2:
             ext = col5.selectbox(f"🚗 Extérieur {i+1}", equipes, index=equipes.index(match["exterieur"]), key=f"ext_{selected}_{i}")
             match.update({"domicile": dom, "score_dom": score_dom, "exterieur": ext, "score_ext": score_ext})
             uniquekeysave = f"savescores{selected}_{uuid.uuid4()}"
-            if st.button("💾 Enregistrer les scores de la journée",key=uniquekeysave):
-                st.session_state.championnat_scores[selected] = matchs
-                manager.save()
-                st.success("✅ Scores mis à jour")
-                st.rerun()
             if st.button(f"🗑️ Supprimer le match {i+1}", key=f"delete_match_{selected}_{i}"):
                 del matchs[i]
                 st.session_state.championnat_scores[selected] = matchs
                 manager.save()
                 st.success("🧹 Match supprimé")
+                st.rerun()
+        if st.button("💾 Enregistrer les scores de la journée",key=uniquekeysave):
+                st.session_state.championnat_scores[selected] = matchs
+                manager.save()
+                classement = get_classement(
+                    st.session_state.championnat_scores,
+                    st.session_state.adversaires
+                )
+                st.session_state["classement_live"] = classement  # (Optionnel, si tu veux le réutiliser ailleurs)
+                st.success("✅ Scores mis à jour")
                 st.rerun()
 
         # Ajouter un match
