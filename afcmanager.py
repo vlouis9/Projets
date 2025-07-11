@@ -942,7 +942,7 @@ with tab1:
                 nom_match = f"🤝 {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
         
 
-        if st.button("💾"):
+        if st.button("💾",key=f"save_{nom_match}"):
             match_id = str(uuid.uuid4())
             st.session_state.matchs[match_id] = {
                 "type": type_match,
