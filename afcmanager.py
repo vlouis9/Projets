@@ -630,7 +630,6 @@ with tab_acc:
         st.info("Aucun match joué cette saison.")
 
     # 📅 Prochain match
-    st.subheader("📅 Prochain match toutes compétitions")
     prochain_match = None
     date_min = None
     for match in matchs.values():
