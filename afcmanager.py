@@ -1113,7 +1113,7 @@ with tab1:
                     elif match.get("noted", False):
                         with st.expander("### 📝 Résumé du match"):
                             st.title(f"{match['nom_match']}")
-                            col1, col2 = st.columns(2)
+                            col_dom, col_ext = st.columns(2)
                             # Score
                             if match.get("domicile") == "Domicile":
                                 col1.markdown(f"### AFC {match['score_afc']}")
@@ -1128,7 +1128,7 @@ with tab1:
 
                             st.markdown("---")
                             
-                            
+                            col1, col2 = st.columns(2)
                             with col1:
                                 st.markdown("#### 📊 Événements du match")
                             
@@ -1190,7 +1190,7 @@ with tab1:
                             )
                             
                             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
-                            if st.button("✏️ Modifier les statistiques", key=f"edit_stats_{mid}"):
+                            if st.button("✏️", key=f"edit_stats_{mid}"):
                                 match["noted"] = False
                                 st.session_state.matchs[mid] = match
                                 manager.save()
