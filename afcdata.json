@@ -725,7 +725,7 @@
       "score_afc": 0,
       "score_adv": 0,
       "noted": false,
-      "termine": true,
+      "termine": false,
       "homme_du_match": ""
     }
   },
