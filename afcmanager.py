@@ -995,18 +995,20 @@ with tab1:
                     
                     # --- ✅ Checkbox “Match terminé” ---
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
-                    if match_ended != match.get("termine", False):
-                        match["termine"] = match_ended
-                        st.session_state.matchs[mid] = match
-                        manager.save()
-                        st.rerun()
-
+                    col_gauche, col_droite, col_space=st.columns([3, 2, 5])
+                    with col_gauche:
+                        if match_ended != match.get("termine", False):
+                            match["termine"] = match_ended
+                            st.session_state.matchs[mid] = match
+                            manager.save()
+                            st.rerun()
+                    with col_droite:
+                        if st.button("✏️", key=f"btn_edit_{mid}"):
+                            st.session_state["edit_match"] = (mid, match)
+                            st.rerun()
                     # --- 🏟️ Créer composition pour ce match ---
                     if not match.get("termine"):
                         with st.expander("### 🏟️ Composition du match"):
-                            if st.button("✏️ Modifier", key=f"btn_edit_{mid}"):
-                                st.session_state["edit_match"] = (mid, match)
-                                st.rerun()
                             col_left, col_right = st.columns([3, 7])
                             with col_left:
                                 use_compo = st.checkbox("🔁 Utiliser une compo enregistrée ?", key=f"use_compo_{mid}")
