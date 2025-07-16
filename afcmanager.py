@@ -141,7 +141,7 @@ POSTES_NOMS = {
 
 # --- 🎯 POSITIONNEMENT & TERRAIN ---
 
-def draw_football_pitch_vertical_3d():
+def draw_football_pitch_vertical():
     fig = go.Figure()
 
     # Dégradé de vert pour effet gazon en bandes (type TV)
