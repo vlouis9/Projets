@@ -912,77 +912,81 @@ with tab1:
 
     # --- ⚙️ Créer un match ---
     with subtab1:
-        edit_match = st.session_state.get("edit_match", None)
-        if edit_match:
-            mid, match_data = edit_match
-            st.info(f"✏️ Édition du match : **{match_data['nom_match']}**")
-            # Tu peux précharger chaque champ ici avec match_data["..."]
-            # Par exemple :
-            type_match = match_data["type"]
-            journee = match_data["journee"]
-            adversaire = match_data["adversaire"]
-            date = datetime.strptime(match_data["date"], "%Y-%m-%d")
-            heure = datetime.strptime(match_data["heure"], "%H:%M").time()
-            domicile = match_data["domicile"]
-            lieu = match_data["lieu"]
-        else:
-            type_match = st.selectbox("Compétition", ["Championnat", "Coupe", "Amical"])
+        with subtab1:
+            edit_match = st.session_state.get("edit_match", None)
+            if edit_match:
+                mid_edit, match_data = edit_match
+                st.info(f"✏️ Édition du match : **{match_data['nom_match']}**")
+                type_match = match_data["type"]
+                journee = match_data["journee"]
+                adversaire = match_data["adversaire"]
+                date = datetime.strptime(match_data["date"], "%Y-%m-%d")
+                heure = datetime.strptime(match_data["heure"], "%H:%M").time()
+                domicile = match_data["domicile"]
+                lieu = match_data.get("lieu", "")
+            else:
+                type_match = st.selectbox("Compétition", ["Championnat", "Coupe", "Amical"])
+                if type_match=="Championnat":
+                    journee = st.text_input("Journée", value="J")
+                else:
+                    if type_match=="Coupe":
+                        journee=st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"])
+                    else:
+                        journee = st.text_input("Numéro", value="#")
+                adversaires_list = st.session_state.get("adversaires", [])
+                adversaire_select = st.selectbox("Adversaire", adversaires_list + ["Autre..."])
+                if adversaire_select == "Autre...":
+                    adversaire = st.text_input("🆕 Nom de l'adversaire")
+                else:
+                    adversaire = adversaire_select
+        
+                date = st.date_input("Date du match", value=datetime.today())
+                heure = st.time_input("Heure du match", value=datetime.strptime("21:00", "%H:%M").time())
+                domicile = st.selectbox("Réception", ["Domicile", "Extérieur"])
+                if domicile == "Domicile":
+                    lieu_default = "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac"
+                else:
+                    lieu_default = ""
+                lieu = st.text_input("Lieu du match", value=lieu_default)
             if type_match=="Championnat":
-                journee = st.text_input("Journée", value="J")
+                nom_match = f"📈 {date} : {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
             else:
                 if type_match=="Coupe":
-                    journee=st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"])
+                    nom_match = f"🏆 {date} : {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
                 else:
-                    journee = st.text_input("Numéro", value="#")
-            adversaires_list = st.session_state.get("adversaires", [])
-            adversaire_select = st.selectbox("Adversaire", adversaires_list + ["Autre..."])
-            if adversaire_select == "Autre...":
-                adversaire = st.text_input("🆕 Nom de l'adversaire")
-            else:
-                adversaire = adversaire_select
-    
-            date = st.date_input("Date du match", value=datetime.today())
-            heure = st.time_input("Heure du match", value=datetime.strptime("21:00", "%H:%M").time())
-            domicile = st.selectbox("Réception", ["Domicile", "Extérieur"])
-            if domicile == "Domicile":
-                lieu_default = "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac"
-            else:
-                lieu_default = ""
-            lieu = st.text_input("Lieu du match", value=lieu_default)
-        if type_match=="Championnat":
-            nom_match = f"📈 {date} : {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
-        else:
-            if type_match=="Coupe":
-                nom_match = f"🏆 {date} : {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
-            else:
-                nom_match = f"🤝 {date} : {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
+                    nom_match = f"🤝 {date} : {type_match} - {journee} - {'AFC vs' if domicile == 'Domicile' else ''} {adversaire}{' vs AFC' if domicile == 'Extérieur' else ''}"
         
-
-        if st.button("💾",key=f"save_{nom_match}"):
-            match_id = str(uuid.uuid4())
-            st.session_state.matchs[match_id] = {
-                "type": type_match,
-                "adversaire": adversaire,
-                "date": str(date),
-                "heure": heure.strftime("%H:%M"),
-                "domicile": domicile,
-                "journee": journee,
-                "nom_match": nom_match,
-                "lieu": lieu,
-                "formation": "",
-                "details": [],
-                "remplacants": [],
-                "events": {},
-                "score": "",
-                "score_afc": 0,
-                "score_adv": 0,
-                "noted": False,
-                "termine": False,
-                "homme_du_match": ""
-            }
-            manager.save()
-            st.success("✅ Match enregistré")
-            st.rerun()
+            if st.button("💾", key="save_match"):
+                match_data = {
+                    "type": type_match,
+                    "adversaire": adversaire,
+                    "date": str(date),
+                    "heure": heure.strftime("%H:%M"),
+                    "domicile": domicile,
+                    "journee": journee,
+                    "nom_match": nom_match,
+                    "lieu": lieu,
+                    "formation": "",
+                    "details": [],
+                    "remplacants": [],
+                    "events": {},
+                    "score": "",
+                    "score_afc": 0,
+                    "score_adv": 0,
+                    "noted": False,
+                    "termine": False,
+                    "homme_du_match": ""
+                }
+                if edit_match:
+                    st.session_state.matchs[mid_edit] = match_data
+                    del st.session_state["edit_match"]
+                    st.success("✅ Match mis à jour")
+                else:
+                    mid = str(uuid.uuid4())
+                    st.session_state.matchs[mid] = match_data
+                    st.success("✅ Match enregistré")
+                manager.save()
+                st.rerun()
 
     # --- 📋 Mes matchs enregistrés ---
     with subtab2:
@@ -995,17 +999,13 @@ with tab1:
                     
                     # --- ✅ Checkbox “Match terminé” ---
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
-                    col_gauche, col_droite, col_space=st.columns([3, 2, 5])
-                    with col_gauche:
-                        if match_ended != match.get("termine", False):
-                            match["termine"] = match_ended
-                            st.session_state.matchs[mid] = match
-                            manager.save()
-                            st.rerun()
-                    with col_droite:
-                        if st.button("✏️", key=f"btn_edit_{mid}"):
-                            st.session_state["edit_match"] = (mid, match)
-                            st.rerun()
+                    
+                    if match_ended != match.get("termine", False):
+                        match["termine"] = match_ended
+                        st.session_state.matchs[mid] = match
+                        manager.save()
+                        st.rerun()
+                    
                     # --- 🏟️ Créer composition pour ce match ---
                     if not match.get("termine"):
                         with st.expander("### 🏟️ Composition du match"):
@@ -1214,12 +1214,18 @@ with tab1:
                                 st.session_state.matchs[mid] = match
                                 manager.save()
                                 st.rerun()
-                            
-                    if st.button("🗑️", key=f"delete_match_{mid}"):
-                        del st.session_state.matchs[mid]
-                        manager.save()
-                        st.success("🧹 Match supprimé")
-                        st.rerun()
+                                
+                    col_gauche, col_droite, col_space=st.columns([3, 2, 5])         
+                    with col_gauche:
+                        if st.button("✏️", key=f"btn_edit_{mid}"):
+                            st.session_state["edit_match"] = (mid, match)
+                            st.rerun()
+                    with col_droite:
+                        if st.button("🗑️", key=f"delete_match_{mid}"):
+                            del st.session_state.matchs[mid]
+                            manager.save()
+                            st.success("🧹 Match supprimé")
+                            st.rerun()
 
 # --- 📈 Onglet Suivi Championnat ---
 with tab2:
