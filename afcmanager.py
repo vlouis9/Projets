@@ -917,12 +917,23 @@ with tab1:
             if edit_match:
                 mid_edit, match_data = edit_match
                 st.info(f"✏️ Édition du match : **{match_data['nom_match']}**")
-                type_match = match_data["type"]
-                journee = match_data["journee"]
-                adversaire = match_data["adversaire"]
-                date = datetime.strptime(match_data["date"], "%Y-%m-%d")
-                heure = datetime.strptime(match_data["heure"], "%H:%M").time()
-                domicile = match_data["domicile"]
+                type_match = st.selectbox("Compétition", ["Championnat", "Coupe", "Amical"], index=["Championnat", "Coupe", "Amical"].index(match_data["type"]))
+                if type_match=="Championnat":
+                    journee = st.text_input("Journée", value=match_data["journee"])
+                else:
+                    if type_match=="Coupe":
+                        journee=st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"], index=["Poules", "Huitièmes", "Quarts", "Demies", "Finale"].index(match_data["journee"]))
+                    else:
+                        journee = st.text_input("Numéro", value=match_data["journee"])
+                adversaires_list = st.session_state.get("adversaires", [])
+                adversaire_select = st.selectbox("Adversaire", adversaires_list + ["Autre..."],index=adversaires_list + ["Autre..."].index(match_data["adversaire"]))
+                if adversaire_select == "Autre...":
+                    adversaire = st.text_input("🆕 Nom de l'adversaire")
+                else:
+                    adversaire = adversaire_select
+                date = st.date_input("Date du match", value=match_data["date"])
+                heure = st.time_input("Heure du match", value=match_data["heure"])
+                domicile = st.selectbox("Réception", ["Domicile", "Extérieur"],index=["Domicile", "Extérieur"].index(match_data["domicile"]))
                 lieu = match_data.get("lieu", "")
             else:
                 type_match = st.selectbox("Compétition", ["Championnat", "Coupe", "Amical"])
