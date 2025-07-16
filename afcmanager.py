@@ -144,52 +144,29 @@ POSTES_NOMS = {
 def draw_football_pitch_vertical():
     fig = go.Figure()
 
-    # Fonction pour transformer Y pour effet de perspective
-    def project_y(y):
-        return 0.6 * y + 20  # Compresse et translate vers le haut
+    # 📐 Terrain principal
+    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#145A32"))
 
-    # Dégradé de vert
-    for i in range(7):
-        fig.add_shape(
-            type="rect",
-            x0=0,
-            y0=project_y(i * 15),
-            x1=68,
-            y1=project_y((i + 1) * 15),
-            fillcolor="#1e5631" if i % 2 == 0 else "#145A32",
-            layer="below",
-            line=dict(width=0)
-        )
+    # 🧤 Surface de réparation
+    fig.add_shape(type="rect", x0=13.84, y0=0, x1=54.16, y1=16.5, line=dict(width=1, color="#145A32"))
+    fig.add_shape(type="rect", x0=13.84, y0=88.5, x1=54.16, y1=105, line=dict(width=1, color="#145A32"))
 
-    # Contour terrain
-    fig.add_shape(type="rect", x0=0, y0=project_y(0), x1=68, y1=project_y(105), line=dict(width=2, color="#ffffff"))
+    # ⚽ Centre du terrain
+    fig.add_shape(type="circle", x0=24.85, y0=43.35, x1=43.15, y1=61.65, line=dict(width=1, color="#145A32"))
+    fig.add_shape(type="circle", x0=33.6, y0=52.1, x1=34.4, y1=52.9, fillcolor="#145A32", line=dict(color="#145A32"))
 
-    # Surfaces
-    fig.add_shape(type="rect", x0=13.84, y0=project_y(0), x1=54.16, y1=project_y(16.5), line=dict(width=2, color="white"))
-    fig.add_shape(type="rect", x0=13.84, y0=project_y(88.5), x1=54.16, y1=project_y(105), line=dict(width=2, color="white"))
-
-    # Petites surfaces
-    fig.add_shape(type="rect", x0=24.85, y0=project_y(0), x1=43.15, y1=project_y(5.5), line=dict(width=1, color="white"))
-    fig.add_shape(type="rect", x0=24.85, y0=project_y(99.5), x1=43.15, y1=project_y(105), line=dict(width=1, color="white"))
-
-    # Centre
-    fig.add_shape(type="circle", x0=24.85, y0=project_y(43.35), x1=43.15, y1=project_y(61.65), line=dict(width=1, color="white"))
-    fig.add_shape(type="circle", x0=33.6, y0=project_y(52.1), x1=34.4, y1=project_y(52.9), fillcolor="white", line=dict(color="white"))
-
-    # Axes et fond
     fig.update_xaxes(showticklabels=False, range=[-5, 73], visible=False)
-    fig.update_yaxes(showticklabels=False, range=[10, project_y(115)], visible=False)
+    fig.update_yaxes(showticklabels=False, range=[-25, 125], visible=False)
 
     fig.update_layout(
-        width=500,
-        height=700,
+        width=460,
+        height=1000,
         plot_bgcolor="#154734",
-        paper_bgcolor="#0b3d0b",
         margin=dict(l=10, r=10, t=10, b=10),
         showlegend=False
     )
 
-    return fig, project_y  # On renvoie aussi la fonction de projection pour les joueurs
+    return fig
 
 # --- 📍 Positions des joueurs selon formation ---
 def positions_for_formation_vertical(formation):
@@ -814,8 +791,8 @@ with tab4:
             remplacants = remplacants_interactif("create_compo", titulaires)
 
         with col_right:
-            fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
             fig = draw_football_pitch_vertical()
+            fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key="fig_create_compo")
 
         # Sauvegarde
