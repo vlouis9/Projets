@@ -727,6 +727,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "10807ca3-6085-41fb-b575-616c0b803bf2": {
+      "type": "Amical",
+      "adversaire": "Forza Viola",
+      "date": "2025-08-25",
+      "heure": "21:00",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "#01",
+      "nom_match": "\ud83e\udd1d Amical - #01 -  Forza Viola vs AFC",
+      "lieu": "Stade Brice Raton, \u00cele du Grand Ramier, 31400 Toulouse",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
