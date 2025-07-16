@@ -925,10 +925,11 @@ with tab1:
                         journee=st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"], index=["Poules", "Huitièmes", "Quarts", "Demies", "Finale"].index(match_data["journee"]))
                     else:
                         journee = st.text_input("Numéro", value=match_data["journee"])
-                adversaires_list = st.session_state.get("adversaires", [])
-                adversaire_select = st.selectbox("Adversaire", adversaires_list + ["Autre..."],index=adversaires_list + ["Autre..."].index(match_data["adversaire"]))
+                options_adversaires = adversaires_list + ["Autre..."]
+                default_adv = match_data["adversaire"] if match_data["adversaire"] in adversaires_list else "Autre..."
+                adversaire_select = st.selectbox("Adversaire", options_adversaires, index=options_adversaires.index(default_adv))    
                 if adversaire_select == "Autre...":
-                    adversaire = st.text_input("🆕 Nom de l'adversaire")
+                    adversaire = st.text_input("🆕 Nom de l'adversaire", value=match_data["adversaire"])
                 else:
                     adversaire = adversaire_select
                 date = st.date_input("Date du match", value=match_data["date"])
@@ -1226,7 +1227,7 @@ with tab1:
                                 manager.save()
                                 st.rerun()
                                 
-                    col_gauche, col_droite, col_space=st.columns([3, 2, 5])         
+                    col_gauche, col_droite, col_space=st.columns([1, 1, 8])         
                     with col_gauche:
                         if st.button("✏️", key=f"btn_edit_{mid}"):
                             st.session_state["edit_match"] = (mid, match)
