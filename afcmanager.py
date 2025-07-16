@@ -1088,9 +1088,9 @@ with tab1:
                                 st.write(f"🆚 {match.get('adversaire')}")
                                 st.write(f"📅 {match['date']} à {heure_match} – **RDV : {rdv}**")
                                 if match['domicile']=="Domicile":
-                                    st.write(f"🏠 Lieu : {match.get('lieu')}")
+                                    st.write(f"🏠 {match.get('lieu')}")
                                 else:
-                                    st.write(f"🚗 Lieu : {match.get('lieu')}")
+                                    st.write(f"🚗 L{match.get('lieu')}")
                                 POSTES_EMOJIS = {"G": "🧤", "D": "🛡️", "M": "🎯", "A": "⚽"}
                                 for poste in POSTES_ORDER:
                                     joueurs = convoques_par_poste.get(poste, [])
