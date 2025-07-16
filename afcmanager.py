@@ -936,7 +936,11 @@ with tab1:
                 date = st.date_input("Date du match", value=match_data["date"])
                 heure = st.time_input("Heure du match", value=match_data["heure"])
                 domicile = st.selectbox("Réception", ["Domicile", "Extérieur"],index=["Domicile", "Extérieur"].index(match_data["domicile"]))
-                lieu = match_data.get("lieu", "")
+                if domicile == "Domicile":
+                    lieu_default = "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac"
+                else:
+                    lieu_default = match_data.get("lieu", "")
+                lieu = st.text_input("Lieu du match", value=lieu_default)
             else:
                 type_match = st.selectbox("Compétition", ["Championnat", "Coupe", "Amical"])
                 if type_match=="Championnat":
@@ -1228,7 +1232,7 @@ with tab1:
                                 manager.save()
                                 st.rerun()
                                 
-                    col_gauche, col_droite, col_space=st.columns([1, 1, 8])         
+                    col_gauche, col_droite, col_space=st.columns([0.5, 0.5, 9])         
                     with col_gauche:
                         if st.button("✏️", key=f"btn_edit_{mid}"):
                             st.session_state["edit_match"] = (mid, match)
