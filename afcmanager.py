@@ -141,29 +141,48 @@ POSTES_NOMS = {
 
 # --- 🎯 POSITIONNEMENT & TERRAIN ---
 
-def draw_football_pitch_vertical():
+def draw_football_pitch_vertical_3d():
     fig = go.Figure()
 
-    # 📐 Terrain principal
-    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#145A32"))
+    # Dégradé de vert pour effet gazon en bandes (type TV)
+    for i in range(7):
+        fig.add_shape(
+            type="rect",
+            x0=0,
+            y0=i * 15,
+            x1=68,
+            y1=(i + 1) * 15,
+            fillcolor="#1e5631" if i % 2 == 0 else "#145A32",
+            line=dict(width=0)
+        )
 
-    # 🧤 Surface de réparation
-    fig.add_shape(type="rect", x0=13.84, y0=0, x1=54.16, y1=16.5, line=dict(width=1, color="#145A32"))
-    fig.add_shape(type="rect", x0=13.84, y0=88.5, x1=54.16, y1=105, line=dict(width=1, color="#145A32"))
+    # Limites terrain
+    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#ffffff"))
 
-    # ⚽ Centre du terrain
-    fig.add_shape(type="circle", x0=24.85, y0=43.35, x1=43.15, y1=61.65, line=dict(width=1, color="#145A32"))
-    fig.add_shape(type="circle", x0=33.6, y0=52.1, x1=34.4, y1=52.9, fillcolor="#145A32", line=dict(color="#145A32"))
+    # Surface de réparation
+    fig.add_shape(type="rect", x0=13.84, y0=0, x1=54.16, y1=16.5, line=dict(width=2, color="white"))
+    fig.add_shape(type="rect", x0=13.84, y0=88.5, x1=54.16, y1=105, line=dict(width=2, color="white"))
 
+    # Surface de but
+    fig.add_shape(type="rect", x0=24.85, y0=0, x1=43.15, y1=5.5, line=dict(width=1, color="white"))
+    fig.add_shape(type="rect", x0=24.85, y0=99.5, x1=43.15, y1=105, line=dict(width=1, color="white"))
+
+    # Centre
+    fig.add_shape(type="circle", x0=24.85, y0=43.35, x1=43.15, y1=61.65, line=dict(width=1, color="white"))
+    fig.add_shape(type="circle", x0=33.6, y0=52.1, x1=34.4, y1=52.9, fillcolor="white", line=dict(color="white"))
+
+    # Ajustements pour effet de profondeur
     fig.update_xaxes(showticklabels=False, range=[-5, 73], visible=False)
-    fig.update_yaxes(showticklabels=False, range=[-25, 125], visible=False)
+    fig.update_yaxes(showticklabels=False, range=[-15, 115], visible=False)
 
     fig.update_layout(
-        width=460,
+        width=500,
         height=1000,
         plot_bgcolor="#154734",
+        paper_bgcolor="#0b3d0b",
         margin=dict(l=10, r=10, t=10, b=10),
         showlegend=False
+        scene_camera = dict(eye=dict(x=0.0, y=1.2, z=1.0))  # Vue légèrement en plongée
     )
 
     return fig
