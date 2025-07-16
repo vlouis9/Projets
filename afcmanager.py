@@ -181,7 +181,7 @@ def draw_football_pitch_vertical_3d():
         plot_bgcolor="#154734",
         paper_bgcolor="#0b3d0b",
         margin=dict(l=10, r=10, t=10, b=10),
-        showlegend=False
+        showlegend=False,
         scene_camera = dict(eye=dict(x=0.0, y=1.2, z=1.0))  # Vue légèrement en plongée
     )
 
