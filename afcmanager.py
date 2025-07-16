@@ -1078,9 +1078,19 @@ with tab1:
                                 except:
                                     rdv = "?"
                             
+                                if match['type']=="Championnat":
+                                    st.write(f"📈 {match['type']} - {match['journee']}")
+                                else:
+                                    if match['type']=="Coupe":
+                                        st.write(f"🏆 {match['type']} - {match['journee']}")
+                                    else:
+                                        st.write(f"🤝 {match['type']} - {match['journee']}")
                                 st.write(f"📅 {match['date']} à {heure_match} – **RDV : {rdv}**")
                                 st.write(f"🆚 {match.get('adversaire')}")
-                                st.write(f"📍 Lieu : {match.get('lieu')}")
+                                if match['domicile']=="Domicile":
+                                    st.write(f"🏠 Lieu : {match.get('lieu')}")
+                                else:
+                                    st.write(f"🚗 Lieu : {match.get('lieu')}")
                                 POSTES_EMOJIS = {"G": "🧤", "D": "🛡️", "M": "🎯", "A": "⚽"}
                                 for poste in POSTES_ORDER:
                                     joueurs = convoques_par_poste.get(poste, [])
@@ -1233,16 +1243,24 @@ with tab1:
                                 st.rerun()
                                 
                     col_gauche, col_droite, col_space=st.columns([0.5, 0.5, 9])         
-                    with col_gauche:
-                        if st.button("✏️", key=f"btn_edit_{mid}"):
-                            st.session_state["edit_match"] = (mid, match)
-                            st.rerun()
-                    with col_droite:
-                        if st.button("🗑️", key=f"delete_match_{mid}"):
-                            del st.session_state.matchs[mid]
-                            manager.save()
-                            st.success("🧹 Match supprimé")
-                            st.rerun()
+                    if not match.get("termine"):
+                        with col_gauche:
+                            if st.button("✏️", key=f"btn_edit_{mid}"):
+                                st.session_state["edit_match"] = (mid, match)
+                                st.rerun()
+                        with col_droite:
+                            if st.button("🗑️", key=f"delete_match_{mid}"):
+                                del st.session_state.matchs[mid]
+                                manager.save()
+                                st.success("🧹 Match supprimé")
+                                st.rerun()
+                    else:
+                        with col_gauche:
+                            if st.button("🗑️", key=f"delete_match_{mid}"):
+                                del st.session_state.matchs[mid]
+                                manager.save()
+                                st.success("🧹 Match supprimé")
+                                st.rerun()
 
 # --- 📈 Onglet Suivi Championnat ---
 with tab2:
