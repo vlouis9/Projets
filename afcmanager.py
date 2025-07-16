@@ -144,17 +144,32 @@ POSTES_NOMS = {
 def draw_football_pitch_vertical():
     fig = go.Figure()
 
-    # 📐 Terrain principal
-    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=2, color="#145A32"))
+    # 🟩 Bandes de pelouse simulant un effet de profondeur
+    for i in range(7):
+        fig.add_shape(
+            type="rect",
+            x0=0, x1=68,
+            y0=i * 15, y1=(i + 1) * 15,
+            fillcolor="#145A32" if i % 2 == 0 else "#117A65",
+            line=dict(width=0)
+        )
 
-    # 🧤 Surface de réparation
-    fig.add_shape(type="rect", x0=13.84, y0=0, x1=54.16, y1=16.5, line=dict(width=1, color="#145A32"))
-    fig.add_shape(type="rect", x0=13.84, y0=88.5, x1=54.16, y1=105, line=dict(width=1, color="#145A32"))
+    # 🧤 Surfaces de réparation
+    fig.add_shape(type="rect", x0=13.84, y0=0, x1=54.16, y1=16.5, line=dict(width=2, color="white"))
+    fig.add_shape(type="rect", x0=13.84, y0=88.5, x1=54.16, y1=105, line=dict(width=2, color="white"))
 
     # ⚽ Centre du terrain
-    fig.add_shape(type="circle", x0=24.85, y0=43.35, x1=43.15, y1=61.65, line=dict(width=1, color="#145A32"))
-    fig.add_shape(type="circle", x0=33.6, y0=52.1, x1=34.4, y1=52.9, fillcolor="#145A32", line=dict(color="#145A32"))
+    fig.add_shape(type="circle", x0=24.85, y0=43.35, x1=43.15, y1=61.65, line=dict(width=2, color="white"))
+    fig.add_shape(type="circle", x0=33.6, y0=52.1, x1=34.4, y1=52.9, fillcolor="white", line=dict(color="white"))
 
+    # 📐 Contour du terrain
+    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=105, line=dict(width=3, color="white"))
+
+    # 🌘 Ombres pour un effet de perspective
+    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=10, fillcolor="rgba(0,0,0,0.15)", line=dict(width=0))
+    fig.add_shape(type="rect", x0=0, y0=95, x1=68, y1=105, fillcolor="rgba(0,0,0,0.25)", line=dict(width=0))
+
+    # 🔧 Axes & layout
     fig.update_xaxes(showticklabels=False, range=[-5, 73], visible=False)
     fig.update_yaxes(showticklabels=False, range=[-25, 125], visible=False)
 
@@ -162,7 +177,7 @@ def draw_football_pitch_vertical():
         width=460,
         height=1000,
         plot_bgcolor="#154734",
-        margin=dict(l=10, r=10, t=10, b=10),
+        margin=dict(l=0, r=0, t=0, b=0),
         showlegend=False
     )
 
