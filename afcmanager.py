@@ -1172,7 +1172,7 @@ with tab1:
                             st.markdown("---")
                             hdm = match.get("homme_du_match")
                             if hdm:
-                                st.markdown("**🏆 Homme du match**")
+                                st.markdown("#### 🏆 Homme du match")
                                 st.markdown(f"{hdm}")
                             col1, col2 = st.columns(2)
                             with col1:
