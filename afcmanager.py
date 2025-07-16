@@ -925,6 +925,7 @@ with tab1:
                         journee=st.selectbox("Tour", ["Poules", "Huitièmes", "Quarts", "Demies", "Finale"], index=["Poules", "Huitièmes", "Quarts", "Demies", "Finale"].index(match_data["journee"]))
                     else:
                         journee = st.text_input("Numéro", value=match_data["journee"])
+                adversaires_list = st.session_state.get("adversaires", [])
                 options_adversaires = adversaires_list + ["Autre..."]
                 default_adv = match_data["adversaire"] if match_data["adversaire"] in adversaires_list else "Autre..."
                 adversaire_select = st.selectbox("Adversaire", options_adversaires, index=options_adversaires.index(default_adv))    
