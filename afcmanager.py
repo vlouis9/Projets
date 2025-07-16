@@ -1085,8 +1085,8 @@ with tab1:
                                         st.write(f"🏆 {match['type']} - {match['journee']}")
                                     else:
                                         st.write(f"🤝 {match['type']} - {match['journee']}")
-                                st.write(f"📅 {match['date']} à {heure_match} – **RDV : {rdv}**")
                                 st.write(f"🆚 {match.get('adversaire')}")
+                                st.write(f"📅 {match['date']} à {heure_match} – **RDV : {rdv}**")
                                 if match['domicile']=="Domicile":
                                     st.write(f"🏠 Lieu : {match.get('lieu')}")
                                 else:
