@@ -523,8 +523,88 @@
       "journee": "#01",
       "nom_match": "\ud83e\udd1d 2025-08-28 : Amical - #01 -  Forza Viola vs AFC",
       "lieu": "Stade Brice Raton, \u00cele du Grand Ramier, 31400 Toulouse",
-      "formation": "",
-      "details": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "3",
+            "Capitaine": false
+          },
+          null,
+          {
+            "Nom": "Charles Plun",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Arthur Couto",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Adrien Gric",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11",
+            "Capitaine": true
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
       "remplacants": [],
       "events": {},
       "score": "",
