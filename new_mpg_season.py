@@ -434,25 +434,40 @@ def main():
 
     # Merge all player data
     merged_rows = []
-    for idx, row in df_new.iterrows():
-        base = row.to_dict()
-        club = base['Club']
-        base['team_ranking'] = CLUB_TIERS[st.session_state.club_tiers[club]]
-        if base['is_historical']:
-            hist_row = df_hist_kpis[df_hist_kpis['player_id']==base['player_id']]
-            for col in ['estimated_performance','estimated_potential','estimated_regularity','estimated_goals']:
-                base[col] = float(hist_row.iloc[0][col]) if not hist_row.empty else 0.0
-        else:
-            pid = base['player_id']
-            for kpi in ['estimated_performance','estimated_potential','estimated_regularity','estimated_goals']:
-                score_pct = st.session_state.new_player_scores[pid][kpi]
-                if kpi == "estimated_performance": maxval = df_hist_kpis['estimated_performance'].max()
-                elif kpi == "estimated_potential": maxval = df_hist_kpis['estimated_potential'].max()
-                elif kpi == "estimated_regularity": maxval = df_hist_kpis['estimated_regularity'].max()
-                elif kpi == "estimated_goals": maxval = df_hist_kpis['estimated_goals'].max()
-                base[kpi] = (score_pct/100) * maxval
-        merged_rows.append(base)
-    df_all = pd.DataFrame(merged_rows)
+    for idx, row in filtered.iterrows():
+        pid = row['player_id']
+        # Toggle visible state
+        if f"show_stats_{pid}" not in st.session_state:
+            st.session_state[f"show_stats_{pid}"] = False
+    
+        col1, col2 = st.columns([10, 2])
+        with col1:
+            st.markdown(
+                f"<div style='border:1px solid #e2e8f0; padding:8px; border-radius:6px; margin-bottom:6px;'>"
+                f"<b>{row['Joueur']}</b> (<span class='position-badge {row['simplified_position']}-badge'>{row['simplified_position']}</span> - {row['Club']}) "
+                f"| PVS: <b>{row['pvs']:.1f}</b> | MRB: €{row['mrb']}<br>"
+                f"Rating: {row['estimated_performance']:.2f} | Potentiel: {row['estimated_potential']:.2f} | "
+                f"Regularité: {row['estimated_regularity']:.1f}% | Buts: {row['estimated_goals']} "
+                f"</div>", unsafe_allow_html=True
+            )
+    
+        with col2:
+            if row['player_id'] not in st.session_state.manual_squad:
+                if st.button("➕", key=f"add_{pid}"):
+                    add_player_to_squad(pid)
+            else:
+                st.markdown("✅ Ajouté")
+    
+            if st.button("🔍", key=f"toggle_stats_{pid}"):
+                st.session_state[f"show_stats_{pid}"] = not st.session_state[f"show_stats_{pid}"]
+    
+        if st.session_state[f"show_stats_{pid}"]:
+            with st.container():
+                st.markdown(f"<div class='player-details-box'><b>Détails pour {row['Joueur']} ({row['Club']})</b><br>"
+                            f"PVS: {row['pvs']:.2f} | MRB: €{row['mrb']}<br>"
+                            f"Performance: {row['estimated_performance']:.2f} | Potentiel: {row['estimated_potential']:.2f} | "
+                            f"Regularité: {row['estimated_regularity']:.1f}% | Buts: {row['estimated_goals']}<br></div>", unsafe_allow_html=True)
+                plot_player_performance(row, df_hist)
 
     # Normalize and calculate metrics
     max_perf = df_hist_kpis['estimated_performance'].max()
