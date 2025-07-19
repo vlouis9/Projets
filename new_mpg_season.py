@@ -434,6 +434,11 @@ def main():
 
     # Merge all player data
     merged_rows = []
+    filtered = df_all.copy()
+    if pos_filter:
+        filtered = filtered[filtered['simplified_position'].isin(pos_filter)]
+    if club_filter:
+        filtered = filtered[filtered['Club'].isin(club_filter)]
     for idx, row in filtered.iterrows():
         pid = row['player_id']
         # Toggle visible state
