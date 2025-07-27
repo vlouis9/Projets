@@ -613,6 +613,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "ab921e63-5aa6-49fb-aada-f0cb901822a3": {
+      "type": "Championnat",
+      "adversaire": "AS DRT",
+      "date": "2025-07-31",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "J03",
+      "nom_match": "\ud83d\udcc8 2025-07-31 : Championnat - J03 - AFC vs AS DRT",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
