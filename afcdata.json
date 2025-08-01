@@ -192,7 +192,7 @@
             "Capitaine": false
           },
           {
-            "Nom": "Quentin Dauris",
+            "Nom": "Arthur Couto",
             "Poste": "D",
             "Infos": "",
             "Numero": "2",
@@ -205,7 +205,7 @@
             "Poste": "M",
             "Infos": "",
             "Numero": "8",
-            "Capitaine": false
+            "Capitaine": true
           },
           {
             "Nom": "Walid Chouchi",
@@ -222,7 +222,7 @@
             "Capitaine": false
           },
           {
-            "Nom": "Yoann Perzynski",
+            "Nom": "Adrien Gric",
             "Poste": "M",
             "Infos": "",
             "Numero": "10",
@@ -233,7 +233,7 @@
             "Poste": "A",
             "Infos": "",
             "Numero": "11",
-            "Capitaine": true
+            "Capitaine": false
           }
         ],
         "A": [
@@ -246,28 +246,7 @@
           }
         ]
       },
-      "remplacants": [
-        {
-          "Nom": "Maxime Pujol",
-          "Numero": "12"
-        },
-        {
-          "Nom": "Adrien Gric",
-          "Numero": "13"
-        },
-        {
-          "Nom": "Pierre Pavia",
-          "Numero": "14"
-        },
-        {
-          "Nom": "Abdel Jalil",
-          "Numero": "15"
-        },
-        {
-          "Nom": "Nicolas Mitrano",
-          "Numero": "16"
-        }
-      ]
+      "remplacants": []
     }
   },
   "matchs": {
