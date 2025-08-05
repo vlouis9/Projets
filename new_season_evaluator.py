@@ -607,9 +607,9 @@ def main():
     
     # --- SIDEBAR: File Inputs and Settings ---
     with st.sidebar:
-        st.markdown('<h2 class="section-header" style="margin-top:0;">⚙️ Data Files</h2>', unsafe_allow_html=True)
-        hist_file = st.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
-        new_file = st.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
+        with st.expander("⚙️ Data Files"):
+            hist_file = st.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
+            new_file = st.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
         st.markdown("---")
         
         st.markdown("#### 👥 Squad Building Parameters")
@@ -651,7 +651,7 @@ def main():
                 st.session_state.mrb_params = mrb_params_ui
 
     # Use Streamlit's native tabs
-    tab1, tab2 = st.tabs(["🏆 Squad Builder", "📋 Player Database"])
+    tab1, tab2, tab3, tab4 = st.tabs(["🏆 Squad Builder", "📋 Player Database", "🏅 Club Tiers", "🆕 New Players scores"])
 
     df_hist, df_new = None, None
     if hist_file:
@@ -698,9 +698,6 @@ def main():
         df_hist['player_id'] = df_hist.apply(create_player_id, axis=1)
         df_new['simplified_position'] = df_new['Poste'].apply(simplify_position)
         df_new['player_id'] = df_new.apply(create_player_id, axis=1)
-        # Before conversion, show problematic entries
-        bad_cote_values = df_hist[~df_hist['Cote'].astype(str).str.replace('.', '', 1).str.isnumeric()]
-        st.write("🚨 Problematic Cote entries:", bad_cote_values[['Joueur', 'Cote']])
         df_hist['Cote'] = df_hist['Cote'].astype(str).str.strip().replace('NaN', '')
         df_hist['Cote'] = pd.to_numeric(df_hist['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
@@ -723,7 +720,8 @@ def main():
                 }
         
         # Club Tiers Configuration
-        with st.sidebar.expander("🏅 Assign Club Tiers", expanded=False):
+        with tab3:
+            st.markdown("## 🏅 Assign Club Tiers")
             col1, col2 = st.columns([1,1])
             with col1:
                 save_dict_to_download_button(st.session_state.club_tiers, "💾 Download Club Tiers", "club_tiers.json")
@@ -748,7 +746,8 @@ def main():
                 st.session_state.club_tiers[club] = tier
         
         # New Player Ratings
-        with st.sidebar.expander("🆕 Assign Scores to New Players", expanded=False):
+        with tab4:
+            st.markdown("## 🆕 Assign Scores to New Players")
             col1, col2 = st.columns([1,1])
             with col1:
                 save_dict_to_download_button(st.session_state.new_player_scores, "💾 Download New Player Scores", "new_player_scores.json")
