@@ -366,10 +366,10 @@ def load_dict_from_file(uploaded_file):
 class SquadBuilder:
     def __init__(self):
         self.formations = {
+            "3-4-3": {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3},
             "4-4-2": {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2},
             "4-3-3": {"GK": 1, "DEF": 4, "MID": 3, "FWD": 3},
-            "3-5-2": {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2},
-            "3-4-3": {"GK": 1, "DEF": 3, "MID": 4, "FWD": 3},
+            "3-5-2": {"GK": 1, "DEF": 3, "MID": 5, "FWD": 2}
             "4-5-1": {"GK": 1, "DEF": 4, "MID": 5, "FWD": 1},
             "5-3-2": {"GK": 1, "DEF": 5, "MID": 3, "FWD": 2},
             "5-4-1": {"GK": 1, "DEF": 5, "MID": 4, "FWD": 1}
@@ -768,11 +768,10 @@ def main():
         
         # Tab 1: Squad Builder
         with tab1:
-            st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
-
+            st.markdown("#### 👥 Squad Building Parameters")
+            
             col1, col2 = st.columns([2,8])
-            with col1:
-                st.markdown("#### 👥 Squad Building Parameters")
+            with col1:    
                 formation_key_ui = st.selectbox("Preferred Formation", options=list(squad_builder.formations.keys()), index=0)
                 target_squad_size_ui = st.number_input("Target Squad Size", min_value=sum(squad_builder.squad_minimums.values()), max_value=30, value=DEFAULT_SQUAD_SIZE)
                 st.markdown("---")
@@ -814,6 +813,7 @@ def main():
                         if st.session_state.profile_name=="Custom":
                             st.session_state.mrb_params = mrb_params_ui
             
+            st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
             squad_df, squad_summary = squad_builder.select_squad(df_all, formation_key_ui, target_squad_size_ui)
             
             if not squad_df.empty:
@@ -877,10 +877,6 @@ def main():
                     count = pos_counts.get(pos, 0)
                     min_req = min_counts.get(pos, 0)
                     status = "✅" if count >= min_req else "⚠️"
-                    st.progress(
-                        min(1.0, count / (min_req * 1.5)), 
-                        text=f"{pos}: {count} players {status} (Min: {min_req})"
-                    )
                 
                 # Player Table
                 st.markdown("### **Squad Details**")
