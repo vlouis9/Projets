@@ -676,9 +676,6 @@ def main():
             for club in all_clubs:
                 if club not in st.session_state.club_tiers:
                     st.session_state.club_tiers[club] = "Average"
-        
-        except Exception as e:
-            st.error(f"❌ Error while processing Cote column: {e}")
             
         df_hist['simplified_position'] = df_hist['Poste'].apply(simplify_position)
         df_hist['player_id'] = df_hist.apply(create_player_id, axis=1)
