@@ -611,44 +611,6 @@ def main():
             hist_file = st.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
             new_file = st.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
         st.markdown("---")
-        
-        st.markdown("#### 👥 Squad Building Parameters")
-        formation_key_ui = st.selectbox("Preferred Formation", options=list(squad_builder.formations.keys()), index=0)
-        target_squad_size_ui = st.number_input("Target Squad Size", min_value=sum(squad_builder.squad_minimums.values()), max_value=30, value=DEFAULT_SQUAD_SIZE)
-        st.markdown("---")
-        
-        st.markdown("#### 🎨 Settings Profile")
-        profile_names = list(PREDEFINED_PROFILES.keys())
-        selected_profile_name_ui = st.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state.profile_name), key="profile_selector")
-        if selected_profile_name_ui != st.session_state.profile_name:
-            st.session_state.profile_name = selected_profile_name_ui
-        profile_vals = PREDEFINED_PROFILES.get(st.session_state.profile_name, PREDEFINED_PROFILES["Balanced Value"])
-        
-        with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
-            weights_ui = {}
-            for pos in ['GK', 'DEF', 'MID', 'FWD']:
-                st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
-                default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
-                current_w = profile_vals["kpi_weights"][pos] if st.session_state.profile_name!="Custom" else st.session_state.kpi_weights.get(pos, default_w)
-                weights_ui[pos] = {
-                    'estimated_performance': st.slider(f"Performance", 0.0, 1.0, float(current_w.get('estimated_performance', 0.0)), 0.01, key=f"{pos}_wPerf"),
-                    'estimated_potential': st.slider(f"Potential", 0.0, 1.0, float(current_w.get('estimated_potential', 0.0)), 0.01, key=f"{pos}_wPot"),
-                    'estimated_regularity': st.slider(f"Regularity", 0.0, 1.0, float(current_w.get('estimated_regularity', 0.0)), 0.01, key=f"{pos}_wReg"),
-                    'estimated_goals': st.slider(f"Goals", 0.0, 1.0, float(current_w.get('estimated_goals', 0.0)), 0.01, key=f"{pos}_wGoals"),
-                    'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
-                }
-            if st.session_state.profile_name=="Custom":
-                st.session_state.kpi_weights = weights_ui
-        
-        with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
-            mrb_params_ui = {}
-            for pos in ['GK', 'DEF', 'MID', 'FWD']:
-                st.markdown(f"<h6>{pos}</h6>", unsafe_allow_html=True)
-                default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
-                current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state.profile_name!="Custom" else st.session_state.mrb_params.get(pos, default_mrb)
-                mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
-            if st.session_state.profile_name=="Custom":
-                st.session_state.mrb_params = mrb_params_ui
 
     # Use Streamlit's native tabs
     tab1, tab2, tab3, tab4 = st.tabs(["🏆 Squad Builder", "📋 Player Database", "🏅 Club Tiers", "🆕 New Players scores"])
@@ -705,18 +667,19 @@ def main():
         # Club Tiers Configuration
         with tab3:
             st.markdown("## 🏅 Assign Club Tiers")
-            col1, col2 = st.columns([1,1])
-            with col1:
-                save_dict_to_download_button(st.session_state.club_tiers, "💾 Download Club Tiers", "club_tiers.json")
-            with col2:
-                club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
-                if club_upload:
-                    loaded_tiers = load_dict_from_file(club_upload)
-                    if set(loaded_tiers.keys()) == set(all_clubs):
-                        st.session_state.club_tiers = loaded_tiers
-                        st.success("Club tiers loaded!")
-                    else:
-                        st.warning("Club list does not match current clubs. Tiers not loaded.")
+            with st.expander("⚙️ Club Files"):
+                col1, col2 = st.columns([1,1])
+                with col1:
+                    save_dict_to_download_button(st.session_state.club_tiers, "💾 Download Club Tiers", "club_tiers.json")
+                with col2:
+                    club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
+                    if club_upload:
+                        loaded_tiers = load_dict_from_file(club_upload)
+                        if set(loaded_tiers.keys()) == set(all_clubs):
+                            st.session_state.club_tiers = loaded_tiers
+                            st.success("Club tiers loaded!")
+                        else:
+                            st.warning("Club list does not match current clubs. Tiers not loaded.")
             cols = st.columns(5)
             club_cols = [cols[i % 5] for i in range(len(all_clubs))]
             for i, club in enumerate(all_clubs):
@@ -731,24 +694,25 @@ def main():
         # New Player Ratings
         with tab4:
             st.markdown("## 🆕 Assign Scores to New Players")
-            col1, col2 = st.columns([1,1])
-            with col1:
-                save_dict_to_download_button(st.session_state.new_player_scores, "💾 Download New Player Scores", "new_player_scores.json")
-            with col2:
-                np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
-                if np_upload:
-                    loaded_scores = load_dict_from_file(np_upload)
-                    st.session_state.new_player_scores.update(loaded_scores)
-                    st.success("New player scores loaded!")
+            with st.expander("⚙️ New Players Files"):
+                col1, col2 = st.columns([1,1])
+                with col1:
+                    save_dict_to_download_button(st.session_state.new_player_scores, "💾 Download New Player Scores", "new_player_scores.json")
+                with col2:
+                    np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
+                    if np_upload:
+                        loaded_scores = load_dict_from_file(np_upload)
+                        st.session_state.new_player_scores.update(loaded_scores)
+                        st.success("New player scores loaded!")
             
             if not new_players.empty:
                 st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
                 new_players_by_club = new_players.groupby('Club')
                 for club_name, players_df in new_players_by_club:
-                    with st.expander(f"🏟️ {club_name} - {len(players_df)} player(s)", expanded=False):
+                    with st.expander(f"**{club_name}** - {len(players_df)} player(s)", expanded=False):
                         for _, nprow in players_df.iterrows():
                             pid = nprow['player_id']
-                            st.markdown(f"**{nprow['Joueur']}** ({nprow['simplified_position']})")
+                            st.markdown(f"**{nprow['Joueur']}** ({nprow['Poste']})")
                             cols = st.columns(4)
                             for kpi, maxval, label in [
                                 ("estimated_performance", df_hist_kpis['estimated_performance'].max(), "Performance"),
@@ -805,6 +769,51 @@ def main():
         # Tab 1: Squad Builder
         with tab1:
             st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
+
+            col1, col2 = st.columns([2,8])
+            with col1:
+                st.markdown("#### 👥 Squad Building Parameters")
+                formation_key_ui = st.selectbox("Preferred Formation", options=list(squad_builder.formations.keys()), index=0)
+                target_squad_size_ui = st.number_input("Target Squad Size", min_value=sum(squad_builder.squad_minimums.values()), max_value=30, value=DEFAULT_SQUAD_SIZE)
+                st.markdown("---")
+            
+            with col2:
+                st.markdown("#### 🎨 Settings Profile")
+                profile_names = list(PREDEFINED_PROFILES.keys())
+                selected_profile_name_ui = st.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state.profile_name), key="profile_selector")
+                if selected_profile_name_ui != st.session_state.profile_name:
+                    st.session_state.profile_name = selected_profile_name_ui
+                profile_vals = PREDEFINED_PROFILES.get(st.session_state.profile_name, PREDEFINED_PROFILES["Balanced Value"])
+                
+                subcol1, subcol2 = st.columns([4,4])
+                with subcol1:
+                    with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
+                        weights_ui = {}
+                        for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                            with st.expander(f"<h6>{pos}</h6>"):
+                                default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
+                                current_w = profile_vals["kpi_weights"][pos] if st.session_state.profile_name!="Custom" else st.session_state.kpi_weights.get(pos, default_w)
+                                weights_ui[pos] = {
+                                    'estimated_performance': st.slider(f"Performance", 0.0, 1.0, float(current_w.get('estimated_performance', 0.0)), 0.01, key=f"{pos}_wPerf"),
+                                    'estimated_potential': st.slider(f"Potential", 0.0, 1.0, float(current_w.get('estimated_potential', 0.0)), 0.01, key=f"{pos}_wPot"),
+                                    'estimated_regularity': st.slider(f"Regularity", 0.0, 1.0, float(current_w.get('estimated_regularity', 0.0)), 0.01, key=f"{pos}_wReg"),
+                                    'estimated_goals': st.slider(f"Goals", 0.0, 1.0, float(current_w.get('estimated_goals', 0.0)), 0.01, key=f"{pos}_wGoals"),
+                                    'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
+                                }
+                        if st.session_state.profile_name=="Custom":
+                            st.session_state.kpi_weights = weights_ui
+                
+                with subcol2:
+                    with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
+                        mrb_params_ui = {}
+                        for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                            with st.expander(f"<h6>{pos}</h6>"):
+                                default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
+                                current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state.profile_name!="Custom" else st.session_state.mrb_params.get(pos, default_mrb)
+                                mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
+                        if st.session_state.profile_name=="Custom":
+                            st.session_state.mrb_params = mrb_params_ui
+            
             squad_df, squad_summary = squad_builder.select_squad(df_all, formation_key_ui, target_squad_size_ui)
             
             if not squad_df.empty:
@@ -965,12 +974,6 @@ def main():
     
     else:
         st.info("Upload BOTH last season and new season player files to start. Example columns: Joueur, Poste, Club, Cote, D1..D34")
-        example_hist = pd.DataFrame({'Joueur':['PlayerA','PlayerB'], 'Poste':['A','M'], 'Club':['Club X','Club Y'], 'Cote':[45,30], 'D34':['7.5*','6.5'], 'D33':['(6.0)**','0'], 'D32':['','5.5*']})
-        example_new = pd.DataFrame({'Joueur':['PlayerA','PlayerB','PlayerC'], 'Poste':['A','M','D'], 'Club':['Club X','Club Y','Club Z'], 'Cote':[45,30,10]})
-        st.markdown("**Example Last Season Data:**")
-        st.dataframe(example_hist, use_container_width=True, hide_index=True)
-        st.markdown("**Example New Season Data:**")
-        st.dataframe(example_new, use_container_width=True, hide_index=True)
 
 if __name__ == "__main__":
     main()
