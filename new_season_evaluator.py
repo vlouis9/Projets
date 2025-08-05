@@ -743,24 +743,27 @@ def main():
             
             if not new_players.empty:
                 st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
-                for i, nprow in new_players.iterrows():
-                    pid = nprow['player_id']
-                    with st.expander(f"{nprow['Joueur']} ({nprow['simplified_position']} - {nprow['Club']})", expanded=False):
-                        cols = st.columns(4)
-                        for kpi, maxval, label in [
-                            ("estimated_performance", df_hist_kpis['estimated_performance'].max(), "Performance"),
-                            ("estimated_potential", df_hist_kpis['estimated_potential'].max(), "Potential"),
-                            ("estimated_regularity", df_hist_kpis['estimated_regularity'].max(), "Regularity"),
-                            ("estimated_goals", df_hist_kpis['estimated_goals'].max(), "Goals")
-                        ]:
-                            with cols[0] if kpi == "estimated_performance" else cols[1] if kpi == "estimated_potential" else cols[2] if kpi == "estimated_regularity" else cols[3]:
-                                sel = st.selectbox(
-                                    label, 
-                                    NEW_PLAYER_SCORE_OPTIONS,
-                                    index=NEW_PLAYER_SCORE_OPTIONS.index(st.session_state.new_player_scores[pid][kpi]),
-                                    key=f"{pid}_{kpi}"
-                                )
-                                st.session_state.new_player_scores[pid][kpi] = sel
+                new_players_by_club = new_players.groupby('Club')
+                for club_name, players_df in new_players_by_club:
+                    with st.expander(f"🏟️ {club_name} - {len(players_df)} player(s)", expanded=False):
+                        for _, nprow in players_df.iterrows():
+                            pid = nprow['player_id']
+                            st.markdown(f"**{nprow['Joueur']}** ({nprow['simplified_position']})")
+                            cols = st.columns(4)
+                            for kpi, maxval, label in [
+                                ("estimated_performance", df_hist_kpis['estimated_performance'].max(), "Performance"),
+                                ("estimated_potential", df_hist_kpis['estimated_potential'].max(), "Potential"),
+                                ("estimated_regularity", df_hist_kpis['estimated_regularity'].max(), "Regularity"),
+                                ("estimated_goals", df_hist_kpis['estimated_goals'].max(), "Goals")
+                            ]:
+                                with cols[0] if kpi == "estimated_performance" else cols[1] if kpi == "estimated_potential" else cols[2] if kpi == "estimated_regularity" else cols[3]:
+                                    sel = st.selectbox(
+                                        label, 
+                                        NEW_PLAYER_SCORE_OPTIONS,
+                                        index=NEW_PLAYER_SCORE_OPTIONS.index(st.session_state.new_player_scores[pid][kpi]),
+                                        key=f"{pid}_{kpi}"
+                                    )
+                                    st.session_state.new_player_scores[pid][kpi] = sel
             else:
                 st.info("No new players to rate.")
         
