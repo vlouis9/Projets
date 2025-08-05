@@ -774,7 +774,6 @@ def main():
             with col1:    
                 formation_key_ui = st.selectbox("Preferred Formation", options=list(squad_builder.formations.keys()), index=0)
                 target_squad_size_ui = st.number_input("Target Squad Size", min_value=sum(squad_builder.squad_minimums.values()), max_value=30, value=DEFAULT_SQUAD_SIZE)
-                st.markdown("---")
             
             with col2:
                 profile_names = list(PREDEFINED_PROFILES.keys())
@@ -813,6 +812,7 @@ def main():
                             if st.session_state.profile_name=="Custom":
                                 st.session_state.mrb_params = mrb_params_ui
             
+            st.markdown("---")
             st.markdown('<h2 class="section-header">🏆 Suggested Squad</h2>', unsafe_allow_html=True)
             squad_df, squad_summary = squad_builder.select_squad(df_all, formation_key_ui, target_squad_size_ui)
             
