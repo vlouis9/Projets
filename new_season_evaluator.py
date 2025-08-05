@@ -682,6 +682,7 @@ def main():
         df_hist['player_id'] = df_hist.apply(create_player_id, axis=1)
         df_new['simplified_position'] = df_new['Poste'].apply(simplify_position)
         df_new['player_id'] = df_new.apply(create_player_id, axis=1)
+        df_hist['Cote'] = df_hist['Cote'].astype(str).str.strip().replace('NaN', '')
         df_hist['Cote'] = pd.to_numeric(df_hist['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
         df_new['Cote'] = pd.to_numeric(df_new['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
         hist_pids = set(df_hist['player_id'])
