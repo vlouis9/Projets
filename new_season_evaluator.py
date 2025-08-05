@@ -17,24 +17,9 @@ st.set_page_config(
 )
 
 # ---- CUSTOM CSS ----
-def is_dark_mode():
-    # Try to infer from theme primary color
-    primary_color = st.get_option("theme.backgroundColor")
-    if primary_color and primary_color.lower() in ["#0f172a", "#1e293b"]:
-        return True
-    return False
-
-def set_plot_theme():
-    if is_dark_mode():
-        plt.style.use('dark_background')
-        sns.set_style("darkgrid")
-    else:
-        plt.style.use('default')
-        sns.set_style("whitegrid")
-
 st.markdown("""
 <style>
-    :root {
+    html[data-theme="light"] {
         --primary: #2563eb;
         --secondary: #10b981;
         --accent: #8b5cf6;
@@ -43,36 +28,27 @@ st.markdown("""
         --text: #0f172a;
         --border: #e2e8f0;
     }
-    
-    html[data-theme="light"] {
-      --primary: #2563eb;
-      --secondary: #10b981;
-      --accent: #8b5cf6;
-      --background: #f8fafc;
-      --card: #ffffff;
-      --text: #0f172a;
-      --border: #e2e8f0;
-    }
+
     html[data-theme="dark"] {
-      --primary: #3b82f6;
-      --secondary: #10b981;
-      --accent: #a78bfa;
-      --background: #0f172a;
-      --card: #1e293b;
-      --text: #f1f5f9;
-      --border: #334155;
+        --primary: #3b82f6;
+        --secondary: #10b981;
+        --accent: #a78bfa;
+        --background: #0f172a;
+        --card: #1e293b;
+        --text: #f1f5f9;
+        --border: #334155;
     }
-    
+
     body {
         background-color: var(--background);
         color: var(--text);
-        font-family: 'Inter', sans-serif;
+        font-family: 'Inter', system-ui, sans-serif;
     }
-    
+
     .main-header {
-        font-size: 2.5rem; 
-        font-weight: 800; 
-        text-align: center; 
+        font-size: 2.5rem;
+        font-weight: 800;
+        text-align: center;
         margin-bottom: 1.5rem;
         padding-bottom: 0.5rem;
         border-bottom: 3px solid var(--secondary);
@@ -80,7 +56,7 @@ st.markdown("""
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
-    
+
     .section-header {
         font-size: 1.5rem;
         font-weight: 700;
@@ -90,7 +66,7 @@ st.markdown("""
         padding-left: 0.5rem;
         border-left: 4px solid var(--secondary);
     }
-    
+
     .stButton>button {
         background: linear-gradient(135deg, var(--primary), var(--accent));
         color: white !important;
@@ -101,12 +77,12 @@ st.markdown("""
         width: 100%;
         transition: all 0.3s ease;
     }
-    
+
     .stButton>button:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
     }
-    
+
     .card {
         background-color: var(--card);
         border-radius: 12px;
@@ -115,15 +91,15 @@ st.markdown("""
         margin-bottom: 1.5rem;
         border: 1px solid var(--border);
     }
-    
+
     .metric-card {
-        background: linear-gradient(135deg, var(--card), var(--card));
+        background: var(--card);
         text-align: center;
         padding: 1rem;
         border-radius: 12px;
         border-left: 4px solid var(--primary);
     }
-    
+
     .position-tag {
         display: inline-block;
         padding: 0.25rem 0.75rem;
@@ -132,12 +108,12 @@ st.markdown("""
         font-weight: 600;
         color: var(--text);
     }
-    
+
     .GK-tag { background: linear-gradient(135deg, #dbeafe, #93c5fd); }
     .DEF-tag { background: linear-gradient(135deg, #dcfce7, #86efac); }
     .MID-tag { background: linear-gradient(135deg, #fef3c7, #fcd34d); }
     .FWD-tag { background: linear-gradient(135deg, #fee2e2, #fca5a5); }
-    
+
     .starter-badge {
         background-color: var(--secondary);
         color: white;
@@ -146,7 +122,7 @@ st.markdown("""
         font-size: 0.75rem;
         font-weight: 600;
     }
-    
+
     .progress-bar {
         height: 8px;
         border-radius: 4px;
@@ -154,13 +130,13 @@ st.markdown("""
         margin-top: 0.5rem;
         overflow: hidden;
     }
-    
+
     .progress-fill {
         height: 100%;
         background: linear-gradient(90deg, var(--primary), var(--accent));
         border-radius: 4px;
     }
-    
+
     .player-card {
         width: 120px;
         padding: 1rem;
@@ -172,12 +148,12 @@ st.markdown("""
         border: 1px solid var(--border);
         transition: all 0.3s ease;
     }
-    
+
     .player-card:hover {
         transform: translateY(-3px);
         box-shadow: 0 6px 12px rgba(0,0,0,0.15);
     }
-    
+
     .club-badge {
         width: 24px;
         height: 24px;
@@ -189,7 +165,7 @@ st.markdown("""
         line-height: 24px;
         margin-right: 0.5rem;
     }
-    
+
     .dataframe th {background-color: var(--border) !important;}
     .dataframe td {border-bottom: 1px solid var(--border);}
 </style>
@@ -558,56 +534,64 @@ def display_enhanced_formation(squad_df, formation_key):
                 """, unsafe_allow_html=True)
 
 # ---- PLAYER PERFORMANCE VISUALIZATION ----
+def is_dark_mode():
+    bg_color = st.get_option("theme.backgroundColor")
+    return bg_color and bg_color.lower() in ["#0f172a", "#1e293b"]
+
+def set_plot_theme():
+    if is_dark_mode():
+        plt.style.use('dark_background')
+        sns.set_style("darkgrid")
+    else:
+        plt.style.use('default')
+        sns.set_style("whitegrid")
+
 def plot_player_performance(player_row, df_hist):
     if not player_row['is_historical']:
         st.warning("No historical data available for new players")
         return
-    
+
     hist_row = df_hist[df_hist['player_id'] == player_row['player_id']]
     if hist_row.empty:
         st.warning("Historical data not found for this player")
         return
-    
+
     hist_row = hist_row.iloc[0]
     gw_cols = get_gameweek_columns(hist_row.index)
-    
-    ratings = []
-    goals = []
-    gameweeks = []
-    
+
+    ratings, goals, gameweeks = [], [], []
+
     for gw in gw_cols:
         r, g = extract_rating_goals(hist_row[gw])
         if r is not None:
             ratings.append(r)
             goals.append(g)
             gameweeks.append(int(gw[1:]))
-    
+
     if not ratings:
         st.warning("No performance data available for this player")
         return
-    
-    # Create figure with two subplots
+
+    set_plot_theme()  # ✅ Set correct theme before plotting
+
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 10), sharex=True)
-    
-    # Ratings line plot
-    sns.lineplot(x=gameweeks, y=ratings, ax=ax1, color=st.get_option("theme.primaryColor"), marker='o', linewidth=2.5)
+
+    sns.lineplot(x=gameweeks, y=ratings, ax=ax1, color="#3b82f6", marker='o', linewidth=2.5)
     ax1.set_title(f"{player_row['Joueur']} - Ratings per Gameweek", fontsize=16)
     ax1.set_ylabel("Rating")
     ax1.set_ylim(0, 10)
     ax1.grid(True, linestyle='--', alpha=0.7)
-    
-    # Goals bar plot
-    sns.barplot(x=gameweeks, y=goals, ax=ax2, color=st.get_option("theme.secondaryBackgroundColor"), edgecolor=st.get_option("theme.primaryColor"))
+
+    sns.barplot(x=gameweeks, y=goals, ax=ax2, color="#a78bfa", edgecolor="#3b82f6")
     ax2.set_title(f"{player_row['Joueur']} - Goals per Gameweek", fontsize=16)
     ax2.set_xlabel("Gameweek")
     ax2.set_ylabel("Goals")
     ax2.grid(True, linestyle='--', alpha=0.3)
-    
-    # Add value labels to goals
+
     for i, v in enumerate(goals):
         if v > 0:
             ax2.text(i, v + 0.1, str(v), ha='center')
-    
+
     plt.tight_layout()
     st.pyplot(fig)
 
