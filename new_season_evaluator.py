@@ -678,6 +678,22 @@ def main():
                     st.session_state.club_tiers[club] = "Average"
         
         # Process historical data
+        try:
+            # Step 1: Convert to string and clean up known bad values
+            df_hist['Cote'] = df_hist['Cote'].astype(str).str.strip().replace({'NaN': '', 'nan': '', '': None})
+        
+            # Step 2: Show problematic entries BEFORE conversion
+            bad_entries = df_hist[df_hist['Cote'].isnull() | ~df_hist['Cote'].str.replace('.', '', 1).str.isnumeric()]
+            if not bad_entries.empty:
+                st.warning("🚨 Found non-numeric or missing Cote values:")
+                st.dataframe(bad_entries[['Joueur', 'Cote']])
+        
+            # Step 3: Convert to numeric safely
+            df_hist['Cote'] = pd.to_numeric(df_hist['Cote'], errors='coerce').fillna(1).clip(lower=1).round().astype(int)
+        
+        except Exception as e:
+            st.error(f"❌ Error while processing Cote column: {e}")
+            
         df_hist['simplified_position'] = df_hist['Poste'].apply(simplify_position)
         df_hist['player_id'] = df_hist.apply(create_player_id, axis=1)
         df_new['simplified_position'] = df_new['Poste'].apply(simplify_position)
