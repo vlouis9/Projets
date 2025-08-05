@@ -17,6 +17,21 @@ st.set_page_config(
 )
 
 # ---- CUSTOM CSS ----
+def is_dark_mode():
+    # Try to infer from theme primary color
+    primary_color = st.get_option("theme.backgroundColor")
+    if primary_color and primary_color.lower() in ["#0f172a", "#1e293b"]:
+        return True
+    return False
+
+def set_plot_theme():
+    if is_dark_mode():
+        plt.style.use('dark_background')
+        sns.set_style("darkgrid")
+    else:
+        plt.style.use('default')
+        sns.set_style("whitegrid")
+
 st.markdown("""
 <style>
     :root {
@@ -29,14 +44,23 @@ st.markdown("""
         --border: #e2e8f0;
     }
     
-    [data-theme="dark"] {
-        --primary: #3b82f6;
-        --secondary: #10b981;
-        --accent: #a78bfa;
-        --background: #0f172a;
-        --card: #1e293b;
-        --text: #f1f5f9;
-        --border: #334155;
+    html[data-theme="light"] {
+      --primary: #2563eb;
+      --secondary: #10b981;
+      --accent: #8b5cf6;
+      --background: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --border: #e2e8f0;
+    }
+    html[data-theme="dark"] {
+      --primary: #3b82f6;
+      --secondary: #10b981;
+      --accent: #a78bfa;
+      --background: #0f172a;
+      --card: #1e293b;
+      --text: #f1f5f9;
+      --border: #334155;
     }
     
     body {
@@ -877,6 +901,10 @@ def main():
                     count = pos_counts.get(pos, 0)
                     min_req = min_counts.get(pos, 0)
                     status = "✅" if count >= min_req else "⚠️"
+                    st.progress(
+                        min(1.0, count / (min_req * 1.5)), 
+                        text=f"{pos}: {count} players {status} (Min: {min_req})"
+                    )
                 
                 # Player Table
                 st.markdown("### **Squad Details**")
