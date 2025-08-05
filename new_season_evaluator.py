@@ -790,7 +790,7 @@ def main():
                     with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
                         weights_ui = {}
                         for pos in ['GK', 'DEF', 'MID', 'FWD']:
-                            with st.expander(f"<h6>{pos}</h6>"):
+                            with st.expander(f"**{pos}**"):
                                 default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
                                 current_w = profile_vals["kpi_weights"][pos] if st.session_state.profile_name!="Custom" else st.session_state.kpi_weights.get(pos, default_w)
                                 weights_ui[pos] = {
@@ -807,7 +807,7 @@ def main():
                     with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
                         mrb_params_ui = {}
                         for pos in ['GK', 'DEF', 'MID', 'FWD']:
-                            with st.expander(f"<h6>{pos}</h6>"):
+                            with st.expander(f"**{pos}**"):
                                 default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
                                 current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state.profile_name!="Custom" else st.session_state.mrb_params.get(pos, default_mrb)
                                 mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
