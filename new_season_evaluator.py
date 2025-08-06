@@ -933,7 +933,7 @@ def main():
         
         # Tab 2: Player Database
         with tab2:
-            st.markdown("#### 👥 Squad Building Parameters"
+            st.markdown("#### 👥 Squad Building Parameters")
             profile_names = list(PREDEFINED_PROFILES.keys())
             selected_profile_name_ui = st.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state.profile_name), key="profile_selector")
             if selected_profile_name_ui != st.session_state.profile_name:
