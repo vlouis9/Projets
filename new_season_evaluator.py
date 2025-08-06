@@ -971,36 +971,30 @@ def main():
                 st.markdown("Filter and pick a player to visualize ratings & goals per match.")
             
                 search_text = st.text_input("Search player name or club")
-                filtered_df = disp_df[disp_df['Historical'] == True]
+            
+                # Only historical players with real performance
+                filtered_df = disp_df[(disp_df['Historical'] == True) & (disp_df['Performance'] > 0)]
             
                 if search_text:
                     filtered_df = filtered_df[
-                        filtered_df['Player'].str.contains(search_text, case=False) |
-                        filtered_df['Club'].str.contains(search_text, case=False)
+                        filtered_df['Player'].str.contains(search_text, case=False, na=False) |
+                        filtered_df['Club'].str.contains(search_text, case=False, na=False)
                     ]
             
-                selected_player_row = st.selectbox(
-                    "Select player", 
-                    filtered_df[['Player', 'Club']].apply(lambda x: f"{x['Player']} ({x['Club']})", axis=1)
-                )
+                if not filtered_df.empty:
+                    player_options = filtered_df[['Player', 'Club']].apply(lambda x: f"{x['Player']} ({x['Club']})", axis=1).tolist()
+                    selected_player = st.selectbox("Select player", options=player_options)
             
-                if selected_player_row:
-                    player_name = selected_player_row.split(" (")[0]
-                    selected_row = df_all[df_all['Joueur'] == player_name].iloc[0]
-                    plot_player_performance(selected_row, df_hist)
-            
-            # Find the selected player
-            if selected_player:
-                selected_player_name = selected_player.split(" (")[0]
-                selected_row = df_all[df_all['Joueur'] == selected_player_name]
-                if not selected_row.empty:
-                    plot_player_performance(selected_row.iloc[0], df_hist)
+                    if selected_player is not None and isinstance(selected_player, str):
+                        selected_player_name = selected_player.split(" (")[0]
+                        selected_row = df_all[df_all['Joueur'] == selected_player_name]
+                        if not selected_row.empty:
+                            plot_player_performance(selected_row.iloc[0], df_hist)
+                        else:
+                            st.warning("Selected player not found in database.")
                 else:
-                    st.warning("Selected player not found in database.")
-            player_row = df_all[df_all['Joueur'] == selected_player_name].iloc[0]
+                    st.info("No players found matching the search.")
             
-            # Player performance visualization
-            plot_player_performance(player_row, df_hist)
             
             st.download_button(
                 label="📥 Download Player Database (CSV)", 
