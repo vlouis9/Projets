@@ -961,15 +961,33 @@ def main():
             def format_pos(pos):
                 return f"<span class='{pos}-tag position-tag'>{pos}</span>"
             
-            disp_df_show['Position'] = disp_df_show['Position'].apply(format_pos)
+            disp_df_show['Position'] = disp_df_show['Position'].str.replace(r'<.*?>', '', regex=True)
             
             # Display the player database
-            st.write(disp_df_show.to_html(escape=False, index=False), unsafe_allow_html=True)
+            st.dataframe(disp_df_show, use_container_width=True, hide_index=True)
             
             # Player selection for performance visualization
-            st.markdown("### 🔍 Player Performance Analysis")
-            player_names = [f"{row['Player']} ({row['Club']})" for _, row in disp_df.iterrows()]
-            selected_player = st.selectbox("Select a player to view performance details", player_names)
+            with st.expander("🔍 Player Performance Analysis", expanded=False):
+                st.markdown("Filter and pick a player to visualize ratings & goals per match.")
+            
+                search_text = st.text_input("Search player name or club")
+                filtered_df = disp_df[disp_df['Historical'] == True]
+            
+                if search_text:
+                    filtered_df = filtered_df[
+                        filtered_df['Player'].str.contains(search_text, case=False) |
+                        filtered_df['Club'].str.contains(search_text, case=False)
+                    ]
+            
+                selected_player_row = st.selectbox(
+                    "Select player", 
+                    filtered_df[['Player', 'Club']].apply(lambda x: f"{x['Player']} ({x['Club']})", axis=1)
+                )
+            
+                if selected_player_row:
+                    player_name = selected_player_row.split(" (")[0]
+                    selected_row = df_all[df_all['Joueur'] == player_name].iloc[0]
+                    plot_player_performance(selected_row, df_hist)
             
             # Find the selected player
             selected_player_name = selected_player.split(" (")[0]
