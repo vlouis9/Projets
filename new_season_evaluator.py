@@ -7,6 +7,7 @@ import json
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Dict, List, Tuple, Optional, Set
+from st_aggrid import AgGrid, GridOptionsBuilder
 
 # ---- PAGE CONFIG ----
 st.set_page_config(
@@ -935,6 +936,9 @@ def main():
         # Tab 2: Player Database
         with tab2:
             st.markdown('<h2 class="section-header">📋 Full Player Database</h2>', unsafe_allow_html=True)
+            
+            # ---- FILTERS ----
+            # Prepare for filtering
             disp_df = df_all.rename(columns={
                 "Joueur": "Player", 
                 "simplified_position": "Position",
@@ -948,54 +952,83 @@ def main():
                 "team_ranking": "Team Rank",
                 "is_historical": "Historical"
             })
+            
             disp_df_show = disp_df[[
                 'Player', 'Club', 'Position', 'PVS', 'Base Price', 'Suggested Bid', 
                 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Rank', 'Historical'
             ]]
             
-            # Format position tags
-            def format_pos(pos):
-                return f"<span class='{pos}-tag position-tag'>{pos}</span>"
+            # Unique filter options
+            clubs = sorted(list(disp_df_show['Club'].dropna().unique()))
+            positions = sorted(list(disp_df_show['Position'].dropna().unique()))
+            min_pvs, max_pvs = float(disp_df_show['PVS'].min()), float(disp_df_show['PVS'].max())
+            min_price, max_price = int(disp_df_show['Base Price'].min()), int(disp_df_show['Base Price'].max())
             
-            disp_df_show['Position'] = disp_df_show['Position'].str.replace(r'<.*?>', '', regex=True)
+            # Filters widgets
+            st.markdown("### 🔎 Filters")
+            col1, col2, col3 = st.columns([2,2,2])
+            with col1:
+                selected_club = st.multiselect("Club", clubs, default=clubs)
+            with col2:
+                selected_position = st.multiselect("Position", positions, default=positions)
+            with col3:
+                historical_map = { "All": None, "Only historical": True, "Only new": False }
+                selected_historical = st.selectbox("Historical", list(historical_map.keys()), index=0)
             
-            # Display the player database
-            st.dataframe(disp_df_show, use_container_width=True, hide_index=True)
+            col4, col5 = st.columns([2,2])
+            with col4:
+                pvs_range = st.slider("PVS Range", min_value=min_pvs, max_value=max_pvs, value=(min_pvs, max_pvs))
+            with col5:
+                price_range = st.slider("Base Price Range", min_value=min_price, max_value=max_price, value=(min_price, max_price))
             
-            # Player selection for performance visualization
-            with st.expander("🔍 Player Performance Analysis", expanded=False):
-                st.markdown("Filter and pick a player to visualize ratings & goals per match.")
+            # Apply filters
+            filtered_df = disp_df_show[
+                disp_df_show['Club'].isin(selected_club) & 
+                disp_df_show['Position'].isin(selected_position) & 
+                disp_df_show['PVS'].between(*pvs_range) &
+                disp_df_show['Base Price'].between(*price_range)
+            ]
+            if historical_map[selected_historical] is not None:
+                filtered_df = filtered_df[filtered_df['Historical'] == historical_map[selected_historical]]
             
-                search_text = st.text_input("Search player name or club")
+            st.markdown("### 📋 Filtered Database")
             
-                # Only historical players with real performance
-                filtered_df = disp_df[(disp_df['Historical'] == True) & (disp_df['Performance'] > 0)]
+            # ---- AGGRID TABLE ----
+            gb = GridOptionsBuilder.from_dataframe(filtered_df)
+            gb.configure_pagination(enabled=True)
+            gb.configure_selection(selection_mode="single", use_checkbox=True)
+            gb.configure_side_bar()  # optional: show/hide columns
+            grid_options = gb.build()
             
-                if search_text:
-                    filtered_df = filtered_df[
-                        filtered_df['Player'].str.contains(search_text, case=False, na=False) |
-                        filtered_df['Club'].str.contains(search_text, case=False, na=False)
-                    ]
+            grid_response = AgGrid(
+                filtered_df,
+                gridOptions=grid_options,
+                enable_enterprise_modules=False,
+                update_mode='MODEL_CHANGED',
+                theme='streamlit',
+                height=400,
+                fit_columns_on_grid=True
+            )
             
-                if not filtered_df.empty:
-                    player_options = filtered_df[['Player', 'Club']].apply(lambda x: f"{x['Player']} ({x['Club']})", axis=1).tolist()
-                    selected_player = st.selectbox("Select player", options=player_options)
+            selected_rows = grid_response['selected_rows']
             
-                    if selected_player is not None and isinstance(selected_player, str):
-                        selected_player_name = selected_player.split(" (")[0]
-                        selected_row = df_all[df_all['Joueur'] == selected_player_name]
-                        if not selected_row.empty:
-                            plot_player_performance(selected_row.iloc[0], df_hist)
-                        else:
-                            st.warning("Selected player not found in database.")
+            # ---- PERFORMANCE ANALYSIS ----
+            st.markdown("### 📊 Player Performance Analysis")
+            if selected_rows:
+                selected_player_name = selected_rows[0]['Player']
+                selected_row = df_all[df_all['Joueur'] == selected_player_name]
+                if not selected_row.empty:
+                    plot_player_performance(selected_row.iloc[0], df_hist)
                 else:
-                    st.info("No players found matching the search.")
+                    st.warning("Selected player not found in database.")
+            else:
+                st.info("Select a player in the table above to view their performance analysis.")
             
-            
+            # ---- DOWNLOAD BUTTON ----
             st.download_button(
                 label="📥 Download Player Database (CSV)", 
-                data=disp_df_show.to_csv(index=False).encode('utf-8'), 
-                file_name="mpg_full_player_database.csv", 
+                data=filtered_df.to_csv(index=False).encode('utf-8'), 
+                file_name="mpg_filtered_player_database.csv", 
                 mime="text/csv"
             )
     
