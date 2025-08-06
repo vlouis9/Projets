@@ -688,6 +688,9 @@ def main():
                             st.success("Club tiers loaded!")
                         else:
                             st.warning("Club list does not match current clubs. Tiers not loaded.")
+            
+            st.markdown("---")
+            
             cols = st.columns(5)
             club_cols = [cols[i % 5] for i in range(len(all_clubs))]
             for i, club in enumerate(all_clubs):
@@ -712,6 +715,8 @@ def main():
                         loaded_scores = load_dict_from_file(np_upload)
                         st.session_state.new_player_scores.update(loaded_scores)
                         st.success("New player scores loaded!")
+           
+            st.markdown("---")
             
             if not new_players.empty:
                 st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
