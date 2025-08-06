@@ -992,6 +992,18 @@ def main():
                 filtered_df = filtered_df[filtered_df['Historical'] == historical_map[selected_historical]]
             
             st.markdown("### 📋 Filtered Database")
+
+            # List your numeric columns to round
+            numeric_cols = ['PVS', 'Base Price', 'Suggested Bid', 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Rank']
+            
+            # Round relevant columns in filtered_df
+            for col in numeric_cols:
+                if col in filtered_df.columns:
+                    # Choose 0 decimals for prices, 1 for performance metrics (adjust as you want)
+                    if col in ['Base Price', 'Suggested Bid', 'Team Rank', 'Goals']:
+                        filtered_df[col] = filtered_df[col].round(0).astype(int)
+                    else:
+                        filtered_df[col] = filtered_df[col].round(1)
             
             # ---- AGGRID TABLE ----
             gb = GridOptionsBuilder.from_dataframe(filtered_df)
@@ -1014,7 +1026,7 @@ def main():
             
             # ---- PERFORMANCE ANALYSIS ----
             st.markdown("### 📊 Player Performance Analysis")
-            if selected_rows:
+            if selected_rows and len(selected_rows)>0:
                 selected_player_name = selected_rows[0]['Player']
                 selected_row = df_all[df_all['Joueur'] == selected_player_name]
                 if not selected_row.empty:
