@@ -615,10 +615,18 @@ def main():
     
     # --- SIDEBAR: File Inputs and Settings ---
     with st.sidebar:
-        with st.expander("⚙️ Data Files"):
-            hist_file = st.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
-            new_file = st.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
+        st.markdown("## ⚙️ Data Files"):
+        hist_file = st.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
+        new_file = st.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
         st.markdown("---")
+        
+        st.markdown("---")
+        np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
+        if np_upload:
+            loaded_scores = load_dict_from_file(np_upload)
+            st.session_state.new_player_scores.update(loaded_scores)
+            st.success("New player scores loaded!")
+           
 
     # Use Streamlit's native tabs
     tab1, tab2, tab3, tab4 = st.tabs(["🏆 Squad Builder", "📋 Player Database", "🏅 Club Tiers", "🆕 New Players scores"])
@@ -705,18 +713,6 @@ def main():
         # New Player Ratings
         with tab4:
             st.markdown("## 🆕 Assign Scores to New Players")
-            with st.expander("⚙️ New Players Files"):
-                col1, col2 = st.columns([1,1])
-                with col1:
-                    save_dict_to_download_button(st.session_state.new_player_scores, "💾 Download New Player Scores", "new_player_scores.json")
-                with col2:
-                    np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
-                    if np_upload:
-                        loaded_scores = load_dict_from_file(np_upload)
-                        st.session_state.new_player_scores.update(loaded_scores)
-                        st.success("New player scores loaded!")
-           
-            st.markdown("---")
             
             if not new_players.empty:
                 st.write("Rate new players (0, 25, 50, 75, 100% of max historical for each KPI):")
@@ -743,6 +739,8 @@ def main():
                                     st.session_state.new_player_scores[pid][kpi] = sel
             else:
                 st.info("No new players to rate.")
+
+            save_dict_to_download_button(st.session_state.new_player_scores, "💾 Download New Player Scores", "new_player_scores.json")
         
         # Merge all player data
         merged_rows = []
