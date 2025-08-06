@@ -622,6 +622,9 @@ def main():
         club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
         if club_upload:
             loaded_tiers = load_dict_from_file(club_upload)
+            st.session_state.loaded_tiers_temp = loaded_tiers
+            st.session_state.club_tiers_loaded_flag = True
+            st.rerun()
         st.markdown("---")
         np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
         if np_upload:
@@ -647,23 +650,23 @@ def main():
 
     # Initialize club tiers and new player scores if files are uploaded
     if df_hist is not None and df_new is not None:
-        # Initialize club tiers
         all_clubs = sorted(df_new['Club'].unique())
-        if not st.session_state.club_tiers:
+
+        if st.session_state.get("club_tiers_loaded_flag", False):
+            loaded_tiers = st.session_state.pop('loaded_tiers_temp', {})
+            st.session_state.pop('club_tiers_loaded_flag', None)
+            if set(loaded_tiers.keys()) == set(all_clubs):
+                st.session_state.club_tiers = loaded_tiers
+                st.success("Club tiers loaded!")
+            else:
+                st.warning("Club list does not match current clubs. Tiers not loaded.")
+    
+        if "club_tiers" not in st.session_state or not st.session_state.club_tiers:
             st.session_state.club_tiers = {club: "Average" for club in all_clubs}
         else:
-            # Add any new clubs that might be missing
             for club in all_clubs:
                 if club not in st.session_state.club_tiers:
                     st.session_state.club_tiers[club] = "Average"
-        
-            if 'loaded_tiers_temp' in st.session_state:
-                loaded_tiers = st.session_state.pop('loaded_tiers_temp')
-                if set(loaded_tiers.keys()) == set(all_clubs):
-                    st.session_state.club_tiers = loaded_tiers
-                    st.success("Club tiers loaded!")
-                else:
-                    st.warning("Club list does not match current clubs. Tiers not loaded.")
             
         df_hist['simplified_position'] = df_hist['Poste'].apply(simplify_position)
         df_hist['player_id'] = df_hist.apply(create_player_id, axis=1)
