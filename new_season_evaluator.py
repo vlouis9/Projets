@@ -624,7 +624,6 @@ def main():
             loaded_tiers = load_dict_from_file(club_upload)
             st.session_state.loaded_tiers_temp = loaded_tiers
             st.session_state.club_tiers_loaded_flag = True
-            st.rerun()
         st.markdown("---")
         np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
         if np_upload:
