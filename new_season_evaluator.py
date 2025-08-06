@@ -622,11 +622,6 @@ def main():
         club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
         if club_upload:
             loaded_tiers = load_dict_from_file(club_upload)
-            if set(loaded_tiers.keys()) == set(all_clubs):
-                st.session_state.club_tiers = loaded_tiers
-                st.success("Club tiers loaded!")
-            else:
-                st.warning("Club list does not match current clubs. Tiers not loaded.")
         st.markdown("---")
         np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
         if np_upload:
@@ -661,6 +656,15 @@ def main():
             for club in all_clubs:
                 if club not in st.session_state.club_tiers:
                     st.session_state.club_tiers[club] = "Average"
+        if df_hist is not None and df_new is not None:
+        
+        if 'loaded_tiers_temp' in st.session_state:
+            loaded_tiers = st.session_state.pop('loaded_tiers_temp')
+            if set(loaded_tiers.keys()) == set(all_clubs):
+                st.session_state.club_tiers = loaded_tiers
+                st.success("Club tiers loaded!")
+            else:
+                st.warning("Club list does not match current clubs. Tiers not loaded.")
             
         df_hist['simplified_position'] = df_hist['Poste'].apply(simplify_position)
         df_hist['player_id'] = df_hist.apply(create_player_id, axis=1)
