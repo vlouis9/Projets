@@ -615,11 +615,18 @@ def main():
     
     # --- SIDEBAR: File Inputs and Settings ---
     with st.sidebar:
-        st.markdown("## ⚙️ Data Files"):
+        st.markdown("## ⚙️ Data Files")
         hist_file = st.file_uploader("Last Season Player Data (CSV/Excel)", type=['csv','xlsx','xls'], key="hist_file")
         new_file = st.file_uploader("New Season Players File (CSV/Excel)", type=['csv','xlsx','xls'], key="new_file")
         st.markdown("---")
-        
+        club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
+        if club_upload:
+            loaded_tiers = load_dict_from_file(club_upload)
+            if set(loaded_tiers.keys()) == set(all_clubs):
+                st.session_state.club_tiers = loaded_tiers
+                st.success("Club tiers loaded!")
+            else:
+                st.warning("Club list does not match current clubs. Tiers not loaded.")
         st.markdown("---")
         np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
         if np_upload:
@@ -683,22 +690,6 @@ def main():
         # Club Tiers Configuration
         with tab3:
             st.markdown("## 🏅 Assign Club Tiers")
-            with st.expander("⚙️ Club Files"):
-                col1, col2 = st.columns([1,1])
-                with col1:
-                    save_dict_to_download_button(st.session_state.club_tiers, "💾 Download Club Tiers", "club_tiers.json")
-                with col2:
-                    club_upload = st.file_uploader("⬆️ Load Club Tiers", type=["json"], key="clubtier_upload")
-                    if club_upload:
-                        loaded_tiers = load_dict_from_file(club_upload)
-                        if set(loaded_tiers.keys()) == set(all_clubs):
-                            st.session_state.club_tiers = loaded_tiers
-                            st.success("Club tiers loaded!")
-                        else:
-                            st.warning("Club list does not match current clubs. Tiers not loaded.")
-            
-            st.markdown("---")
-            
             cols = st.columns(5)
             club_cols = [cols[i % 5] for i in range(len(all_clubs))]
             for i, club in enumerate(all_clubs):
@@ -709,6 +700,7 @@ def main():
                     key=f"clubtier_{club}"
                 )
                 st.session_state.club_tiers[club] = tier
+            save_dict_to_download_button(st.session_state.club_tiers, "💾 Download Club Tiers", "club_tiers.json")
         
         # New Player Ratings
         with tab4:
