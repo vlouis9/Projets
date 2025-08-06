@@ -933,6 +933,44 @@ def main():
         
         # Tab 2: Player Database
         with tab2:
+            st.markdown("#### 👥 Squad Building Parameters"
+            profile_names = list(PREDEFINED_PROFILES.keys())
+            selected_profile_name_ui = st.selectbox("Select Profile", options=profile_names, index=profile_names.index(st.session_state.profile_name), key="profile_selector")
+            if selected_profile_name_ui != st.session_state.profile_name:
+                st.session_state.profile_name = selected_profile_name_ui
+            profile_vals = PREDEFINED_PROFILES.get(st.session_state.profile_name, PREDEFINED_PROFILES["Balanced Value"])
+
+            if selected_profile_name_ui=="Custom":
+                subcol1, subcol2 = st.columns([4,4])
+                with subcol1:
+                    with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
+                        weights_ui = {}
+                        for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                            with st.expander(f"**{pos}**"):
+                                default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
+                                current_w = profile_vals["kpi_weights"][pos] if st.session_state.profile_name!="Custom" else st.session_state.kpi_weights.get(pos, default_w)
+                                weights_ui[pos] = {
+                                    'estimated_performance': st.slider(f"Performance", 0.0, 1.0, float(current_w.get('estimated_performance', 0.0)), 0.01, key=f"{pos}_wPerf"),
+                                    'estimated_potential': st.slider(f"Potential", 0.0, 1.0, float(current_w.get('estimated_potential', 0.0)), 0.01, key=f"{pos}_wPot"),
+                                    'estimated_regularity': st.slider(f"Regularity", 0.0, 1.0, float(current_w.get('estimated_regularity', 0.0)), 0.01, key=f"{pos}_wReg"),
+                                    'estimated_goals': st.slider(f"Goals", 0.0, 1.0, float(current_w.get('estimated_goals', 0.0)), 0.01, key=f"{pos}_wGoals"),
+                                    'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
+                                }
+                        if st.session_state.profile_name=="Custom":
+                            st.session_state.kpi_weights = weights_ui
+                
+                with subcol2:
+                    with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
+                        mrb_params_ui = {}
+                        for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                            with st.expander(f"**{pos}**"):
+                                default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
+                                current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state.profile_name!="Custom" else st.session_state.mrb_params.get(pos, default_mrb)
+                                mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
+                        if st.session_state.profile_name=="Custom":
+                            st.session_state.mrb_params = mrb_params_ui
+            
+            st.markdown("---")
             st.markdown('<h2 class="section-header">📋 Full Player Database</h2>', unsafe_allow_html=True)
             disp_df = df_all.rename(columns={
                 "Joueur": "Player", 
