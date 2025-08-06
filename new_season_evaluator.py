@@ -1026,7 +1026,17 @@ def main():
             
             # ---- PERFORMANCE ANALYSIS ----
             st.markdown("### 📊 Player Performance Analysis")
-            if selected_rows and len(selected_rows)>0:
+            if isinstance(selected_rows, pd.DataFrame):
+                if not selected_rows.empty:
+                    selected_player_name = selected_rows.iloc[0]['Player']
+                    selected_row = df_all[df_all['Joueur'] == selected_player_name]
+                    if not selected_row.empty:
+                        plot_player_performance(selected_row.iloc[0], df_hist)
+                    else:
+                        st.warning("Selected player not found in database.")
+                else:
+                    st.info("Select a player in the table above to view their performance analysis.")
+            elif isinstance(selected_rows, list) and len(selected_rows) > 0:
                 selected_player_name = selected_rows[0]['Player']
                 selected_row = df_all[df_all['Joueur'] == selected_player_name]
                 if not selected_row.empty:
