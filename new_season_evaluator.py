@@ -990,7 +990,13 @@ def main():
                     plot_player_performance(selected_row, df_hist)
             
             # Find the selected player
-            selected_player_name = selected_player.split(" (")[0]
+            if selected_player:
+                selected_player_name = selected_player.split(" (")[0]
+                selected_row = df_all[df_all['Joueur'] == selected_player_name]
+                if not selected_row.empty:
+                    plot_player_performance(selected_row.iloc[0], df_hist)
+                else:
+                    st.warning("Selected player not found in database.")
             player_row = df_all[df_all['Joueur'] == selected_player_name].iloc[0]
             
             # Player performance visualization
