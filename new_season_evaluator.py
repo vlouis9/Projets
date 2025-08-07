@@ -193,11 +193,6 @@ PREDEFINED_PROFILES = {
             'MID': {'estimated_performance': 0.25, 'estimated_potential': 0.25, 'estimated_regularity': 0.20, 'estimated_goals': 0.15, 'team_ranking': 0.15},
             'FWD': {'estimated_performance': 0.20, 'estimated_potential': 0.25, 'estimated_regularity': 0.15, 'estimated_goals': 0.25, 'team_ranking': 0.15}
         },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.3},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.4},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.6},
-            'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
         }
     },
     "Potential Focus": {
@@ -207,11 +202,6 @@ PREDEFINED_PROFILES = {
             'MID': {'estimated_performance': 0.10, 'estimated_potential': 0.55, 'estimated_regularity': 0.15, 'estimated_goals': 0.10, 'team_ranking': 0.10},
             'FWD': {'estimated_performance': 0.05, 'estimated_potential': 0.50, 'estimated_regularity': 0.10, 'estimated_goals': 0.25, 'team_ranking': 0.10}
         },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.25},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.35},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.5},
-            'FWD': {'max_proportional_bonus_at_pvs100': 0.7}
         }
     },
     "Goal Focus": {
@@ -221,13 +211,30 @@ PREDEFINED_PROFILES = {
             'MID': {'estimated_performance': 0.15, 'estimated_potential': 0.10, 'estimated_regularity': 0.15, 'estimated_goals': 0.40, 'team_ranking': 0.20},
             'FWD': {'estimated_performance': 0.10, 'estimated_potential': 0.10, 'estimated_regularity': 0.10, 'estimated_goals': 0.60, 'team_ranking': 0.10}
         },
-        "mrb_params_per_pos": {
-            'GK': {'max_proportional_bonus_at_pvs100': 0.2},
-            'DEF': {'max_proportional_bonus_at_pvs100': 0.3},
-            'MID': {'max_proportional_bonus_at_pvs100': 0.4},
-            'FWD': {'max_proportional_bonus_at_pvs100': 0.9}
         }
     }
+}
+
+MRB_PROFILES = {
+    "Balanced": {
+        'GK': {'max_proportional_bonus_at_pvs100': 0.3},
+        'DEF': {'max_proportional_bonus_at_pvs100': 0.4},
+        'MID': {'max_proportional_bonus_at_pvs100': 0.6},
+        'FWD': {'max_proportional_bonus_at_pvs100': 0.8}
+    },
+    "Aggressive": {
+        'GK': {'max_proportional_bonus_at_pvs100': 0.5},
+        'DEF': {'max_proportional_bonus_at_pvs100': 0.7},
+        'MID': {'max_proportional_bonus_at_pvs100': 0.9},
+        'FWD': {'max_proportional_bonus_at_pvs100': 1.2}
+    },
+    "Money Saver": {
+        'GK': {'max_proportional_bonus_at_pvs100': 0.1},
+        'DEF': {'max_proportional_bonus_at_pvs100': 0.15},
+        'MID': {'max_proportional_bonus_at_pvs100': 0.2},
+        'FWD': {'max_proportional_bonus_at_pvs100': 0.3}
+    },
+    "Custom": "custom"
 }
 
 # ----- Data helpers -----
@@ -610,10 +617,12 @@ def main():
         st.session_state.new_player_scores = {}
     if 'profile_name' not in st.session_state:
         st.session_state.profile_name = "Balanced Value"
+    if 'mrb_profile_name' not in st.session_state:
+        st.session_state.mrb_profile_name = "Balanced"
     if 'kpi_weights' not in st.session_state:
         st.session_state.kpi_weights = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"]
     if 'mrb_params' not in st.session_state:
-        st.session_state.mrb_params = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"]
+        st.session_state.mrb_params = MRB_PROFILES["Balanced"]
     
     squad_builder = SquadBuilder()
     
@@ -641,7 +650,7 @@ def main():
 
     st.markdown("#### 👥 Squad Building Parameters")
             
-    col1, col2 = st.columns([2,8])
+    col1, col2, col3 = st.columns([2,4,4])
     with col1:    
         formation_key_ui = st.selectbox("Preferred Formation", options=list(squad_builder.formations.keys()), index=0)
         target_squad_size_ui = st.number_input("Target Squad Size", min_value=sum(squad_builder.squad_minimums.values()), max_value=30, value=DEFAULT_SQUAD_SIZE)
@@ -654,34 +663,39 @@ def main():
         profile_vals = PREDEFINED_PROFILES.get(st.session_state.profile_name, PREDEFINED_PROFILES["Balanced Value"])
 
         if selected_profile_name_ui=="Custom":
-            subcol1, subcol2 = st.columns([4,4])
-            with subcol1:
-                with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
-                    weights_ui = {}
-                    for pos in ['GK', 'DEF', 'MID', 'FWD']:
-                        with st.expander(f"**{pos}**"):
-                            default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
-                            current_w = profile_vals["kpi_weights"][pos] if st.session_state.profile_name!="Custom" else st.session_state.kpi_weights.get(pos, default_w)
-                            weights_ui[pos] = {
-                                'estimated_performance': st.slider(f"Performance", 0.0, 1.0, float(current_w.get('estimated_performance', 0.0)), 0.01, key=f"{pos}_wPerf"),
-                                'estimated_potential': st.slider(f"Potential", 0.0, 1.0, float(current_w.get('estimated_potential', 0.0)), 0.01, key=f"{pos}_wPot"),
-                                'estimated_regularity': st.slider(f"Regularity", 0.0, 1.0, float(current_w.get('estimated_regularity', 0.0)), 0.01, key=f"{pos}_wReg"),
-                                'estimated_goals': st.slider(f"Goals", 0.0, 1.0, float(current_w.get('estimated_goals', 0.0)), 0.01, key=f"{pos}_wGoals"),
-                                'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
-                            }
-                    if st.session_state.profile_name=="Custom":
-                        st.session_state.kpi_weights = weights_ui
-            
-            with subcol2:
-                with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
-                    mrb_params_ui = {}
-                    for pos in ['GK', 'DEF', 'MID', 'FWD']:
-                        with st.expander(f"**{pos}**"):
-                            default_mrb = PREDEFINED_PROFILES["Balanced Value"]["mrb_params_per_pos"][pos]
-                            current_mrb = profile_vals["mrb_params_per_pos"][pos] if st.session_state.profile_name!="Custom" else st.session_state.mrb_params.get(pos, default_mrb)
-                            mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 1.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
-                    if st.session_state.profile_name=="Custom":
-                        st.session_state.mrb_params = mrb_params_ui
+            with st.expander("📊 KPI Weights (Click to Customize)", expanded=(st.session_state.profile_name=="Custom")):
+                weights_ui = {}
+                for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                    with st.expander(f"**{pos}**"):
+                        default_w = PREDEFINED_PROFILES["Balanced Value"]["kpi_weights"][pos]
+                        current_w = profile_vals["kpi_weights"][pos] if st.session_state.profile_name!="Custom" else st.session_state.kpi_weights.get(pos, default_w)
+                        weights_ui[pos] = {
+                            'estimated_performance': st.slider(f"Performance", 0.0, 1.0, float(current_w.get('estimated_performance', 0.0)), 0.01, key=f"{pos}_wPerf"),
+                            'estimated_potential': st.slider(f"Potential", 0.0, 1.0, float(current_w.get('estimated_potential', 0.0)), 0.01, key=f"{pos}_wPot"),
+                            'estimated_regularity': st.slider(f"Regularity", 0.0, 1.0, float(current_w.get('estimated_regularity', 0.0)), 0.01, key=f"{pos}_wReg"),
+                            'estimated_goals': st.slider(f"Goals", 0.0, 1.0, float(current_w.get('estimated_goals', 0.0)), 0.01, key=f"{pos}_wGoals"),
+                            'team_ranking': st.slider(f"Team Ranking", 0.0, 1.0, float(current_w.get('team_ranking', 0.0)), 0.01, key=f"{pos}_wTeam"),
+                        }
+                if st.session_state.profile_name=="Custom":
+                    st.session_state.kpi_weights = weights_ui
+
+    with col3:
+        mrb_profile_names = list(MRB_PROFILES.keys())
+        selected_mrb_profile_name_ui = st.selectbox("Select MRB Profile", options=mrb_profile_names, index=mrb_profile_names.index(st.session_state.mrb_profile_name), key="mrb_profile_selector")
+        if selected_mrb_profile_name_ui != st.session_state.profile_name:
+            st.session_state.mrb_profile_name = selected_mrb_profile_name_ui
+        mrb_profile_vals = MRB_PROFILES.get(st.session_state.mrb_profile_name, MRB_PROFILES["Balanced"])
+
+        if selected_mrb_profile_name_ui=="Custom":
+            with st.expander("💰 MRB Parameters (Click to Customize)", expanded=(st.session_state.mrb_profile_name=="Custom")):
+                mrb_params_ui = {}
+                for pos in ['GK', 'DEF', 'MID', 'FWD']:
+                    with st.expander(f"**{pos}**"):
+                        default_mrb = MRB_PROFILES["Balanced"]["mrb_params_per_pos"][pos]
+                        current_mrb = mrb_profile_vals["mrb_params_per_pos"][pos] if st.session_state.mrb_profile_name!="Custom" else st.session_state.mrb_params.get(pos, default_mrb)
+                        mrb_params_ui[pos] = {'max_proportional_bonus_at_pvs100': st.slider(f"Max Bonus (at PVS 100)", 0.0, 2.0, float(current_mrb.get('max_proportional_bonus_at_pvs100', 0.2)), 0.01, key=f"{pos}_mrb")}
+                if st.session_state.mrb_profile_name=="Custom":
+                    st.session_state.mrb_params = mrb_params_ui
     
     st.markdown("---")
 
