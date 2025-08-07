@@ -564,10 +564,13 @@ def plot_player_performance(player_row, df_hist):
 
     for gw in gw_cols:
         r, g = extract_rating_goals(hist_row[gw])
+        gameweeks.append(int(gw[1:]))
         if r is not None:
             ratings.append(r)
             goals.append(g)
-            gameweeks.append(int(gw[1:]))
+        else:
+            ratings.append(np.nan)
+            goals.append(np.nan)
 
     if not ratings:
         st.warning("No performance data available for this player")
@@ -914,6 +917,7 @@ def main():
                         badge,
                         f"{row['PVS']:.1f}",
                         f"€{row['Bid']}",
+                        f"{row['Value/Cost']:.1f}",
                         starter
                     ]
                 
@@ -944,7 +948,8 @@ def main():
                 "simplified_position": "Position",
                 "pvs": "PVS", 
                 "Cote": "Base Price",
-                "mrb": "Suggested Bid", 
+                "mrb": "Suggested Bid",
+                "value_per_cost": "Value/Cost",
                 "estimated_performance": "Performance",
                 "estimated_potential": "Potential",
                 "estimated_regularity": "Regularity",
@@ -954,7 +959,7 @@ def main():
             })
             
             disp_df_show = disp_df[[
-                'Player', 'Club', 'Position', 'PVS', 'Base Price', 'Suggested Bid', 
+                'Player', 'Club', 'Position', 'PVS', 'Base Price', 'Suggested Bid', 'Value/Cost', 
                 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Rank', 'Historical'
             ]]
             
