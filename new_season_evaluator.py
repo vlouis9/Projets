@@ -897,7 +897,7 @@ def main():
                 
                 # Player Table
                 st.markdown("### **Squad Details**")
-                squad_disp_show = squad_df[['Joueur','Club','simplified_position','pvs_in_squad','mrb_actual_cost','is_starter']]
+                squad_disp_show = squad_df[['Joueur','Club','simplified_position','pvs_in_squad','mrb_actual_cost','value_per_cost','is_starter']]
                 squad_disp_show = squad_disp_show.rename(columns={
                     "Joueur": "Player", 
                     "simplified_position": "Position",
