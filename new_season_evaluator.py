@@ -941,7 +941,7 @@ def main():
         # Tab 2: Player Database
         with tab2:
             st.markdown('<h2 class="section-header">📋 Full Player Database</h2>', unsafe_allow_html=True)
-            
+        
             # ---- FILTERS ----
             # Prepare for filtering
             disp_df = df_all.rename(columns={
@@ -949,8 +949,7 @@ def main():
                 "simplified_position": "Position",
                 "pvs": "PVS", 
                 "Cote": "Base Price",
-                "mrb": "Suggested Bid",
-                "value_per_cost": "Value/Cost",
+                "mrb": "Suggested Bid", 
                 "estimated_performance": "Performance",
                 "estimated_potential": "Potential",
                 "estimated_regularity": "Regularity",
@@ -958,35 +957,57 @@ def main():
                 "team_ranking": "Team Rank",
                 "is_historical": "Historical"
             })
-            
+        
             disp_df_show = disp_df[[
-                'Player', 'Club', 'Position', 'PVS', 'Base Price', 'Suggested Bid', 'Value/Cost', 
+                'Player', 'Club', 'Position', 'PVS', 'Base Price', 'Suggested Bid', 
                 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Rank', 'Historical'
             ]]
-            
+        
             # Unique filter options
             clubs = sorted(list(disp_df_show['Club'].dropna().unique()))
             positions = sorted(list(disp_df_show['Position'].dropna().unique()))
             min_pvs, max_pvs = float(disp_df_show['PVS'].min()), float(disp_df_show['PVS'].max())
             min_price, max_price = int(disp_df_show['Base Price'].min()), int(disp_df_show['Base Price'].max())
+            historical_map = { "All": None, "Only historical": True, "Only new": False }
+        
+            # --- Session State Defaults ---
+            if "selected_club" not in st.session_state:
+                st.session_state.selected_club = clubs
+            if "selected_position" not in st.session_state:
+                st.session_state.selected_position = positions
+            if "selected_historical" not in st.session_state:
+                st.session_state.selected_historical = "All"
+            if "pvs_range" not in st.session_state:
+                st.session_state.pvs_range = (min_pvs, max_pvs)
+            if "price_range" not in st.session_state:
+                st.session_state.price_range = (min_price, max_price)
+        
+            # --- Reset Filters Button ---
+            if st.button("🔄 Reset Filters"):
+                st.session_state.selected_club = clubs
+                st.session_state.selected_position = positions
+                st.session_state.selected_historical = "All"
+                st.session_state.pvs_range = (min_pvs, max_pvs)
+                st.session_state.price_range = (min_price, max_price)
+        
+            with st.expander("### 🔎 Filters"):
+                col1, col2, col3 = st.columns([2,2,2])
+                with col1:
+                    selected_club = st.multiselect("Club", clubs, default=clubs, key="selected_club")
+                with col2:
+                    selected_position = st.multiselect("Position", positions, default=positions, key="selected_position")
+                with col3:
+                    selected_historical = st.selectbox("Historical", list(historical_map.keys()), 
+                                                       index=list(historical_map.keys()).index(st.session_state.selected_historical), key="selected_historical")
             
-            # Filters widgets
-            st.markdown("### 🔎 Filters")
-            col1, col2, col3 = st.columns([2,2,2])
-            with col1:
-                selected_club = st.multiselect("Club", clubs, default=clubs)
-            with col2:
-                selected_position = st.multiselect("Position", positions, default=positions)
-            with col3:
-                historical_map = { "All": None, "Only historical": True, "Only new": False }
-                selected_historical = st.selectbox("Historical", list(historical_map.keys()), index=0)
-            
-            col4, col5 = st.columns([2,2])
-            with col4:
-                pvs_range = st.slider("PVS Range", min_value=min_pvs, max_value=max_pvs, value=(min_pvs, max_pvs))
-            with col5:
-                price_range = st.slider("Base Price Range", min_value=min_price, max_value=max_price, value=(min_price, max_price))
-            
+                col4, col5 = st.columns([2,2])
+                with col4:
+                    pvs_range = st.slider("PVS Range", min_value=min_pvs, max_value=max_pvs, 
+                                          value=st.session_state.pvs_range, key="pvs_range")
+                with col5:
+                    price_range = st.slider("Base Price Range", min_value=min_price, max_value=max_price, 
+                                            value=st.session_state.price_range, key="price_range")
+        
             # Apply filters
             filtered_df = disp_df_show[
                 disp_df_show['Club'].isin(selected_club) & 
@@ -996,28 +1017,16 @@ def main():
             ]
             if historical_map[selected_historical] is not None:
                 filtered_df = filtered_df[filtered_df['Historical'] == historical_map[selected_historical]]
-            
+        
             st.markdown("### 📋 Filtered Database")
-
-            # List your numeric columns to round
-            numeric_cols = ['PVS', 'Base Price', 'Suggested Bid', 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Rank']
-            
-            # Round relevant columns in filtered_df
-            for col in numeric_cols:
-                if col in filtered_df.columns:
-                    # Choose 0 decimals for prices, 1 for performance metrics (adjust as you want)
-                    if col in ['Base Price', 'Suggested Bid', 'Team Rank', 'Goals']:
-                        filtered_df[col] = filtered_df[col].round(0).astype(int)
-                    else:
-                        filtered_df[col] = filtered_df[col].round(1)
-            
+        
             # ---- AGGRID TABLE ----
             gb = GridOptionsBuilder.from_dataframe(filtered_df)
-            gb.configure_pagination(enabled=True)
+            gb.configure_pagination(enabled=True, paginationPageSize=50)
             gb.configure_selection(selection_mode="single", use_checkbox=True)
-            gb.configure_side_bar()  # optional: show/hide columns
+            gb.configure_side_bar()
             grid_options = gb.build()
-            
+        
             grid_response = AgGrid(
                 filtered_df,
                 gridOptions=grid_options,
@@ -1027,22 +1036,12 @@ def main():
                 height=400,
                 fit_columns_on_grid=True
             )
-            
+        
             selected_rows = grid_response['selected_rows']
-            
+        
             # ---- PERFORMANCE ANALYSIS ----
             st.markdown("### 📊 Player Performance Analysis")
-            if isinstance(selected_rows, pd.DataFrame):
-                if not selected_rows.empty:
-                    selected_player_name = selected_rows.iloc[0]['Player']
-                    selected_row = df_all[df_all['Joueur'] == selected_player_name]
-                    if not selected_row.empty:
-                        plot_player_performance(selected_row.iloc[0], df_hist)
-                    else:
-                        st.warning("Selected player not found in database.")
-                else:
-                    st.info("Select a player in the table above to view their performance analysis.")
-            elif isinstance(selected_rows, list) and len(selected_rows) > 0:
+            if selected_rows:
                 selected_player_name = selected_rows[0]['Player']
                 selected_row = df_all[df_all['Joueur'] == selected_player_name]
                 if not selected_row.empty:
@@ -1051,7 +1050,7 @@ def main():
                     st.warning("Selected player not found in database.")
             else:
                 st.info("Select a player in the table above to view their performance analysis.")
-            
+        
             # ---- DOWNLOAD BUTTON ----
             st.download_button(
                 label="📥 Download Player Database (CSV)", 
