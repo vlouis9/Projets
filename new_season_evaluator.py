@@ -903,6 +903,7 @@ def main():
                     "simplified_position": "Position",
                     "pvs_in_squad": "PVS",
                     "mrb_actual_cost": "Bid",
+                    "value_per_cost":"Value/Cost",
                     "is_starter": "Starter"
                 })
                 
