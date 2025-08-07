@@ -925,7 +925,7 @@ def main():
                 formatted_data = [format_row(row) for _, row in squad_disp_show.iterrows()]
                 st.write(pd.DataFrame(
                     formatted_data,
-                    columns=["Player", "Club", "Position", "PVS", "Bid", "Starter"]
+                    columns=["Player", "Club", "Position", "PVS", "Bid", "Value/Cost", "Starter"]
                 ).to_html(escape=False, index=False), unsafe_allow_html=True)
                 
                 st.download_button(
