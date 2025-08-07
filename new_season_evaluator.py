@@ -628,6 +628,9 @@ def main():
             loaded_tiers = load_dict_from_file(club_upload)
             st.session_state.loaded_tiers_temp = loaded_tiers
             st.session_state.club_tiers_loaded_flag = True
+            st.success("Club tiers loaded!")
+        else:
+            st.warning("Club list does not match current clubs. Tiers not loaded.")
         st.markdown("---")
         np_upload = st.file_uploader("⬆️ Load New Player Scores", type=["json"], key="npscore_upload")
         if np_upload:
@@ -706,9 +709,6 @@ def main():
             st.session_state.pop('club_tiers_loaded_flag', None)
             if set(loaded_tiers.keys()) == set(all_clubs):
                 st.session_state.club_tiers = loaded_tiers
-                st.success("Club tiers loaded!")
-            else:
-                st.warning("Club list does not match current clubs. Tiers not loaded.")
     
         if "club_tiers" not in st.session_state or not st.session_state.club_tiers:
             st.session_state.club_tiers = {club: "Average" for club in all_clubs}
