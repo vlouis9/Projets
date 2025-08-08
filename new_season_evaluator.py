@@ -955,7 +955,7 @@ def main():
                 "pvs": "PVS", 
                 "Cote": "Base Price",
                 "mrb": "Suggested ", 
-                "value_per_cost" : "Value/Cost"
+                "value_per_cost" : "Value/Cost",
                 "estimated_performance": "Performance",
                 "estimated_potential": "Potential",
                 "estimated_regularity": "Regularity",
