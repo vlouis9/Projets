@@ -1048,7 +1048,7 @@ def main():
             # ---- PERFORMANCE ANALYSIS ----
             st.markdown("### 📊 Player Performance Analysis")
             if not selected_rows.empty:
-                selected_player_name = selected_rows[0]['Player']
+                selected_player_name = selected_rows[0]['Joueur']
                 selected_row = df_all[df_all['Joueur'] == selected_player_name]
                 if not selected_row.empty:
                     plot_player_performance(selected_row.iloc[0], df_hist)
