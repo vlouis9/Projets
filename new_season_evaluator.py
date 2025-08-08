@@ -824,7 +824,6 @@ def main():
         
         df_all = normalize_kpis(df_all, max_perf, max_pot, max_reg, max_goals)
         df_all = calculate_pvs(df_all, st.session_state.kpi_weights)
-        st.write("Current MRB Params:", st.session_state.mrb_params)
         df_all = calculate_mrb(df_all, st.session_state.mrb_params)
         df_all['Ratings per GW'], df_all['Goals per GW'] = zip(
             *df_all.apply(lambda row: build_gw_strings(row, df_hist), axis=1)
@@ -955,7 +954,8 @@ def main():
                 "simplified_position": "Position",
                 "pvs": "PVS", 
                 "Cote": "Base Price",
-                "mrb": "Suggested Bid", 
+                "mrb": "Suggested ", 
+                "value_per_cost" : "Value/Cost"
                 "estimated_performance": "Performance",
                 "estimated_potential": "Potential",
                 "estimated_regularity": "Regularity",
@@ -965,7 +965,7 @@ def main():
             })
         
             disp_df_show = disp_df[[
-                'Player', 'Club', 'Position', 'PVS', 'Base Price', 'Suggested Bid', 
+                'Player', 'Club', 'Position', 'PVS', 'Base Price', 'Suggested Bid', 'Value/Cost',
                 'Performance', 'Potential', 'Regularity', 'Goals', 'Team Rank', 'Historical'
             ]]
         
