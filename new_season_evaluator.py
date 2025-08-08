@@ -673,7 +673,7 @@ def main():
     with col3:
         mrb_profile_names = list(MRB_PROFILES.keys())
         selected_mrb_profile_name_ui = st.selectbox("Select MRB Profile", options=mrb_profile_names, index=mrb_profile_names.index(st.session_state.mrb_profile_name), key="mrb_profile_selector")
-        if selected_mrb_profile_name_ui != st.session_state.profile_name:
+        if selected_mrb_profile_name_ui != st.session_state.mrb_profile_name:
             st.session_state.mrb_profile_name = selected_mrb_profile_name_ui
         mrb_profile_vals = MRB_PROFILES.get(st.session_state.mrb_profile_name, MRB_PROFILES["Balanced"])
 
