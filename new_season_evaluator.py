@@ -954,7 +954,7 @@ def main():
                 "simplified_position": "Position",
                 "pvs": "PVS", 
                 "Cote": "Base Price",
-                "mrb": "Suggested ", 
+                "mrb": "Suggested Bid", 
                 "value_per_cost" : "Value/Cost",
                 "estimated_performance": "Performance",
                 "estimated_potential": "Potential",
