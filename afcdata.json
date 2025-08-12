@@ -817,7 +817,7 @@
       "score": "3-0",
       "score_afc": 3,
       "score_adv": 0,
-      "noted": true,
+      "noted": false,
       "termine": true,
       "homme_du_match": "Jason Cuvelier"
     }
@@ -976,7 +976,6 @@
           "Gregory Perrot",
           "Axel Soldadi\u00e9",
           "Abdel Jalil",
-          "Credo Atake",
           ""
         ]
       }
