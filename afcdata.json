@@ -274,7 +274,13 @@
             "Capitaine": true
           },
           null,
-          null,
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
           null,
           null
         ],
