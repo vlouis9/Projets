@@ -245,26 +245,6 @@
     }
   },
   "matchs": {
-    "dbb3fef7-4cab-43ab-a88d-df286c016b36": {
-      "type": "Championnat",
-      "adversaire": "ASFP Lusitanos",
-      "date": "2025-09-17",
-      "heure": "21:00",
-      "domicile": "Domicile",
-      "journee": "J04",
-      "nom_match": "\ud83d\udcc8 2025-09-17 : Championnat - J04 - AFC vs ASFP Lusitanos",
-      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
-      "events": {},
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
-      "termine": false,
-      "homme_du_match": ""
-    },
     "10807ca3-6085-41fb-b575-616c0b803bf2": {
       "type": "Amical",
       "adversaire": "Forza Viola",
