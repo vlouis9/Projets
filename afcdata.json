@@ -254,8 +254,34 @@
       "journee": "#01",
       "nom_match": "\ud83e\udd1d 2025-09-03 : Amical - #01 -  Colomiers USEMA vs AFC",
       "lieu": "Complexe Sportif Capitany, 10 Av. Yves Brunaud, 31770 Colomiers",
-      "formation": "",
-      "details": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          null
+        ],
+        "D": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": true
+          },
+          null,
+          null,
+          null,
+          null
+        ],
+        "A": [
+          null
+        ]
+      },
       "remplacants": [],
       "events": {},
       "score": "",
