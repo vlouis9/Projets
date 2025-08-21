@@ -265,26 +265,6 @@
       "termine": false,
       "homme_du_match": ""
     },
-    "5921f78c-0515-4799-8639-74fa923cdce2": {
-      "type": "Coupe",
-      "adversaire": "TOAC 2",
-      "date": "2025-09-10",
-      "heure": "21:00",
-      "domicile": "Domicile",
-      "journee": "Quarts",
-      "nom_match": "\ud83c\udfc6 2025-09-10 : Coupe - Quarts - AFC vs TOAC 2",
-      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
-      "events": {},
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
-      "termine": false,
-      "homme_du_match": ""
-    },
     "10807ca3-6085-41fb-b575-616c0b803bf2": {
       "type": "Amical",
       "adversaire": "Forza Viola",
