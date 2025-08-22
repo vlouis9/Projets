@@ -242,6 +242,58 @@
         ]
       },
       "remplacants": []
+    },
+    "USEMA Colomiers 1 ": {
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          null
+        ],
+        "D": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": true
+          },
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
+          null,
+          null
+        ],
+        "A": [
+          null
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Nicolas Gardan",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Nicolas Mitrano",
+          "Numero": "13"
+        }
+      ]
     }
   },
   "matchs": {
