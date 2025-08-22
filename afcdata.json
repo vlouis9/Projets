@@ -273,7 +273,13 @@
             "Numero": "8",
             "Capitaine": true
           },
-          null,
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6",
+            "Capitaine": false
+          },
           {
             "Nom": "Louis Vermeulen",
             "Poste": "M",
