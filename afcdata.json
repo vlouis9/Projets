@@ -243,68 +243,6 @@
       },
       "remplacants": []
     },
-    "Colomiers USEMA": {
-      "formation": "4-2-3-1",
-      "details": {
-        "G": [
-          null
-        ],
-        "D": [
-          null,
-          null,
-          null,
-          null
-        ],
-        "M": [
-          {
-            "Nom": "Thibault Rigal",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "8",
-            "Capitaine": true
-          },
-          {
-            "Nom": "Walid Chouchi",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "6",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Louis Vermeulen",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "7",
-            "Capitaine": false
-          },
-          null,
-          {
-            "Nom": "Sofian Labrinssi",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "11",
-            "Capitaine": false
-          }
-        ],
-        "A": [
-          null
-        ]
-      },
-      "remplacants": [
-        {
-          "Nom": "Maxime Pujol",
-          "Numero": "12"
-        },
-        {
-          "Nom": "Nicolas Gardan",
-          "Numero": "13"
-        },
-        {
-          "Nom": "Nicolas Mitrano",
-          "Numero": "14"
-        }
-      ]
-    },
     "Colomiers USEMA 1": {
       "formation": "4-2-3-1",
       "details": {
