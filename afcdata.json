@@ -360,6 +360,79 @@
           "Numero": "14"
         }
       ]
+    },
+    "Colomiers USEMA 1": {
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "3",
+            "Capitaine": false
+          },
+          null,
+          null,
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": true
+          },
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Nicolas Mitrano",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Sofian Labrinssi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "11",
+            "Capitaine": false
+          }
+        ],
+        "A": [
+          null
+        ]
+      },
+      "remplacants": []
     }
   },
   "matchs": {
