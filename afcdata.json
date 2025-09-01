@@ -11,17 +11,7 @@
       "Infos": ""
     },
     {
-      "Nom": "Quentin Dauris",
-      "Poste": "D",
-      "Infos": ""
-    },
-    {
       "Nom": "Charles Plun",
-      "Poste": "D",
-      "Infos": ""
-    },
-    {
-      "Nom": "Jason Cuvelier",
       "Poste": "D",
       "Infos": ""
     },
@@ -86,18 +76,8 @@
       "Infos": ""
     },
     {
-      "Nom": "Axel Lapouble",
-      "Poste": "A",
-      "Infos": ""
-    },
-    {
       "Nom": "Nicolas Mitrano",
       "Poste": "M",
-      "Infos": ""
-    },
-    {
-      "Nom": "Marouane Habachi",
-      "Poste": "D",
       "Infos": ""
     },
     {
@@ -147,6 +127,11 @@
     },
     {
       "Nom": "Adrien Dugenet",
+      "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Mathieu Gadet",
       "Poste": "M",
       "Infos": ""
     }
