@@ -317,66 +317,7 @@
       "remplacants": []
     }
   },
-  "matchs": {
-    "10807ca3-6085-41fb-b575-616c0b803bf2": {
-      "type": "Amical",
-      "adversaire": "Colomiers USEMA",
-      "date": "2025-09-03",
-      "heure": "20:15",
-      "domicile": "Ext\u00e9rieur",
-      "journee": "#01",
-      "nom_match": "\ud83e\udd1d 2025-09-03 : Amical - #01 -  Colomiers USEMA vs AFC",
-      "lieu": "Complexe Sportif Capitany, 10 Av. Yves Brunaud, 31770 Colomiers",
-      "formation": "4-2-3-1",
-      "details": {
-        "G": [
-          null
-        ],
-        "D": [
-          null,
-          null,
-          null,
-          null
-        ],
-        "M": [
-          {
-            "Nom": "Thibault Rigal",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "8",
-            "Capitaine": true
-          },
-          {
-            "Nom": "Walid Chouchi",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "6",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Louis Vermeulen",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "7",
-            "Capitaine": false
-          },
-          null,
-          null
-        ],
-        "A": [
-          null
-        ]
-      },
-      "remplacants": [],
-      "events": {},
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
-      "termine": false,
-      "homme_du_match": ""
-    }
-  },
+  "matchs": {},
   "adversaires": [
     "Athletico Tolosa B",
     "Forza Viola FC",
