@@ -387,6 +387,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "1b9c308c-5510-4c77-bce1-930df7ce59f6": {
+      "type": "Coupe",
+      "adversaire": "FOOT APEM",
+      "date": "2025-10-15",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "Poules",
+      "nom_match": "\ud83c\udfc6 2025-10-15 : Coupe - Poules - AFC vs FOOT APEM",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
