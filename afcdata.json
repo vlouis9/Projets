@@ -487,6 +487,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "91916a6b-5bb7-43dc-a7f9-1d59a784a1a0": {
+      "type": "Championnat",
+      "adversaire": "CHU TOULOUSE FC",
+      "date": "2025-11-26",
+      "heure": "21:00",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "J05",
+      "nom_match": "\ud83d\udcc8 2025-11-26 : Championnat - J05 -  CHU TOULOUSE FC vs AFC",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
