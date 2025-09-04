@@ -467,6 +467,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "447adea2-eb9a-4ab4-936d-bae8618faf1c": {
+      "type": "Championnat",
+      "adversaire": "FORZA VIOLA FC",
+      "date": "2025-11-20",
+      "heure": "20:15",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "J04",
+      "nom_match": "\ud83d\udcc8 2025-11-20 : Championnat - J04 -  FORZA VIOLA FC vs AFC",
+      "lieu": "Stade Brice Taton",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
