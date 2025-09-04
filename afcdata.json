@@ -407,6 +407,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "7a4ad109-3d90-4f38-b8ae-5fe83c4eea19": {
+      "type": "Coupe",
+      "adversaire": "FOOT POTO",
+      "date": "2025-10-22",
+      "heure": "20:00",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "Poules",
+      "nom_match": "\ud83c\udfc6 2025-10-22 : Coupe - Poules -  FOOT POTO vs AFC",
+      "lieu": "Stade de foot Lardennes",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
