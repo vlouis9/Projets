@@ -447,26 +447,6 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
-    },
-    "091406a3-be1c-4ac6-89dc-3daca0ee6a5a": {
-      "type": "Championnat",
-      "adversaire": "TOAC 2",
-      "date": "2025-10-31",
-      "heure": "20:30",
-      "domicile": "Ext\u00e9rieur",
-      "journee": "J03",
-      "nom_match": "\ud83d\udcc8 2025-10-31 : Championnat - J03 -  TOAC 2 vs AFC",
-      "lieu": "TOAC, chemin de Garric",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
-      "events": {},
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
-      "termine": false,
-      "homme_du_match": ""
     }
   },
   "adversaires": [
