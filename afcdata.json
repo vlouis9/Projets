@@ -309,9 +309,9 @@
   },
   "matchs": {},
   "adversaires": [
-    "Athletico Tolosa B",
-    "Forza Viola FC",
-    "Altran Foot",
+    "ATHLETICO TOLOSA B",
+    "FORZA VIOLA FC",
+    "ALTRAN FOOT",
     "ASFP Lusitanos",
     "AJ Saint-Exupery",
     "AS DRT",
@@ -399,12 +399,10 @@
       "D": {
         "0": [
           "Arthur Bouchet",
-          "Marouane Habachi",
           "Walid Chouchi",
           ""
         ],
         "1": [
-          "Jason Cuvelier",
           "Thibault Rigal",
           ""
         ],
@@ -414,7 +412,6 @@
           ""
         ],
         "3": [
-          "Quentin Dauris",
           "Arthur Couto",
           "Pierre Pavia",
           ""
