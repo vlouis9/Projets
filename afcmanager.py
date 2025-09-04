@@ -214,13 +214,18 @@ def positions_for_formation_vertical(formation):
 def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, player_stats=None):
     positions = positions_for_formation_vertical(formation)
     color_poste = "#0d47a1"
+    # Capitaine : recherche le nom
+    nom_capitaine = None
+    for poste in POSTES_ORDER:
+        for joueur in details.get(poste, []):
+            if joueur and isinstance(joueur, dict) and joueur.get("Capitaine", False):
+                nom_capitaine = joueur["Nom"]
 
     for poste in POSTES_ORDER:
         for i, joueur in enumerate(details.get(poste, [])):
             if joueur and isinstance(joueur, dict) and "Nom" in joueur:
                 x, y = positions[poste][i % len(positions[poste])]
                 nom = joueur["Nom"]
-
                 stats = ""
                 if player_stats and nom in player_stats:
                     s = player_stats[nom]
@@ -233,13 +238,14 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                         parts.append(f"🟨 {s['cj']}")
                     if s.get("cr"):
                         parts.append(f"🟥 {s['cr']}")
-                    if s.get("note"):
+                    # Affiche note seulement si elle existe (option "noter" cochée)
+                    if s.get("note") is not None:
                         parts.append(f"⭐ {s['note']}")
                     if s.get("hdm"):
                         parts.append("🏆")
                     stats = " | ".join(parts)
-
-                hovertext = f"{nom}{' (C)' if joueur.get('Capitaine') else ''}"
+                # Affichage du capitaine (C) à côté du nom
+                hovertext = f"{nom}{' (C)' if joueur.get('Capitaine') or (nom_capitaine and nom == nom_capitaine) else ''}"
                 if stats:
                     hovertext += f"<br/>{stats}"
 
@@ -253,8 +259,6 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                     hovertext=hovertext,
                     hoverinfo="text"
                 ))
-
-                # Stats sous le joueur
                 if stats:
                     fig.add_trace(go.Scatter(
                         x=[x], y=[y-9],
@@ -263,35 +267,28 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                         textfont=dict(color="yellow", size=12, family="Arial Black"),
                         showlegend=False
                     ))
-
                 fig.add_trace(go.Scatter(
                     x=[x], y=[y-6],
                     mode="text",
-                    text=[nom + (" (C)" if joueur.get("Capitaine") else "")],
+                    text=[nom + (" (C)" if joueur.get("Capitaine") or (nom_capitaine and nom == nom_capitaine) else "")],
                     textfont=dict(color="white", size=13, family="Arial Black"),
                     showlegend=False
                 ))
 
-    # --- 🔁 Affichage des remplaçants ---
+    # Remplaçants : positions variables selon nombre
     remplacants = remplacants or []
     n = len(remplacants)
     if n:
-        if n == 1:
-            positions = [(34, -10)]
-        elif n == 2:
-            positions = [(28, -10), (40, -10)]
-        elif n == 3:
-            positions = [(22, -10), (34, -10), (46, -10)]
-        elif n == 4:
-            positions = [(22, -8), (34, -8), (46, -8), (34, -17)]
-        else:
-            positions = [(18, -8), (34, -8), (50, -8), (26, -17), (42, -17)]
-
-        for idx, remp in enumerate(remplacants[:5]):
-            x_r, y_r = positions[idx]
+        positions_remp = []
+        # Répartition plus flexible
+        for i in range(n):
+            x = 10 + int((i / max(n-1, 1)) * 58)
+            y = -10 - (i // 6) * 8
+            positions_remp.append((x, y))
+        for idx, remp in enumerate(remplacants):
+            x_r, y_r = positions_remp[idx]
             nom = remp.get("Nom", "") if isinstance(remp, dict) else remp
             numero = remp.get("Numero", "") if isinstance(remp, dict) else ""
-
             stats = ""
             if player_stats and nom in player_stats:
                 s = player_stats[nom]
@@ -304,12 +301,11 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                     parts.append(f"🟨 {s['cj']}")
                 if s.get("cr"):
                     parts.append(f"🟥 {s['cr']}")
-                if s.get("note"):
+                if s.get("note") is not None:
                     parts.append(f"⭐ {s['note']}")
                 if s.get("hdm"):
                     parts.append("🏆")
                 stats = " | ".join(parts)
-        
             if stats:
                 fig.add_trace(go.Scatter(
                     x=[x_r], y=[y_r - 9],
@@ -318,7 +314,6 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                     textfont=dict(color="yellow", size=12, family="Arial Black"),
                     showlegend=False
                 ))
-            
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[y_r],
                 mode="markers+text",
@@ -329,7 +324,6 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 hovertext=[str(nom)],
                 hoverinfo="text"
             ))
-
             fig.add_trace(go.Scatter(
                 x=[x_r], y=[y_r-5],
                 mode="text",
@@ -337,9 +331,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 textfont=dict(color="white", size=12, family="Arial Black"),
                 showlegend=False
             ))
-
     return fig
-
 
 # --- 📊 STATISTIQUES JOUEURS ---
 
@@ -446,8 +438,12 @@ def terrain_init(formation):
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
 # --- 🎮 Interface pour sélectionner les titulaires dynamiquement ---
-def terrain_interactif(formation, terrain_key, key_suffix=None):
-    if st.session_state.players.empty:
+def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponibles=None):
+    players_df = st.session_state.players
+    if joueurs_disponibles is not None:
+        # Limite aux joueurs disponibles pour ce match
+        players_df = players_df[players_df["Nom"].isin(joueurs_disponibles)]
+    if players_df.empty:
         st.info("Aucun joueur dans la base. Merci d'importer ou d'ajouter des joueurs.")
         return {poste: [] for poste in POSTES_ORDER}
 
@@ -456,12 +452,11 @@ def terrain_interactif(formation, terrain_key, key_suffix=None):
     terrain = st.session_state[terrain_key]
 
     stats_data = []
-    for _, row in st.session_state.players.iterrows():
+    for _, row in players_df.iterrows():
         s = compute_player_stats(row["Nom"])
         stats_data.append({**row, **s})
     stats_df = pd.DataFrame(stats_data)
 
-    # Tri des joueurs par titularisations
     stats_df["Titularisations"] = pd.to_numeric(stats_df.get("Titularisations", 0), errors="coerce").fillna(0)
     joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
 
@@ -469,7 +464,7 @@ def terrain_interactif(formation, terrain_key, key_suffix=None):
         noms_postes = POSTES_NOMS.get(formation, {}).get(poste, [])
         if not noms_postes:
             noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
-    
+
         with st.expander(f"{POSTES_LONG[poste]}s"):
             for i in range(FORMATION[formation][poste]):
                 all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and j]
@@ -482,11 +477,10 @@ def terrain_interactif(formation, terrain_key, key_suffix=None):
                     key_select += f"_{key_suffix}"
                 choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
                 if choix:
-                    joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
+                    joueur_info = players_df[players_df["Nom"] == choix].iloc[0].to_dict()
                     num = st.text_input(f"Numéro de {choix}", value=current.get("Numero", "") if current else "", key=f"num_{terrain_key}_{poste}_{i}")
-                    cap = st.checkbox(f"Capitaine ?", value=current.get("Capitaine", False) if current else False, key=f"cap_{terrain_key}_{poste}_{i}")
+                    # Capitaine supprimé ici !
                     joueur_info["Numero"] = num
-                    joueur_info["Capitaine"] = cap
                     terrain[poste][i] = joueur_info
                 else:
                     terrain[poste][i] = None
@@ -494,24 +488,28 @@ def terrain_interactif(formation, terrain_key, key_suffix=None):
     st.session_state[terrain_key] = terrain
     return terrain
 
-def remplacants_interactif(key, titulaires, key_suffix=None):
-    if f"remp_{key}" not in st.session_state:
-        st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(MAX_REMPLACANTS)]
-    remps = st.session_state[f"remp_{key}"]
-
+# --- Gestion des remplaçants dynamique et variable ---
+def remplacants_interactif(key, titulaires, key_suffix=None, joueurs_disponibles=None, max_remplacants=MAX_REMPLACANTS):
+    # Filtre la base des joueurs disponibles
+    players_df = st.session_state.players
+    if joueurs_disponibles is not None:
+        players_df = players_df[players_df["Nom"].isin(joueurs_disponibles)]
     stats_data = []
-    for _, row in st.session_state.players.iterrows():
+    for _, row in players_df.iterrows():
         s = compute_player_stats(row["Nom"])
         stats_data.append({**row, **s})
     stats_df = pd.DataFrame(stats_data)
 
     stats_df["Titularisations"] = pd.to_numeric(stats_df.get("Titularisations", 0), errors="coerce").fillna(0)
-    noms_joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
+    dispo_base = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
+    dispo = [n for n in dispo_base if n not in titulaires]
 
-    dispo = [n for n in noms_joueurs_tries if n not in titulaires and n not in [r["Nom"] for r in remps if r["Nom"]]]
+    if f"remp_{key}" not in st.session_state or not isinstance(st.session_state[f"remp_{key}"], list):
+        st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(max_remplacants)]
+    remps = st.session_state[f"remp_{key}"]
 
     with st.expander("Remplaçants"):
-        for i in range(MAX_REMPLACANTS):
+        for i in range(len(remps)):
             current = remps[i]["Nom"]
             options = dispo + ([current] if current and current not in dispo else [])
             key_select = f"remp_choice_{key}_{i}"
@@ -524,12 +522,13 @@ def remplacants_interactif(key, titulaires, key_suffix=None):
                 key=key_select
             )
             if choix:
-                joueur_info = st.session_state.players[st.session_state.players["Nom"] == choix].iloc[0].to_dict()
                 num = st.text_input(f"Numéro de {choix}", value=remps[i].get("Numero",""), key=f"num_remp_{key}_{i}")
                 remps[i] = {"Nom": choix, "Numero": num}
             else:
                 remps[i] = {"Nom": None, "Numero": ""}
             dispo = [n for n in dispo if n != choix]
+        if st.button("➕ Ajouter un remplaçant", key=f"add_remp_{key}"):
+            remps.append({"Nom": None, "Numero": ""})
 
     st.session_state[f"remp_{key}"] = remps
     return [r for r in remps if r["Nom"]]
@@ -1013,20 +1012,46 @@ with tab1:
             matchs_tries = sorted(st.session_state.matchs.items(), key=lambda x: x[1].get("date", ""), reverse=False)
             for mid, match in matchs_tries:
                 with st.expander(match.get("nom_match", "Match sans nom")):
-                    
+    
                     # --- ✅ Checkbox “Match terminé” ---
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
-                    
+    
                     if match_ended != match.get("termine", False):
                         match["termine"] = match_ended
                         st.session_state.matchs[mid] = match
                         manager.save()
                         st.rerun()
-                    
+    
+                    # --- 👥 Sélection des joueurs disponibles ---
+                    all_joueurs = st.session_state.players["Nom"].dropna().tolist()
+                    if "joueurs_disponibles" not in match:
+                        match["joueurs_disponibles"] = all_joueurs.copy()
+                    with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
+                        selected_dispo = st.multiselect(
+                            "Joueurs disponibles",
+                            all_joueurs,
+                            default=match.get("joueurs_disponibles", []),
+                            key=f"joueurs_dispo_{mid}"
+                        )
+                        match["joueurs_disponibles"] = selected_dispo
+                        st.session_state.matchs[mid] = match
+    
                     # --- 🏟️ Créer composition pour ce match ---
                     if not match.get("termine"):
                         with st.expander("### 🏟️ Composition du match"):
                             col_left, col_right = st.columns([3, 7])
+                            joueurs_dispo = match.get("joueurs_disponibles", [])
+                            # Nombre de remplaçants variable pour amical
+                            if match["type"] == "Amical":
+                                max_remplacants = st.number_input(
+                                    "Nombre de remplaçants",
+                                    min_value=5,
+                                    max_value=20,
+                                    value=len(match.get("remplacants", [])) if match.get("remplacants") else 5,
+                                    key=f"max_remp_{mid}"
+                                )
+                            else:
+                                max_remplacants = MAX_REMPLACANTS
                             with col_left:
                                 use_compo = st.checkbox("🔁 Utiliser une compo enregistrée ?", key=f"use_compo_{mid}")
                                 if use_compo and st.session_state.lineups:
@@ -1036,61 +1061,90 @@ with tab1:
                                     terrain = compo_data["details"]
                                     remplacants = compo_data.get("remplacants", [])
                                 else:
-                                    formation = st.selectbox("📌 Formation", list(FORMATION.keys()), key=f"form_{mid}")
-                                    terrain = terrain_interactif(formation, f"terrain_match_{mid}", key_suffix=mid)
+                                    formation = st.selectbox(
+                                        "📌 Formation",
+                                        list(FORMATION.keys()),
+                                        key=f"form_{mid}",
+                                        index=list(FORMATION.keys()).index(match.get("formation", DEFAULT_FORMATION)) if match.get("formation") else 0
+                                    )
+                                    terrain = terrain_interactif(
+                                        formation,
+                                        f"terrain_match_{mid}",
+                                        key_suffix=mid,
+                                        joueurs_disponibles=joueurs_dispo
+                                    )
                                     titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
-                                    remplacants = remplacants_interactif(f"match_{mid}", titulaires, key_suffix=mid)
+                                    remplacants = remplacants_interactif(
+                                        f"match_{mid}",
+                                        titulaires,
+                                        key_suffix=mid,
+                                        joueurs_disponibles=joueurs_dispo,
+                                        max_remplacants=max_remplacants
+                                    )
+                                # Sélection du capitaine à la fin (parmi les titulaires)
+                                titulaires_noms = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+                                capitaine = st.selectbox(
+                                    "🧑‍✈️ Capitaine",
+                                    [""] + titulaires_noms,
+                                    index=(titulaires_noms.index(match.get("capitaine", "")) + 1) if match.get("capitaine", "") in titulaires_noms else 0,
+                                    key=f"cap_match_{mid}"
+                                )
                             with col_right:
                                 fig = draw_football_pitch_vertical()
                                 fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
                                 st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
     
+                                # Visualisation des joueurs disponibles non retenus
+                                joueurs_dispo_set = set(joueurs_dispo)
+                                retenus = set(titulaires_noms + [r.get("Nom") for r in remplacants if r.get("Nom")])
+                                non_retenus = joueurs_dispo_set - retenus
+                                if non_retenus:
+                                    st.markdown("**Non retenus :** " + ", ".join(non_retenus))
+    
                             if st.button("💾", key=f"btn_compo_{mid}"):
                                 match["formation"] = formation
                                 match["details"] = terrain
                                 match["remplacants"] = remplacants
+                                match["capitaine"] = capitaine
                                 st.session_state.matchs[mid] = match
                                 manager.save()
                                 st.success("✅ Composition enregistrée")
                                 st.rerun()
-                            
-
+    
                         # --- 👥 Convocation des joueurs ---
                         if terrain:
                             with st.expander("### 👥 Convocation des joueurs"):
                                 noms_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
                                 noms_remplaçants = [r["Nom"] for r in remplacants if r.get("Nom")]
                                 noms_convoques = list(dict.fromkeys(noms_titulaires + noms_remplaçants))
-                            
+    
                                 joueurs_df = st.session_state.players.set_index("Nom")
                                 convoques_par_poste = {poste: [] for poste in POSTES_ORDER}
-                                
                                 for nom in noms_convoques:
                                     poste = joueurs_df.at[nom, "Poste"] if nom in joueurs_df.index else ""
                                     if poste in convoques_par_poste:
                                         convoques_par_poste[poste].append(nom)
                                     else:
                                         convoques_par_poste.setdefault("?", []).append(nom)
-                            
+    
                                 heure_match = match.get("heure", "21:00")
                                 try:
                                     rdv = (datetime.strptime(heure_match, "%H:%M") - timedelta(hours=1)).strftime("%H:%M")
                                 except:
                                     rdv = "?"
-                            
-                                if match['type']=="Championnat":
+                                if match['type'] == "Championnat":
                                     st.write(f"📈 {match['type']} - {match['journee']}")
                                 else:
-                                    if match['type']=="Coupe":
+                                    if match['type'] == "Coupe":
                                         st.write(f"🏆 {match['type']} - {match['journee']}")
                                     else:
                                         st.write(f"🤝 {match['type']} - {match['journee']}")
                                 st.write(f"🆚 {match.get('adversaire')}")
                                 st.write(f"📅 {match['date']} à {heure_match} – **RDV : {rdv}**")
-                                if match['domicile']=="Domicile":
+                                if match['domicile'] == "Domicile":
                                     st.write(f"🏠 {match.get('lieu')}")
                                 else:
-                                    st.write(f"🚗 L{match.get('lieu')}")
+                                    st.write(f"🚗 {match.get('lieu')}")
                                 POSTES_EMOJIS = {"G": "🧤", "D": "🛡️", "M": "🎯", "A": "⚽"}
                                 for poste in POSTES_ORDER:
                                     joueurs = convoques_par_poste.get(poste, [])
@@ -1100,19 +1154,16 @@ with tab1:
                                         st.markdown(f"**{emoji} {label}s :**")
                                         for nom in joueurs:
                                             st.markdown(f"- {nom}")
-
-                            
-
+    
                     # --- 📝 Saisie des statistiques du match ---
                     elif match_ended and not match.get("noted", False):
                         with st.expander("### 📝 Statistiques du match"):
-
                             joueurs = [j["Nom"] for p in POSTES_ORDER for j in match.get("details", {}).get(p, []) if j]
                             joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
                             joueurs = list(dict.fromkeys(joueurs))
     
-                            col_eqdom,col_scoredom,col_scoreext,col_eqext = st.columns([3,2,2,3])
-                            if match['domicile']=="domicile":
+                            col_eqdom, col_scoredom, col_scoreext, col_eqext = st.columns([3, 2, 2, 3])
+                            if match['domicile'] == "domicile":
                                 col_eqdom.markdown("AFC")
                                 col_eqext.markdown(f"{match['adversaire']}")
                                 score_afc = col_scoredom.number_input("⚽", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
@@ -1122,7 +1173,7 @@ with tab1:
                                 col_eqext.markdown("AFC")
                                 score_afc = col_scoreext.number_input("⚽", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
                                 score_adv = col_scoredom.number_input(f"⚽", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
-                            
+    
                             events = {
                                 "buteurs": {},
                                 "passeurs": {},
@@ -1131,19 +1182,24 @@ with tab1:
                                 "notes": {}
                             }
     
+                            # Option pour noter ou non les joueurs
+                            noter_joueurs = st.checkbox("Noter les joueurs ?", value=match.get("noter_joueurs", True), key=f"noter_{mid}")
+                            match["noter_joueurs"] = noter_joueurs
+    
                             for nom in joueurs:
-                                col1, col2, col3,col4,col5 = st.columns([1,1,1,1,4])
+                                col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 4])
                                 st.markdown(f"{nom}")
                                 with col1:
                                     events["buteurs"][nom] = st.number_input(f"Buts", min_value=0, value=0, key=f"but_{mid}_{nom}")
                                 with col2:
                                     events["passeurs"][nom] = st.number_input(f"Passes", min_value=0, value=0, key=f"pass_{mid}_{nom}")
                                 with col5:
-                                    events["notes"][nom] = st.slider(f"Note", min_value=0.0, max_value=10.0, value=5.0, step=0.5, key=f"note_{mid}_{nom}")
+                                    if noter_joueurs:
+                                        events["notes"][nom] = st.slider(f"Note", min_value=0.0, max_value=10.0, value=5.0, step=0.5, key=f"note_{mid}_{nom}")
                                 with col3:
                                     events["cartons_jaunes"][nom] = st.number_input(f"🟨", min_value=0, value=0, key=f"cj_{mid}_{nom}")
                                 with col4:
-                                        events["cartons_rouges"][nom] = st.number_input(f"🟥", min_value=0, value=0, key=f"cr_{mid}_{nom}")
+                                    events["cartons_rouges"][nom] = st.number_input(f"🟥", min_value=0, value=0, key=f"cr_{mid}_{nom}")
                             st.markdown("----")
                             hdm = st.selectbox("🏆 Homme du match", [""] + joueurs, key=f"hdm_{mid}")
     
@@ -1159,7 +1215,7 @@ with tab1:
                                 manager.save()
                                 st.success("✅ Statistiques enregistrées")
                                 st.rerun()
-
+    
                     # --- 🧾 Résumé si match noté ---
                     elif match.get("noted", False):
                         with st.expander("### 📝 Résumé du match"):
@@ -1168,7 +1224,7 @@ with tab1:
                                 st.markdown(f"### AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}")
                             else:
                                 st.markdown(f"### {match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
-
+    
                             st.markdown("---")
                             hdm = match.get("homme_du_match")
                             if hdm:
@@ -1177,35 +1233,28 @@ with tab1:
                             col1, col2 = st.columns(2)
                             with col1:
                                 st.markdown("#### 📊 Événements du match")
-                            
                                 if match["events"].get("buteurs"):
                                     st.markdown("**⚽ Buteurs**")
                                     for nom, nb in match["events"]["buteurs"].items():
                                         if isinstance(nb, int) and nb > 0:
                                             st.markdown(f"- {nom} : {nb}")
-                            
                                 if match["events"].get("passeurs"):
                                     st.markdown("**🎯 Passeurs**")
                                     for nom, nb in match["events"]["passeurs"].items():
                                         if isinstance(nb, int) and nb > 0:
                                             st.markdown(f"- {nom} : {nb}")
-                            
                             with col2:
                                 st.markdown("#### 👮🏼‍♂️ Discipline")
-                        
-                            
                                 if match["events"].get("cartons_jaunes"):
                                     st.markdown("**🟨 Cartons jaunes**")
                                     for nom, nb in match["events"]["cartons_jaunes"].items():
                                         if isinstance(nb, int) and nb > 0:
                                             st.markdown(f"- {nom} : {nb}")
-                            
                                 if match["events"].get("cartons_rouges"):
                                     st.markdown("**🟥 Cartons rouges**")
                                     for nom, nb in match["events"]["cartons_rouges"].items():
                                         if isinstance(nb, int) and nb > 0:
                                             st.markdown(f"- {nom} : {nb}")
-                            
                             st.markdown("---")
     
                             fig = draw_football_pitch_vertical()
@@ -1214,19 +1263,23 @@ with tab1:
                             joueurs_titulaires = [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
                             joueurs_remplacants = [r["Nom"] for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]
                             joueurs_all = list(dict.fromkeys(joueurs_titulaires + joueurs_remplacants))
-                            
                             player_stats = {
                                 nom: {
                                     "buts": match["events"]["buteurs"].get(nom, 0),
                                     "passes": match["events"]["passeurs"].get(nom, 0),
                                     "cj": match["events"]["cartons_jaunes"].get(nom, 0),
                                     "cr": match["events"]["cartons_rouges"].get(nom, 0),
-                                    "note": match["events"]["notes"].get(nom,0),
+                                    "note": match["events"]["notes"].get(nom, 0) if match.get("noter_joueurs", True) else None,
                                     "hdm": match.get("homme_du_match") == nom
                                 }
                                 for nom in joueurs_all
                             }
-                            
+                            # Affichage du capitaine
+                            for poste in POSTES_ORDER:
+                                for j in match["details"].get(poste, []):
+                                    if j and isinstance(j, dict) and j["Nom"] == match.get("capitaine", ""):
+                                        j["Capitaine"] = True
+    
                             fig = plot_lineup_on_pitch_vertical(
                                 fig,
                                 match["details"],
@@ -1234,15 +1287,15 @@ with tab1:
                                 match.get("remplacants", []),
                                 player_stats=player_stats
                             )
-                            
+    
                             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
                             if st.button("✏️", key=f"edit_stats_{mid}"):
                                 match["noted"] = False
                                 st.session_state.matchs[mid] = match
                                 manager.save()
                                 st.rerun()
-                                
-                    col_gauche, col_droite, col_space=st.columns([0.5, 0.5, 9])         
+    
+                    col_gauche, col_droite, col_space = st.columns([0.5, 0.5, 9])
                     if not match.get("termine"):
                         with col_gauche:
                             if st.button("✏️", key=f"btn_edit_{mid}"):
