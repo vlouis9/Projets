@@ -312,79 +312,14 @@
     "ATHLETICO TOLOSA B",
     "FORZA VIOLA FC",
     "ALTRAN FOOT",
-    "ASFP Lusitanos",
-    "AJ Saint-Exupery",
+    "ASFP LUSITANOS",
+    "TOAC 2",
     "AS DRT",
-    "Internat FC",
-    "CHU Toulouse FC",
-    "Liebherr"
+    "INTERNAT FC",
+    "CHU TOULOUSE FC",
+    "LIEBHERR FOOT"
   ],
   "championnat_scores": {
-    "J01": [
-      {
-        "domicile": "AFC",
-        "score_dom": 3,
-        "exterieur": "Athletico Tolosa B",
-        "score_ext": 0
-      },
-      {
-        "domicile": "Forza Viola FC",
-        "score_dom": 2,
-        "exterieur": "AJ Saint-Exupery",
-        "score_ext": 0
-      },
-      {
-        "domicile": "ASFP Lusitanos",
-        "score_dom": 1,
-        "exterieur": "Forza Viola FC",
-        "score_ext": 1
-      },
-      {
-        "domicile": "AS DRT",
-        "score_dom": 2,
-        "exterieur": "Altran Foot",
-        "score_ext": 1
-      },
-      {
-        "domicile": "CHU Toulouse FC",
-        "score_dom": 2,
-        "exterieur": "ASFP Lusitanos",
-        "score_ext": 2
-      }
-    ],
-    "J02": [
-      {
-        "domicile": "AFC",
-        "exterieur": "Forza Viola FC",
-        "score_dom": 3,
-        "score_ext": 1
-      },
-      {
-        "domicile": "Altran Foot",
-        "exterieur": "Liebherr",
-        "score_dom": 2,
-        "score_ext": 2
-      },
-      {
-        "domicile": "ASFP Lusitanos",
-        "exterieur": "Athletico Tolosa B",
-        "score_dom": 2,
-        "score_ext": 2
-      },
-      {
-        "domicile": "AS DRT",
-        "exterieur": "CHU Toulouse FC",
-        "score_dom": 2,
-        "score_ext": 2
-      },
-      {
-        "domicile": "AJ Saint-Exupery",
-        "exterieur": "Internat FC",
-        "score_dom": 2,
-        "score_ext": 2
-      }
-    ],
-    "J03": []
   },
   "profondeur_effectif": {
     "4-2-3-1": {
