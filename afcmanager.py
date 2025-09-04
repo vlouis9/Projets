@@ -473,7 +473,7 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
         if not noms_postes:
             noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
 
-        with st.expander(f"{POSTES_LONG[poste]}s"):
+        with st.expander(f"{POSTES_LONG[poste] + ('x' if label == 'Milieu' else 's')}"):
             for i in range(FORMATION[formation][poste]):
                 all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and j]
                 current = terrain[poste][i]
@@ -1168,7 +1168,7 @@ with tab1:
                                     if joueurs:
                                         emoji = POSTES_EMOJIS.get(poste, "")
                                         label = POSTES_LONG.get(poste, "Inconnu")
-                                        st.markdown(f"**{emoji} {label}s :**")
+                                        st.markdown(f"**{emoji} {label + ('x' if label == 'Milieu' else 's')} :**")
                                         for nom in joueurs:
                                             st.markdown(f"- {nom}")
     
