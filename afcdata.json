@@ -307,7 +307,28 @@
       "remplacants": []
     }
   },
-  "matchs": {},
+  "matchs": {
+    "ea36f931-3222-4de2-acae-e16b7c56b6dd": {
+      "type": "Amical",
+      "adversaire": "FORZA VIOLA FC",
+      "date": "2025-09-11",
+      "heure": "20:15",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "#01",
+      "nom_match": "\ud83e\udd1d 2025-09-11 : Amical - #01 -  FORZA VIOLA FC vs AFC",
+      "lieu": "Stade Brice Taton",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
+    }
+  },
   "adversaires": [
     "ATHLETICO TOLOSA B",
     "FORZA VIOLA FC",
@@ -319,8 +340,7 @@
     "CHU TOULOUSE FC",
     "LIEBHERR FOOT"
   ],
-  "championnat_scores": {
-  },
+  "championnat_scores": {},
   "profondeur_effectif": {
     "4-2-3-1": {
       "G": {
