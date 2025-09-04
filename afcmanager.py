@@ -458,10 +458,18 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
     stats_df = pd.DataFrame(stats_data)
 
     stats_df["Titularisations"] = pd.to_numeric(stats_df.get("Titularisations", 0), errors="coerce").fillna(0)
-    joueurs_tries = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
 
     for poste in POSTES_ORDER:
         noms_postes = POSTES_NOMS.get(formation, {}).get(poste, [])
+        if not noms_postes:
+            noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
+
+        # Tri personnalisé pour ce poste
+        stats_df["is_poste"] = stats_df["Poste"] == poste
+        joueurs_tries = stats_df.sort_values(
+            by=["is_poste", "Titularisations", "Nom"],
+            ascending=[False, False, True]
+        )["Nom"].tolist()
         if not noms_postes:
             noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
 
@@ -1024,12 +1032,14 @@ with tab1:
     
                     # --- 👥 Sélection des joueurs disponibles ---
                     all_joueurs = st.session_state.players["Nom"].dropna().tolist()
+                    players_df = all_joueurs.sort_values(["Poste", "Nom"])
+                    joueurs_tries = players_df["Nom"].tolist()
                     if "joueurs_disponibles" not in match:
                         match["joueurs_disponibles"] = all_joueurs.copy()
                     with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
                         selected_dispo = st.multiselect(
                             "Joueurs disponibles",
-                            all_joueurs,
+                            joueurs_tries,
                             default=match.get("joueurs_disponibles", []),
                             key=f"joueurs_dispo_{mid}"
                         )
