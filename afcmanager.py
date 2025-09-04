@@ -1031,8 +1031,8 @@ with tab1:
                         st.rerun()
     
                     # --- 👥 Sélection des joueurs disponibles ---
-                    all_joueurs = st.session_state.players["Nom"].dropna().tolist()
-                    players_df = all_joueurs.sort_values(["Poste", "Nom"])
+                    players_df = st.session_state.players.copy()
+                    players_df = players_df.sort_values(["Poste", "Nom"])
                     joueurs_tries = players_df["Nom"].tolist()
                     if "joueurs_disponibles" not in match:
                         match["joueurs_disponibles"] = all_joueurs.copy()
