@@ -480,13 +480,13 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
                 current_nom = current["Nom"] if current and isinstance(current, dict) else ""
                 label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
                 options = [""] + [n for n in joueurs_tries if n == current_nom or n not in all_selected]
-                key_select = f"{terrain_key}_{poste}_{i}"
+                key_select = f"selectbox_{terrain_key}_{poste}_{i}"
                 if key_suffix:
                     key_select += f"_{key_suffix}"
                 choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
                 if choix:
                     joueur_info = players_df[players_df["Nom"] == choix].iloc[0].to_dict()
-                    num = st.text_input(f"Numéro de {choix}", value=current.get("Numero", "") if current else "", key=f"num_{terrain_key}_{poste}_{i}")
+                    num = st.text_input(f"Numéro de {choix}", value=current.get("Numero", "") if current else "", key=f"num_{terrain_key}_{poste}_{i}{f'_{key_suffix}' if key_suffix else ''}")
                     # Capitaine supprimé ici !
                     joueur_info["Numero"] = num
                     terrain[poste][i] = joueur_info
