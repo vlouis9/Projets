@@ -1053,6 +1053,20 @@ with tab1:
                             st.success("Liste des joueurs disponibles sauvegardée !")
     
                     # --- 🏟️ Créer composition pour ce match ---
+                    # --- Initialisation automatique à l'ouverture (édition) ---
+                    formation = match.get("formation", DEFAULT_FORMATION)
+                    terrain_key = f"terrain_match_{mid}"
+                    remp_key = f"remp_match_{mid}"
+                    
+                    if terrain_key not in st.session_state and match.get("details"):
+                        st.session_state[terrain_key] = match["details"]
+                    if remp_key not in st.session_state and match.get("remplacants"):
+                        st.session_state[remp_key] = match["remplacants"]
+                    
+                    # Utilisation des valeurs sauvegardées
+                    terrain = terrain_interactif(formation, terrain_key, key_suffix=mid, joueurs_disponibles=match.get("joueurs_disponibles", []))
+                    titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+                    remplacants = remplacants_interactif(f"match_{mid}", titulaires, key_suffix=mid, joueurs_disponibles=match.get("joueurs_disponibles", []), max_remplacants=len(match.get("remplacants", [])) if match.get("remplacants") else MAX_REMPLACANTS)
                     if not match.get("termine"):
                         with st.expander("### 🏟️ Composition du match"):
                             col_left, col_right = st.columns([3, 7])
