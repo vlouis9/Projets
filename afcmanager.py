@@ -1035,6 +1035,12 @@ with tab1:
                         )
                         match["joueurs_disponibles"] = selected_dispo
                         st.session_state.matchs[mid] = match
+
+                        if st.button("💾 Sauvegarder la liste des joueurs disponibles", key=f"save_dispo_{mid}"):
+                            match["joueurs_disponibles"] = selected_dispo
+                            st.session_state.matchs[mid] = match
+                            manager.save()
+                            st.success("Liste des joueurs disponibles sauvegardée !")
     
                     # --- 🏟️ Créer composition pour ce match ---
                     if not match.get("termine"):
