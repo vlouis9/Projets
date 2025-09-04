@@ -473,7 +473,7 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
         if not noms_postes:
             noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
 
-        with st.expander(f"{POSTES_LONG[poste] + ('x' if label == 'Milieu' else 's')}"):
+        with st.expander(f"{POSTES_LONG[poste] + ('x' if POSTES_LONG[poste] == 'Milieu' else 's')}"):
             for i in range(FORMATION[formation][poste]):
                 all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if isinstance(j, dict) and j]
                 current = terrain[poste][i]
