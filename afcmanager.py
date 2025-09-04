@@ -1035,7 +1035,7 @@ with tab1:
                     players_df = players_df.sort_values(["Poste", "Nom"])
                     joueurs_tries = players_df["Nom"].tolist()
                     if "joueurs_disponibles" not in match:
-                        match["joueurs_disponibles"] = all_joueurs.copy()
+                        match["joueurs_disponibles"] = players_df.copy()
                     with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
                         selected_dispo = st.multiselect(
                             "Joueurs disponibles",
