@@ -347,6 +347,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "60971cf0-b8a5-4090-baa7-cf81945a9fd1": {
+      "type": "Coupe",
+      "adversaire": "AS DRT",
+      "date": "2025-10-01",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "Poules",
+      "nom_match": "\ud83c\udfc6 2025-10-01 : Coupe - Poules - AFC vs AS DRT",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
