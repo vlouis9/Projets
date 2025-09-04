@@ -1135,7 +1135,7 @@ with tab1:
                                     index=(titulaires_noms.index(match.get("capitaine", "")) + 1) if match.get("capitaine", "") in titulaires_noms else 0,
                                     key=f"cap_match_{mid}"
                                 )
-                                )
+                                
                             with col_right:
                                 fig = draw_football_pitch_vertical()
                                 fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
