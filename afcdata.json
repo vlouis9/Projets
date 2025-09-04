@@ -527,6 +527,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "12e40d0e-97c6-49d4-a021-b2ea4324e266": {
+      "type": "Championnat",
+      "adversaire": "ATHLETICO TOLOSA B",
+      "date": "2025-12-10",
+      "heure": "21:00",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "J07",
+      "nom_match": "\ud83d\udcc8 2025-12-10 : Championnat - J07 -  ATHLETICO TOLOSA B vs AFC",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
