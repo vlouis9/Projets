@@ -358,7 +358,30 @@
       "score_adv": 0,
       "noted": false,
       "termine": false,
-      "homme_du_match": ""
+      "homme_du_match": "",
+      "joueurs_disponibles": [
+        "William Toumelin",
+        "Pierre Pavia",
+        "Charles Plun",
+        "Thibault Rigal",
+        "Maxime Pujol",
+        "Axel Soldadi\u00e9",
+        "Gregory Perrot",
+        "Louis Vermeulen",
+        "Nicolas Gardan",
+        "Pierre Tarasinski",
+        "Hicham Grerifa",
+        "Nicolas Mitrano",
+        "Abdel Jalil",
+        "Emmanuel Pannier",
+        "Walid Chouchi",
+        "Mehdi Zerrouki",
+        "Sofian Labrinssi",
+        "Adrien Dugenet",
+        "Mathieu Gadet",
+        "Constant Augustin",
+        "Giovanni Filippi"
+      ]
     },
     "98099698-9268-4596-80ac-e15a3ff1bb64": {
       "type": "Championnat",
