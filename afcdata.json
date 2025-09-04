@@ -447,6 +447,26 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "24b8ea29-bd98-4114-8e4c-662b611e923e": {
+      "type": "Coupe",
+      "adversaire": "ASFP LUSITANOS",
+      "date": "2025-11-05",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "Poules",
+      "nom_match": "\ud83c\udfc6 2025-11-05 : Coupe - Poules - AFC vs ASFP LUSITANOS",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {},
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
