@@ -261,95 +261,100 @@
             "Nom": "William Toumelin",
             "Poste": "G",
             "Infos": "",
-            "Numero": "1",
-            "Capitaine": false
+            "Numero": "1"
           }
         ],
         "D": [
-          null,
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "3"
+          },
           {
             "Nom": "Thibault Rigal",
             "Poste": "M",
             "Infos": "",
-            "Numero": "5",
-            "Capitaine": true
+            "Numero": "5"
           },
           {
             "Nom": "Pierre Pavia",
             "Poste": "D",
             "Infos": "",
-            "Numero": "4",
-            "Capitaine": false
+            "Numero": "4"
           },
           {
             "Nom": "Constant Augustin",
             "Poste": "D",
             "Infos": "",
-            "Numero": "2",
-            "Capitaine": false
+            "Numero": "2"
           }
         ],
         "M": [
           {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6"
+          },
+          {
             "Nom": "Nicolas Mitrano",
             "Poste": "M",
             "Infos": "",
-            "Numero": "8",
-            "Capitaine": false
+            "Numero": "8"
           },
-          null,
           {
             "Nom": "Mehdi Zerrouki",
             "Poste": "A",
             "Infos": "",
-            "Numero": "11",
-            "Capitaine": false
+            "Numero": "7"
           },
           {
             "Nom": "Sofian Labrinssi",
             "Poste": "M",
             "Infos": "",
-            "Numero": "10",
-            "Capitaine": false
+            "Numero": "10"
           },
           {
-            "Nom": "Axel Soldadi\u00e9",
-            "Poste": "A",
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
             "Infos": "",
-            "Numero": "7",
-            "Capitaine": false
+            "Numero": "11"
           }
         ],
         "A": [
           {
-            "Nom": "Gregory Perrot",
+            "Nom": "Emmanuel Pannier",
             "Poste": "A",
             "Infos": "",
-            "Numero": "9",
-            "Capitaine": false
+            "Numero": "9"
           }
         ]
       },
       "remplacants": [
         {
-          "Nom": "Pierre Tarasinski",
+          "Nom": "Maxime Pujol",
           "Numero": "12"
         },
         {
-          "Nom": "Nicolas Gardan",
+          "Nom": "Axel Soldadi\u00e9",
           "Numero": "13"
         },
         {
-          "Nom": "Maxime Pujol",
+          "Nom": "Gregory Perrot",
           "Numero": "14"
         },
         {
-          "Nom": "Giovanni Filippi",
+          "Nom": "Pierre Tarasinski",
           "Numero": "15"
         },
         {
-          "Nom": "Abdel Jalil",
+          "Nom": "Giovanni Filippi",
           "Numero": "16"
+        },
+        {
+          "Nom": "Abdel Jalil",
+          "Numero": "17"
         }
       ],
       "events": {},
@@ -380,7 +385,8 @@
         "Mathieu Gadet",
         "Constant Augustin",
         "Giovanni Filippi"
-      ]
+      ],
+      "capitaine": "Thibault Rigal"
     },
     "98099698-9268-4596-80ac-e15a3ff1bb64": {
       "type": "Championnat",
