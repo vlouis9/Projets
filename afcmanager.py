@@ -1149,18 +1149,19 @@ with tab1:
                                 except:
                                     rdv = "?"
                                 if match['type'] == "Championnat":
-                                    st.write(f"📈 {match['type']} - {match['journee']}")
+                                    st.subheader(f"📈 {match['type']} - {match['journee']}")
                                 else:
                                     if match['type'] == "Coupe":
-                                        st.write(f"🏆 {match['type']} - {match['journee']}")
+                                        st.subheader(f"🏆 {match['type']} - {match['journee']}")
                                     else:
-                                        st.write(f"🤝 {match['type']} - {match['journee']}")
-                                st.write(f"🆚 {match.get('adversaire')}")
+                                        st.subheader(f"🤝 {match['type']} - {match['journee']}")
+                                st.subheader(f"🆚 {match.get('adversaire')}")
                                 st.write(f"📅 {match['date']} à {heure_match} – **RDV : {rdv}**")
                                 if match['domicile'] == "Domicile":
                                     st.write(f"🏠 {match.get('lieu')}")
                                 else:
                                     st.write(f"🚗 {match.get('lieu')}")
+                                st.markdown("----")
                                 POSTES_EMOJIS = {"G": "🧤", "D": "🛡️", "M": "🎯", "A": "⚽"}
                                 for poste in POSTES_ORDER:
                                     joueurs = convoques_par_poste.get(poste, [])
