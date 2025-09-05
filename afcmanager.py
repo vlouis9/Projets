@@ -1069,49 +1069,6 @@ with tab1:
                     # --- 🏟️ Créer composition pour ce match ---
                     if not match.get("termine"):
                         with st.expander("### 🏟️ Composition du match"):
-                            # --- Initialisation automatique à l'ouverture (édition) ---
-                            formation = match.get("formation", DEFAULT_FORMATION)
-                            terrain_key = f"terrain_match_{mid}"
-                            remp_key = f"remp_match_{mid}"
-                            
-                            # Initialiser le terrain sauvegardé dans la session (important pour rechargement)
-                            if terrain_key not in st.session_state and match.get("details"):
-                                st.session_state[terrain_key] = match["details"]
-                            
-                            # Initialiser les remplaçants sauvegardés
-                            if remp_key not in st.session_state and match.get("remplacants"):
-                                st.session_state[remp_key] = match["remplacants"]
-                            
-                            # Utilisation des valeurs sauvegardées dans les widgets
-                            joueurs_dispo = match.get("joueurs_disponibles", [])
-                            terrain = terrain_interactif(
-                                formation,
-                                terrain_key,
-                                key_suffix=mid,
-                                joueurs_disponibles=joueurs_dispo
-                            )
-                            titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
-                            remplacants = remplacants_interactif(
-                                f"match_{mid}",
-                                titulaires,
-                                key_suffix=mid,
-                                joueurs_disponibles=joueurs_dispo,
-                                max_remplacants=len(match.get("remplacants", [])) if match.get("remplacants") else MAX_REMPLACANTS
-                            )
-                            
-                            col_left, col_right = st.columns([3, 7])
-                            joueurs_dispo = match.get("joueurs_disponibles", [])
-                            # Nombre de remplaçants variable pour amical
-                            if match["type"] == "Amical":
-                                max_remplacants = st.number_input(
-                                    "Nombre de remplaçants",
-                                    min_value=5,
-                                    max_value=20,
-                                    value=len(match.get("remplacants", [])) if match.get("remplacants") else 5,
-                                    key=f"max_remp_{mid}"
-                                )
-                            else:
-                                max_remplacants = MAX_REMPLACANTS
                             with col_left:
                                 use_compo = st.checkbox("🔁 Utiliser une compo enregistrée ?", key=f"use_compo_{mid}")
                                 if use_compo and st.session_state.lineups:
@@ -1121,12 +1078,49 @@ with tab1:
                                     terrain = compo_data["details"]
                                     remplacants = compo_data.get("remplacants", [])
                                 else:
-                                    formation = st.selectbox(
-                                        "📌 Formation",
-                                        list(FORMATION.keys()),
-                                        key=f"form_{mid}",
-                                        index=list(FORMATION.keys()).index(match.get("formation", DEFAULT_FORMATION)) if match.get("formation") else 0
+                                    # --- Initialisation automatique à l'ouverture (édition) ---
+                                    formation = match.get("formation", DEFAULT_FORMATION)
+                                    terrain_key = f"terrain_match_{mid}"
+                                    remp_key = f"remp_match_{mid}"
+                                    
+                                    # Initialiser le terrain sauvegardé dans la session (important pour rechargement)
+                                    if terrain_key not in st.session_state and match.get("details"):
+                                        st.session_state[terrain_key] = match["details"]
+                                    
+                                    # Initialiser les remplaçants sauvegardés
+                                    if remp_key not in st.session_state and match.get("remplacants"):
+                                        st.session_state[remp_key] = match["remplacants"]
+                                    
+                                    # Utilisation des valeurs sauvegardées dans les widgets
+                                    joueurs_dispo = match.get("joueurs_disponibles", [])
+                                    terrain = terrain_interactif(
+                                        formation,
+                                        terrain_key,
+                                        key_suffix=mid,
+                                        joueurs_disponibles=joueurs_dispo
                                     )
+                                    titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
+                                    remplacants = remplacants_interactif(
+                                        f"match_{mid}",
+                                        titulaires,
+                                        key_suffix=mid,
+                                        joueurs_disponibles=joueurs_dispo,
+                                        max_remplacants=len(match.get("remplacants", [])) if match.get("remplacants") else MAX_REMPLACANTS
+                                    )
+                                    
+                                    col_left, col_right = st.columns([3, 7])
+                                    joueurs_dispo = match.get("joueurs_disponibles", [])
+                                    # Nombre de remplaçants variable pour amical
+                                    if match["type"] == "Amical":
+                                        max_remplacants = st.number_input(
+                                            "Nombre de remplaçants",
+                                            min_value=5,
+                                            max_value=20,
+                                            value=len(match.get("remplacants", [])) if match.get("remplacants") else 5,
+                                            key=f"max_remp_{mid}"
+                                        )
+                                    else:
+                                        max_remplacants = MAX_REMPLACANTS
                                 # Sélection du capitaine à la fin (parmi les titulaires)
                                 titulaires_noms = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
                                 capitaine = st.selectbox(
