@@ -1124,7 +1124,7 @@ with tab1:
                                         key=f"form_{mid}",
                                         index=list(FORMATION.keys()).index(match.get("formation", DEFAULT_FORMATION)) if match.get("formation") else 0
                                     )
-                                    terrain = terrain_interactif(formation, "terrain_create_compo", key_suffix="create")
+                                    terrain = terrain_interactif(formation, f"terrain_match_{mid}", key_suffix=f"match_{mid}", joueurs_disponibles=joueurs_dispo)
                                     titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
                                     remplacants = remplacants_interactif("create_compo", titulaires, key_suffix="create")
                                 # Sélection du capitaine à la fin (parmi les titulaires)
