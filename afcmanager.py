@@ -484,7 +484,7 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
                 label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
                 options = [""] + [n for n in joueurs_tries if n == current_nom or n not in all_selected]
 
-                key_select = f"selectbox_{key_prefix}_{poste}_{i}"
+                key_select = f"selectbox_{key_prefix}_{poste}_{i}_{current_nom}"
                 choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
 
                 if choix:
@@ -492,7 +492,7 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
                     num = st.text_input(
                         f"Numéro de {choix}",
                         value=current.get("Numero", "") if current else "",
-                        key=f"num_{key_prefix}_{poste}_{i}"
+                        key=f"num_{key_prefix}_{poste}_{i}_{choix}"
                     )
                     joueur_info["Numero"] = num
                     terrain[poste][i] = joueur_info
@@ -525,25 +525,27 @@ def remplacants_interactif(key, titulaires, key_suffix=None, joueurs_disponibles
 
     with st.expander("Remplaçants"):
         for i in range(len(remps)):
-            current = remps[i]["Nom"]
+            current_nom = remps[i]["Nom"]
             options = dispo + ([current] if current and current not in dispo else [])
-            key_select = f"remp_choice_{key_prefix}_{i}"
+            key_select = f"remp_choice_{key_prefix}_{i}_{current_nom}"
 
             choix = st.selectbox(
                 f"Remplaçant {i+1}",
                 [""] + options,
-                index=(options.index(current)+1) if current in options else 0,
+                index=(options.index(current_nom) + 1) if current_nom in options else 0,
                 key=key_select
             )
+            
             if choix:
                 num = st.text_input(
                     f"Numéro de {choix}",
-                    value=remps[i].get("Numero",""),
-                    key=f"num_remp_{key_prefix}_{i}"
+                    value=remps[i].get("Numero", ""),
+                    key=f"num_remp_{key_prefix}_{i}_{choix}"
                 )
                 remps[i] = {"Nom": choix, "Numero": num}
             else:
                 remps[i] = {"Nom": None, "Numero": ""}
+
             dispo = [n for n in dispo if n != choix]
 
         if st.button("➕ Ajouter un remplaçant", key=f"add_remp_{key_prefix}"):
