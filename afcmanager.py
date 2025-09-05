@@ -441,6 +441,9 @@ def terrain_init(formation):
 
 # --- 🎮 Interface pour sélectionner les titulaires dynamiquement ---
 def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponibles=None):
+    if formation not in FORMATION:
+        formation = DEFAULT_FORMATION
+    
     players_df = st.session_state.players
     if joueurs_disponibles is not None:
         players_df = players_df[players_df["Nom"].isin(joueurs_disponibles)]
