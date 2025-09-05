@@ -441,7 +441,6 @@ def terrain_init(formation):
 def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponibles=None):
     players_df = st.session_state.players
     if joueurs_disponibles is not None:
-        # Limite aux joueurs disponibles pour ce match
         players_df = players_df[players_df["Nom"].isin(joueurs_disponibles)]
     if players_df.empty:
         st.info("Aucun joueur dans la base. Merci d'importer ou d'ajouter des joueurs.")
@@ -464,14 +463,11 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
         if not noms_postes:
             noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
 
-        # Tri personnalisé pour ce poste
         stats_df["is_poste"] = stats_df["Poste"] == poste
         joueurs_tries = stats_df.sort_values(
             by=["is_poste", "Titularisations", "Nom"],
             ascending=[False, False, True]
         )["Nom"].tolist()
-        if not noms_postes:
-            noms_postes = [f"{POSTES_LONG[poste]} {i+1}" for i in range(FORMATION[formation][poste])]
 
         with st.expander(f"{POSTES_LONG[poste] + ('x' if POSTES_LONG[poste] == 'Milieu' else 's')}"):
             for i in range(FORMATION[formation][poste]):
@@ -480,14 +476,18 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
                 current_nom = current["Nom"] if current and isinstance(current, dict) else ""
                 label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
                 options = [""] + [n for n in joueurs_tries if n == current_nom or n not in all_selected]
-                key_select = f"selectbox_{terrain_key}_{poste}_{i}"
-                if key_suffix:
-                    key_select += f"_{key_suffix}"
+
+                key_prefix = f"{terrain_key}_{key_suffix}" if key_suffix else terrain_key
+                key_select = f"selectbox_{key_prefix}_{poste}_{i}"
+
                 choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
                 if choix:
                     joueur_info = players_df[players_df["Nom"] == choix].iloc[0].to_dict()
-                    num = st.text_input(f"Numéro de {choix}", value=current.get("Numero", "") if current else "", key=f"num_{terrain_key}_{poste}_{i}{f'_{key_suffix}' if key_suffix else ''}")
-                    # Capitaine supprimé ici !
+                    num = st.text_input(
+                        f"Numéro de {choix}",
+                        value=current.get("Numero", "") if current else "",
+                        key=f"num_{key_prefix}_{poste}_{i}"
+                    )
                     joueur_info["Numero"] = num
                     terrain[poste][i] = joueur_info
                 else:
@@ -498,7 +498,6 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
 
 # --- Gestion des remplaçants dynamique et variable ---
 def remplacants_interactif(key, titulaires, key_suffix=None, joueurs_disponibles=None, max_remplacants=MAX_REMPLACANTS):
-    # Filtre la base des joueurs disponibles
     players_df = st.session_state.players
     if joueurs_disponibles is not None:
         players_df = players_df[players_df["Nom"].isin(joueurs_disponibles)]
@@ -516,13 +515,14 @@ def remplacants_interactif(key, titulaires, key_suffix=None, joueurs_disponibles
         st.session_state[f"remp_{key}"] = [{"Nom": None, "Numero": ""} for _ in range(max_remplacants)]
     remps = st.session_state[f"remp_{key}"]
 
+    key_prefix = f"{key}_{key_suffix}" if key_suffix else key
+
     with st.expander("Remplaçants"):
         for i in range(len(remps)):
             current = remps[i]["Nom"]
             options = dispo + ([current] if current and current not in dispo else [])
-            key_select = f"remp_choice_{key}_{i}"
-            if key_suffix:
-                key_select += f"_{key_suffix}"
+            key_select = f"remp_choice_{key_prefix}_{i}"
+
             choix = st.selectbox(
                 f"Remplaçant {i+1}",
                 [""] + options,
@@ -530,12 +530,17 @@ def remplacants_interactif(key, titulaires, key_suffix=None, joueurs_disponibles
                 key=key_select
             )
             if choix:
-                num = st.text_input(f"Numéro de {choix}", value=remps[i].get("Numero",""), key=f"num_remp_{key}_{i}")
+                num = st.text_input(
+                    f"Numéro de {choix}",
+                    value=remps[i].get("Numero",""),
+                    key=f"num_remp_{key_prefix}_{i}"
+                )
                 remps[i] = {"Nom": choix, "Numero": num}
             else:
                 remps[i] = {"Nom": None, "Numero": ""}
             dispo = [n for n in dispo if n != choix]
-        if st.button("➕ Ajouter un remplaçant", key=f"add_remp_{key}"):
+
+        if st.button("➕ Ajouter un remplaçant", key=f"add_remp_{key_prefix}"):
             remps.append({"Nom": None, "Numero": ""})
 
     st.session_state[f"remp_{key}"] = remps
