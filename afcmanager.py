@@ -464,7 +464,7 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
     stats_df["Titularisations"] = pd.to_numeric(stats_df.get("Titularisations", 0), errors="coerce").fillna(0)
 
     key_prefix = f"{terrain_key}_{key_suffix}" if key_suffix else terrain_key
-
+    
     for poste in POSTES_ORDER:
         noms_postes = POSTES_NOMS.get(formation, {}).get(poste, [])
         if not noms_postes:
@@ -796,7 +796,7 @@ with tab4:
             nom_compo, loaded = edit_compo
             st.info(f"✏️ Édition de la composition : **{nom_compo}**")
             st.session_state["formation_create_compo"] = loaded["formation"]
-            st.session_state["terrain_create_compo"] = loaded["details"]
+            st.session_state["terrain_create_compo_tactic"] = loaded["details"]
             del st.session_state[edit_key]
 
         nom_compo = st.text_input("📝 Nom de la composition", key="nom_compo_create", value=nom_compo if edit_compo else "")
@@ -804,7 +804,7 @@ with tab4:
 
         col_left, col_right = st.columns([1, 2])
         with col_left:
-            terrain = terrain_interactif(formation, "terrain_create_compo")
+            terrain = terrain_interactif(formation, "terrain_create_compo_tactic")
             titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
             remplacants = remplacants_interactif("create_compo", titulaires)
 
