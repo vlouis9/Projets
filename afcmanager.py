@@ -526,7 +526,8 @@ def remplacants_interactif(key, titulaires, key_suffix=None, joueurs_disponibles
     with st.expander("Remplaçants"):
         for i in range(len(remps)):
             current_nom = remps[i]["Nom"]
-            options = dispo + ([current] if current and current not in dispo else [])
+            options = dispo + ([current_nom] if current_nom and current_nom not in dispo else [])
+
             key_select = f"remp_choice_{key_prefix}_{i}_{current_nom}"
 
             choix = st.selectbox(
