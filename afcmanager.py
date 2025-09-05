@@ -435,6 +435,8 @@ def style_classement(df):
 
 # --- 🧩 Initialiser un terrain vide selon la formation ---
 def terrain_init(formation):
+    if formation not in FORMATION:
+        formation = DEFAULT_FORMATION
     return {poste: [None for _ in range(FORMATION[formation][poste])] for poste in POSTES_ORDER}
 
 # --- 🎮 Interface pour sélectionner les titulaires dynamiquement ---
