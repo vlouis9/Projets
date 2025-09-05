@@ -458,6 +458,8 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
 
     stats_df["Titularisations"] = pd.to_numeric(stats_df.get("Titularisations", 0), errors="coerce").fillna(0)
 
+    key_prefix = f"{terrain_key}_{key_suffix}" if key_suffix else terrain_key
+
     for poste in POSTES_ORDER:
         noms_postes = POSTES_NOMS.get(formation, {}).get(poste, [])
         if not noms_postes:
@@ -477,10 +479,9 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
                 label = noms_postes[i] if i < len(noms_postes) else f"{POSTES_LONG[poste]} {i+1}"
                 options = [""] + [n for n in joueurs_tries if n == current_nom or n not in all_selected]
 
-                key_prefix = f"{terrain_key}_{key_suffix}" if key_suffix else terrain_key
                 key_select = f"selectbox_{key_prefix}_{poste}_{i}"
-
                 choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
+
                 if choix:
                     joueur_info = players_df[players_df["Nom"] == choix].iloc[0].to_dict()
                     num = st.text_input(
@@ -878,7 +879,7 @@ with tab4:
                     with st.expander(f"**{label}**"):
                         new_noms = []
                         for i, nom in enumerate(profondeur[poste][idx_key]):
-                            select_key = f"{formation_selected}_{poste}_{idx_key}_choix_{i}"
+                            select_key = f"{formation_selected}_{poste}_{idx_key}_choix_{i}_depth"
                             choix = st.selectbox(
                                 f"Option {i+1}", [""] + joueurs,
                                 index=([""] + joueurs).index(nom) if nom in joueurs else 0,
@@ -1118,20 +1119,9 @@ with tab1:
                                         key=f"form_{mid}",
                                         index=list(FORMATION.keys()).index(match.get("formation", DEFAULT_FORMATION)) if match.get("formation") else 0
                                     )
-                                    terrain = terrain_interactif(
-                                        formation,
-                                        f"terrain_match_{mid}",
-                                        key_suffix=mid,
-                                        joueurs_disponibles=joueurs_dispo
-                                    )
+                                    terrain = terrain_interactif(formation, "terrain_create_compo", key_suffix="create")
                                     titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
-                                    remplacants = remplacants_interactif(
-                                        f"match_{mid}",
-                                        titulaires,
-                                        key_suffix=mid,
-                                        joueurs_disponibles=joueurs_dispo,
-                                        max_remplacants=max_remplacants
-                                    )
+                                    remplacants = remplacants_interactif("create_compo", titulaires, key_suffix="create")
                                 # Sélection du capitaine à la fin (parmi les titulaires)
                                 titulaires_noms = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
                                 capitaine = st.selectbox(
