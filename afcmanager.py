@@ -1059,7 +1059,7 @@ with tab1:
                         )
                         match["joueurs_disponibles"] = selected_dispo
                         st.session_state.matchs[mid] = match
-                        st.markdown(f"Joueurs disponibles sélectionnés : {len(selected_dispo)}")
+                        st.markdown(f"Joueurs disponibles : {len(selected_dispo)}/{len(joueurs_tries)}")
 
                         if st.button("💾 Sauvegarder la liste des joueurs disponibles", key=f"save_dispo_{mid}"):
                             match["joueurs_disponibles"] = selected_dispo
