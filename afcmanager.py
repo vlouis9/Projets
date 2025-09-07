@@ -1052,13 +1052,14 @@ with tab1:
                         match["joueurs_disponibles"] = players_df.copy()
                     with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
                         selected_dispo = st.multiselect(
-                            f"Joueurs disponibles ({len(selected_dispo)})",
+                            "Joueurs disponibles",
                             joueurs_tries,
                             default=match.get("joueurs_disponibles", []),
                             key=f"joueurs_dispo_{mid}"
                         )
                         match["joueurs_disponibles"] = selected_dispo
                         st.session_state.matchs[mid] = match
+                        st.markdown(f"Joueurs disponibles sélectionnés : {len(slected_dispo)}")
 
                         if st.button("💾 Sauvegarder la liste des joueurs disponibles", key=f"save_dispo_{mid}"):
                             match["joueurs_disponibles"] = selected_dispo
