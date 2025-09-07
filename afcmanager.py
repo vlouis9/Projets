@@ -1051,9 +1051,8 @@ with tab1:
                     if "joueurs_disponibles" not in match:
                         match["joueurs_disponibles"] = players_df.copy()
                     with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
-                        nb_joueurs = len(joueurs_tries)
                         selected_dispo = st.multiselect(
-                            f"Joueurs disponibles ({nb_joueurs})",
+                            f"Joueurs disponibles ({len(selected_dispo)})",
                             joueurs_tries,
                             default=match.get("joueurs_disponibles", []),
                             key=f"joueurs_dispo_{mid}"
