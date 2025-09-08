@@ -145,7 +145,7 @@ def draw_football_pitch_vertical():
     fig = go.Figure()
 
     # 📐 Terrain principal
-    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=115, line=dict(width=2, color="#145A32"))
+    fig.add_shape(type="rect", x0=0, y0=0, x1=68, y1=130, line=dict(width=2, color="#145A32"))
 
     # 🧤 Surface de réparation
     fig.add_shape(type="rect", x0=13.84, y0=0, x1=54.16, y1=16.5, line=dict(width=1, color="#145A32"))
