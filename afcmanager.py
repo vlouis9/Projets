@@ -156,7 +156,7 @@ def draw_football_pitch_vertical():
     fig.add_shape(type="circle", x0=33.6, y0=52.1, x1=34.4, y1=52.9, fillcolor="#145A32", line=dict(color="#145A32"))
 
     fig.update_xaxes(showticklabels=False, range=[-5, 73], visible=False)
-    fig.update_yaxes(showticklabels=False, range=[-25, 125], visible=False)
+    fig.update_yaxes(showticklabels=False, range=[-40, 125], visible=False)
 
     fig.update_layout(
         width=460,
