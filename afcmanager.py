@@ -1167,53 +1167,49 @@ with tab1:
                                 st.rerun()
     
                         # --- 👥 Convocation des joueurs ---
+                        
                         st.markdown("""
                             <style>
                             .convoc-container {
                                 background: linear-gradient(135deg, #0a2342, #1d3557);
                                 color: white;
-                                padding: 25px;
-                                border-radius: 12px;
+                                padding: 20px;
+                                border-radius: 10px;
                                 text-align: center;
                             }
                             .convoc-title {
-                                font-size: 30px;
+                                font-size: 28px;
                                 font-weight: bold;
                                 color: #ffcc00;
                                 margin-bottom: 10px;
-                                text-transform: uppercase;
                             }
                             .convoc-sub {
-                                font-size: 18px;
-                                margin-bottom: 25px;
+                                font-size: 20px;
+                                margin-bottom: 20px;
                             }
                             .poste {
                                 font-size: 22px;
                                 font-weight: bold;
-                                margin-top: 20px;
-                                margin-bottom: 15px;
+                                margin-top: 15px;
+                                margin-bottom: 5px;
                                 color: #ffcc00;
-                                text-transform: uppercase;
                                 border-bottom: 2px solid #ffcc00;
                                 display: inline-block;
-                                padding: 4px 14px;
+                                padding: 2px 10px;
                             }
-                            .joueurs-grid {
-                                display: grid;
-                                grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+                            .joueurs {
+                                display: flex;
+                                justify-content: center;
+                                flex-wrap: wrap;
                                 gap: 12px;
-                                justify-items: center;
                                 margin-bottom: 15px;
                             }
-                            .joueur-card {
-                                background: #bdc3c7;
-                                color: #1d1d1d;
+                            .joueur {
+                                background: #2c3e50;
                                 border-radius: 6px;
                                 padding: 8px 12px;
                                 font-size: 16px;
-                                font-weight: bold;
-                                min-width: 140px;
-                                text-align: center;
+                                font-weight: 600;
                             }
                             </style>
                         """, unsafe_allow_html=True)
@@ -1237,7 +1233,7 @@ with tab1:
                                     rdv = (datetime.strptime(heure_match, "%H:%M") - timedelta(hours=1)).strftime("%H:%M")
                                 except:
                                     rdv = "?"
-                                  # --- 📋 Affiche convocation ---
+                                 # --- 📋 Affiche convocation ---
                                 st.markdown(f"""
                                     <div class="convoc-container">
                                         <div class="convoc-title">📋 Convocation - {match['type']} {match['journee']}</div>
@@ -1253,10 +1249,10 @@ with tab1:
                                     if joueurs:
                                         label = POSTES_LONG.get(poste, "Inconnu")
                                         emoji = POSTES_EMOJIS.get(poste, "")
-                                        st.markdown(f"<div class='poste'>{emoji} {label}</div>", unsafe_allow_html=True)
+                                        st.markdown(f"<div class='poste'>{emoji} {label + ('x' if label == 'Milieu' else 's')}</div>", unsafe_allow_html=True)
                         
-                                        joueurs_html = "".join([f"<div class='joueur-card'>{nom}</div>" for nom in joueurs])
-                                        st.markdown(f"<div class='joueurs-grid'>{joueurs_html}</div>", unsafe_allow_html=True)
+                                        joueurs_html = "".join([f"<div class='joueur'>{nom}</div>" for nom in joueurs])
+                                        st.markdown(f"<div class='joueurs'>{joueurs_html}</div>", unsafe_allow_html=True)
                         
                                 # Fermeture du container
                                 st.markdown("</div>", unsafe_allow_html=True)
