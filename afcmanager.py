@@ -1167,6 +1167,52 @@ with tab1:
                                 st.rerun()
     
                         # --- 👥 Convocation des joueurs ---
+                        
+                        st.markdown("""
+                            <style>
+                            .convoc-container {
+                                background: linear-gradient(135deg, #0a2342, #1d3557);
+                                color: white;
+                                padding: 20px;
+                                border-radius: 10px;
+                                text-align: center;
+                            }
+                            .convoc-title {
+                                font-size: 28px;
+                                font-weight: bold;
+                                color: #ffcc00;
+                                margin-bottom: 10px;
+                            }
+                            .convoc-sub {
+                                font-size: 20px;
+                                margin-bottom: 20px;
+                            }
+                            .poste {
+                                font-size: 22px;
+                                font-weight: bold;
+                                margin-top: 15px;
+                                margin-bottom: 5px;
+                                color: #ffcc00;
+                                border-bottom: 2px solid #ffcc00;
+                                display: inline-block;
+                                padding: 2px 10px;
+                            }
+                            .joueurs {
+                                display: flex;
+                                justify-content: center;
+                                flex-wrap: wrap;
+                                gap: 12px;
+                                margin-bottom: 15px;
+                            }
+                            .joueur {
+                                background: #2c3e50;
+                                border-radius: 6px;
+                                padding: 8px 12px;
+                                font-size: 16px;
+                                font-weight: 600;
+                            }
+                            </style>
+                        """, unsafe_allow_html=True)
                         if terrain:
                             with st.expander("### 👥 Convocation des joueurs"):
                                 noms_titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j]
@@ -1187,29 +1233,29 @@ with tab1:
                                     rdv = (datetime.strptime(heure_match, "%H:%M") - timedelta(hours=1)).strftime("%H:%M")
                                 except:
                                     rdv = "?"
-                                if match['type'] == "Championnat":
-                                    st.subheader(f"📈 {match['type']} - {match['journee']}")
-                                else:
-                                    if match['type'] == "Coupe":
-                                        st.subheader(f"🏆 {match['type']} - {match['journee']}")
-                                    else:
-                                        st.subheader(f"🤝 {match['type']} - {match['journee']}")
-                                st.subheader(f"🆚 {match.get('adversaire')}")
-                                st.write(f"📅 {match['date']} à {heure_match} – **RDV : {rdv}**")
-                                if match['domicile'] == "Domicile":
-                                    st.write(f"🏠 {match.get('lieu')}")
-                                else:
-                                    st.write(f"🚗 {match.get('lieu')}")
-                                st.markdown("----")
+                                 # --- 📋 Affiche convocation ---
+                                st.markdown(f"""
+                                    <div class="convoc-container">
+                                        <div class="convoc-title">📋 Convocation - {match['type']} {match['journee']}</div>
+                                        <div class="convoc-sub">🆚 {match.get('adversaire')}<br>
+                                        📅 {match['date']} à {match['heure']} – RDV {rdv}<br>
+                                        {"🏠" if match['domicile']=="Domicile" else "🚗"} {match.get('lieu')}</div>
+                                """, unsafe_allow_html=True)
+                        
+                                # --- Par poste ---
                                 POSTES_EMOJIS = {"G": "🧤", "D": "🛡️", "M": "🎯", "A": "⚽"}
                                 for poste in POSTES_ORDER:
                                     joueurs = convoques_par_poste.get(poste, [])
                                     if joueurs:
-                                        emoji = POSTES_EMOJIS.get(poste, "")
                                         label = POSTES_LONG.get(poste, "Inconnu")
-                                        st.markdown(f"**{emoji} {label + ('x' if label == 'Milieu' else 's')} :**")
-                                        for nom in joueurs:
-                                            st.markdown(f"- {nom}")
+                                        emoji = POSTES_EMOJIS.get(poste, "")
+                                        st.markdown(f"<div class='poste'>{emoji} {label}</div>", unsafe_allow_html=True)
+                        
+                                        joueurs_html = "".join([f"<div class='joueur'>{nom}</div>" for nom in joueurs])
+                                        st.markdown(f"<div class='joueurs'>{joueurs_html}</div>", unsafe_allow_html=True)
+                        
+                                # Fermeture du container
+                                st.markdown("</div>", unsafe_allow_html=True)
     
                     # --- 📝 Saisie des statistiques du match ---
                     elif match_ended and not match.get("noted", False):
