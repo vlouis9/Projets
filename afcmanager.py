@@ -943,7 +943,7 @@ with tab4:
 
 # --- 📅 Onglet Gestion des matchs ---
 with tab1:
-    subtab2, subtab1 = st.tabs(["Créer un match", "Mes matchs"])
+    subtab1, subtab2 = st.tabs(["Mes matchs", "Créer un match"])
 
     # --- ⚙️ Créer un match ---
     with subtab2:
