@@ -281,10 +281,23 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
     if n:
         positions_remp = []
         # Répartition plus flexible
-        for i in range(n):
-            x = 5 + int((i / max(n-1, 1)) * 58)
-            y = -10 - (i // 6) * 8
-            positions_remp.append((x, y))
+        if n<4:
+            for i in range(n):
+                x = 5 + int((i / max(n-1, 1)) * 58)
+                y = -10 - (i // 6) * 8
+                positions_remp.append((x, y))
+        else:
+            n_top = (n + 1) // 2 
+            n_bottom = n - n_top
+            for i in range(n_top):
+                x = 5 + int((i / max(n_top-1, 1)) * 58)
+                y = -10
+                positions_remp.append((x, y))
+            for i in range(n_bottom):
+                x = 5 + int((i / max(n_bottom-1, 1)) * 58)
+                y = -18 
+                positions_remp.append((x, y))
+                                      
         for idx, remp in enumerate(remplacants):
             x_r, y_r = positions_remp[idx]
             nom = remp.get("Nom", "") if isinstance(remp, dict) else remp
