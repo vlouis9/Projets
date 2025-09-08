@@ -163,7 +163,8 @@ def draw_football_pitch_vertical():
         height=1000,
         plot_bgcolor="#154734",
         margin=dict(l=10, r=10, t=10, b=10),
-        showlegend=False
+        showlegend=False,
+        shapes=[dict(layer="below")]
     )
 
     return fig
