@@ -943,11 +943,11 @@ with tab4:
 
 # --- 📅 Onglet Gestion des matchs ---
 with tab1:
-    subtab1, subtab2 = st.tabs(["Créer un match", "Mes matchs"])
+    subtab2, subtab1 = st.tabs(["Créer un match", "Mes matchs"])
 
     # --- ⚙️ Créer un match ---
-    with subtab1:
-        with subtab1:
+    with subtab2:
+        with subtab2:
             edit_match = st.session_state.get("edit_match", None)
             if edit_match:
                 mid_edit, match_data = edit_match
@@ -1041,7 +1041,7 @@ with tab1:
                 st.rerun()
 
     # --- 📋 Mes matchs enregistrés ---
-    with subtab2:
+    with subtab1:
         if not st.session_state.matchs:
             st.info("📭 Aucun match enregistré.")
         else:
