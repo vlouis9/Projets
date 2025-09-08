@@ -160,8 +160,7 @@
             "Nom": "William Toumelin",
             "Poste": "G",
             "Infos": "",
-            "Numero": "1",
-            "Capitaine": false
+            "Numero": "1"
           }
         ],
         "D": [
@@ -169,29 +168,20 @@
             "Nom": "Arthur Bouchet",
             "Poste": "D",
             "Infos": "",
-            "Numero": "3",
-            "Capitaine": false
+            "Numero": "3"
           },
-          {
-            "Nom": "Jason Cuvelier",
-            "Poste": "D",
-            "Infos": "",
-            "Numero": "4",
-            "Capitaine": false
-          },
+          null,
           {
             "Nom": "Charles Plun",
             "Poste": "D",
             "Infos": "",
-            "Numero": "5",
-            "Capitaine": false
+            "Numero": "5"
           },
           {
-            "Nom": "Arthur Couto",
+            "Nom": "Constant Augustin",
             "Poste": "D",
             "Infos": "",
-            "Numero": "2",
-            "Capitaine": false
+            "Numero": "2"
           }
         ],
         "M": [
@@ -199,36 +189,31 @@
             "Nom": "Thibault Rigal",
             "Poste": "M",
             "Infos": "",
-            "Numero": "8",
-            "Capitaine": true
+            "Numero": "8"
           },
           {
             "Nom": "Walid Chouchi",
             "Poste": "M",
             "Infos": "",
-            "Numero": "6",
-            "Capitaine": false
+            "Numero": "6"
           },
           {
             "Nom": "Louis Vermeulen",
             "Poste": "M",
             "Infos": "",
-            "Numero": "7",
-            "Capitaine": false
+            "Numero": "7"
           },
           {
-            "Nom": "Adrien Gric",
+            "Nom": "Yoann Perzynski",
             "Poste": "M",
             "Infos": "",
-            "Numero": "10",
-            "Capitaine": false
+            "Numero": "10"
           },
           {
             "Nom": "Axel Soldadi\u00e9",
             "Poste": "A",
             "Infos": "",
-            "Numero": "11",
-            "Capitaine": false
+            "Numero": "11"
           }
         ],
         "A": [
@@ -236,8 +221,7 @@
             "Nom": "Gregory Perrot",
             "Poste": "A",
             "Infos": "",
-            "Numero": "9",
-            "Capitaine": false
+            "Numero": "9"
           }
         ]
       },
