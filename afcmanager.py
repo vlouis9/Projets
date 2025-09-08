@@ -284,7 +284,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
         if n<4:
             for i in range(n):
                 x = 5 + int((i / max(n-1, 1)) * 58)
-                y = -10 - (i // 6) * 8
+                y = -10
                 positions_remp.append((x, y))
         else:
             n_top = (n + 1) // 2 
@@ -295,7 +295,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 positions_remp.append((x, y))
             for i in range(n_bottom):
                 x = 5 + int((i / max(n_bottom-1, 1)) * 58)
-                y = -18 
+                y = -20
                 positions_remp.append((x, y))
                                       
         for idx, remp in enumerate(remplacants):
