@@ -306,6 +306,86 @@
         ]
       },
       "remplacants": []
+    },
+    "Forza viola 1": {
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1"
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "3"
+          },
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "5"
+          },
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "4"
+          },
+          {
+            "Nom": "Constant Augustin",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2"
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6"
+          },
+          {
+            "Nom": "Nicolas Mitrano",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8"
+          },
+          {
+            "Nom": "Mehdi Zerrouki",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "7"
+          },
+          {
+            "Nom": "Sofian Labrinssi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10"
+          },
+          {
+            "Nom": "Emmanuel Pannier",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11"
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "9"
+          }
+        ]
+      },
+      "remplacants": []
     }
   },
   "matchs": {
