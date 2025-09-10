@@ -336,13 +336,13 @@
         "D": [
           {
             "Nom": "Nicolas Gardan",
-            "Poste": "M",
+            "Poste": "D",
             "Infos": "",
             "Numero": "3"
           },
           {
             "Nom": "Thibault Rigal",
-            "Poste": "M",
+            "Poste": "D",
             "Infos": "",
             "Numero": "5"
           },
@@ -430,7 +430,7 @@
           "Numero": "18"
         },
         {
-          "Nom": "Loris Traor\u00e9",
+          "Nom": "Thomas B. ",
           "Numero": "19"
         }
       ],
