@@ -438,7 +438,6 @@
       "termine": false,
       "homme_du_match": "",
       "joueurs_disponibles": [
-        "William Toumelin",
         "Pierre Pavia",
         "Thibault Rigal",
         "Maxime Pujol",
@@ -457,7 +456,8 @@
         "Mathieu Gadet",
         "Constant Augustin",
         "Giovanni Filippi",
-        "Thomas B. "
+        "Thomas B. ",
+        "Pierre Tarasinski"
       ],
       "capitaine": "Thibault Rigal"
     },
