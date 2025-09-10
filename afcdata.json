@@ -17,12 +17,12 @@
     },
     {
       "Nom": "Thibault Rigal",
-      "Poste": "M",
+      "Poste": "D",
       "Infos": ""
     },
     {
       "Nom": "Maxime Pujol",
-      "Poste": "M",
+      "Poste": "D",
       "Infos": ""
     },
     {
@@ -42,7 +42,7 @@
     },
     {
       "Nom": "Nicolas Gardan",
-      "Poste": "M",
+      "Poste": "D",
       "Infos": ""
     },
     {
@@ -148,6 +148,11 @@
     {
       "Nom": "Loris Traor\u00e9",
       "Poste": "M",
+      "Infos": ""
+    },
+    {
+      "Nom": "Thomas B. ",
+      "Poste": "D",
       "Infos": ""
     }
   ],
