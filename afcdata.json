@@ -349,7 +349,8 @@
             "Nom": "Thibault Rigal",
             "Poste": "D",
             "Infos": "",
-            "Numero": "5"
+            "Numero": "5",
+            "Capitaine": true
           },
           {
             "Nom": "Pierre Pavia",
@@ -529,7 +530,7 @@
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": true,
+      "noted": false,
       "termine": true,
       "homme_du_match": "Jos\u00e9 Mar\u00eda",
       "joueurs_disponibles": [
