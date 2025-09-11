@@ -349,8 +349,7 @@
             "Nom": "Thibault Rigal",
             "Poste": "D",
             "Infos": "",
-            "Numero": "5",
-            "Capitaine": true
+            "Numero": "5"
           },
           {
             "Nom": "Pierre Pavia",
@@ -432,11 +431,11 @@
           "Numero": "17"
         },
         {
-          "Nom": "Hicham Grerifa",
+          "Nom": "Jos\u00e9 Mar\u00eda",
           "Numero": "18"
         },
         {
-          "Nom": "Jos\u00e9 Mar\u00eda",
+          "Nom": "Hicham Grerifa",
           "Numero": "19"
         }
       ],
