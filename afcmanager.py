@@ -296,7 +296,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 positions_remp.append((x, y))
             for i in range(n_bottom):
                 x = 5 + int((i / max(n_bottom-1, 1)) * 58)
-                y = -20
+                y = -25
                 positions_remp.append((x, y))
                                       
         for idx, remp in enumerate(remplacants):
@@ -1335,20 +1335,23 @@ with tab1:
                             
                             for i in range(score_afc):
                                 col_but1, col_but2 = st.columns([2, 2])
-                                # valeurs existantes
-                                default_buteur = next((b for b, n in events.get("buteurs", {}).items() if n > i), "")
-                                default_passeur = next((p for p, n in events.get("passeurs", {}).items() if n > i), "")
-                    
+                            
+                                default_buteur = buteurs_existants[i] if i < len(buteurs_existants) else ""
+                                default_passeur = passeurs_existants[i] if i < len(passeurs_existants) else ""
+                            
                                 buteur = col_but1.selectbox(
-                                    f"Buteur du but {i+1}", [""] + joueurs,
+                                    f"Buteur du but {i+1}",
+                                    [""] + joueurs,
                                     index=([""] + joueurs).index(default_buteur) if default_buteur in joueurs else 0,
                                     key=f"buteur_{mid}_{i}"
                                 )
                                 passeur = col_but2.selectbox(
-                                    f"Passeur du but {i+1}", [""] + joueurs,
+                                    f"Passeur du but {i+1}",
+                                    [""] + joueurs,
                                     index=([""] + joueurs).index(default_passeur) if default_passeur in joueurs else 0,
                                     key=f"passeur_{mid}_{i}"
                                 )
+                            
                                 if buteur:
                                     events["buteurs"][buteur] = events["buteurs"].get(buteur, 0) + 1
                                 if passeur:
