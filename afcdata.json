@@ -456,7 +456,7 @@
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": false,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
