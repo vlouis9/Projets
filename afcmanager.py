@@ -1058,7 +1058,7 @@ with tab1:
                 else:
                     titre = f"🕒 {nom_affiche}"
                 with st.expander(
-                    nom_affiche,
+                    titre,
                     expanded=False
                 ):
                       
