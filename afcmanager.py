@@ -404,6 +404,32 @@ def compute_clean_sheets():
                 clean_sheets[name] = clean_sheets.get(name, 0) + 1
     return clean_sheets
 
+def build_player_stats_from_events(match):
+    """
+    Convertit les données 'events' du match (buteurs, passeurs, cartons, notes)
+    en structure player_stats compatible avec plot_lineup_on_pitch_vertical.
+    """
+    player_stats = {}
+    events = match.get("events", {})
+    all_names = set()
+
+    # Récupérer tous les joueurs concernés
+    for d in ["buteurs", "passeurs", "cartons_jaunes", "cartons_rouges", "notes"]:
+        all_names.update(events.get(d, {}).keys())
+    if match.get("homme_du_match"):
+        all_names.add(match["homme_du_match"])
+
+    for nom in all_names:
+        player_stats[nom] = {
+            "buts": events.get("buteurs", {}).get(nom, 0),
+            "passes": events.get("passeurs", {}).get(nom, 0),
+            "cj": events.get("cartons_jaunes", {}).get(nom, 0),
+            "cr": events.get("cartons_rouges", {}).get(nom, 0),
+            "note": events.get("notes", {}).get(nom),
+            "hdm": (match.get("homme_du_match") == nom),
+        }
+    return player_stats
+
 def get_classement(championnat_scores, adversaires):
     stats = {adv: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for adv in adversaires + ["AFC"]}
     for journee, matchs in championnat_scores.items():
@@ -1277,39 +1303,44 @@ with tab1:
                             joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
                             joueurs = list(dict.fromkeys(joueurs))
                     
+                            # --- Score ---
                             col_eqdom, col_scoredom, col_scoreext, col_eqext = st.columns([3, 2, 2, 3])
-                            if match['domicile'] == "domicile":
+                            if match['domicile'] == "Domicile":
                                 col_eqdom.markdown("AFC")
-                                col_eqext.markdown(f"{match['adversaire']}")
-                                score_afc = col_scoredom.number_input("⚽", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
-                                score_adv = col_scoreext.number_input(f"⚽", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
+                                col_eqext.markdown(match['adversaire'])
+                                score_afc = col_scoredom.number_input("⚽", min_value=0, max_value=20,
+                                                                     value=match.get("score_afc", 0), key=f"score_afc_{mid}")
+                                score_adv = col_scoreext.number_input("⚽", min_value=0, max_value=20,
+                                                                     value=match.get("score_adv", 0), key=f"score_adv_{mid}")
                             else:
-                                col_eqdom.markdown(f"{match['adversaire']}")
+                                col_eqdom.markdown(match['adversaire'])
                                 col_eqext.markdown("AFC")
-                                score_afc = col_scoreext.number_input("⚽", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
-                                score_adv = col_scoredom.number_input(f"⚽", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
+                                score_afc = col_scoreext.number_input("⚽", min_value=0, max_value=20,
+                                                                     value=match.get("score_afc", 0), key=f"score_afc_{mid}")
+                                score_adv = col_scoredom.number_input("⚽", min_value=0, max_value=20,
+                                                                     value=match.get("score_adv", 0), key=f"score_adv_{mid}")
                     
-                            # Structure événements
-                            events = {
-                                "buteurs": {},
-                                "passeurs": {},
-                                "cartons_jaunes": {},
-                                "cartons_rouges": {},
-                                "notes": {}
-                            }
+                            # --- Events existants ---
+                            events = match.get("events", {
+                                "buteurs": {}, "passeurs": {}, "cartons_jaunes": {}, "cartons_rouges": {}, "notes": {}
+                            })
                     
-                            # --- Gestion des buts AFC ---
+                            # --- Buts ---
                             st.subheader("⚽ Buts AFC")
                             for i in range(score_afc):
                                 col_but1, col_but2 = st.columns([2, 2])
+                                # valeurs existantes
+                                default_buteur = next((b for b, n in events.get("buteurs", {}).items() if n > i), "")
+                                default_passeur = next((p for p, n in events.get("passeurs", {}).items() if n > i), "")
+                    
                                 buteur = col_but1.selectbox(
-                                    f"Buteur du but {i+1}",
-                                    [""] + joueurs,
+                                    f"Buteur du but {i+1}", [""] + joueurs,
+                                    index=([""] + joueurs).index(default_buteur) if default_buteur in joueurs else 0,
                                     key=f"buteur_{mid}_{i}"
                                 )
                                 passeur = col_but2.selectbox(
-                                    f"Passeur du but {i+1}",
-                                    [""] + joueurs,
+                                    f"Passeur du but {i+1}", [""] + joueurs,
+                                    index=([""] + joueurs).index(default_passeur) if default_passeur in joueurs else 0,
                                     key=f"passeur_{mid}_{i}"
                                 )
                                 if buteur:
@@ -1319,82 +1350,50 @@ with tab1:
                     
                             st.markdown("---")
                     
-                            # --- Gestion des cartons ---
-                            st.subheader("🟨🟥 Cartons")
-                            if "cartons" not in st.session_state:
-                                st.session_state["cartons"] = {"jaunes": [], "rouges": []}
-                    
-                            # Ajouter un carton jaune
-                            if st.button("Ajouter un carton jaune", key=f"add_cj_{mid}"):
-                                st.session_state["cartons"]["jaunes"].append("")
-                            # Ajouter un carton rouge
-                            if st.button("Ajouter un carton rouge", key=f"add_cr_{mid}"):
-                                st.session_state["cartons"]["rouges"].append("")
-                    
-                            # Afficher les cartons jaunes
-                            for idx, cj in enumerate(st.session_state["cartons"]["jaunes"]):
-                                col_cj1, col_cj2 = st.columns([3, 1])
-                                joueur_cj = col_cj1.selectbox(
-                                    f"🟨 Carton jaune {idx+1}",
-                                    [""] + joueurs,
-                                    index=([""] + joueurs).index(cj) if cj in joueurs else 0,
+                            # --- Cartons jaunes ---
+                            st.subheader("🟨 Cartons jaunes")
+                            for idx, nom in enumerate(events.get("cartons_jaunes", {})):
+                                st.selectbox(
+                                    f"Carton jaune {idx+1}", [""] + joueurs,
+                                    index=([""]+joueurs).index(nom) if nom in joueurs else 0,
                                     key=f"cj_{mid}_{idx}"
                                 )
-                                st.session_state["cartons"]["jaunes"][idx] = joueur_cj
-                                if col_cj2.button("❌", key=f"del_cj_{mid}_{idx}"):
-                                    st.session_state["cartons"]["jaunes"].pop(idx)
-                                    st.rerun()
                     
-                            # Afficher les cartons rouges
-                            for idx, cr in enumerate(st.session_state["cartons"]["rouges"]):
-                                col_cr1, col_cr2 = st.columns([3, 1])
-                                joueur_cr = col_cr1.selectbox(
-                                    f"🟥 Carton rouge {idx+1}",
-                                    [""] + joueurs,
-                                    index=([""] + joueurs).index(cr) if cr in joueurs else 0,
+                            # --- Cartons rouges ---
+                            st.subheader("🟥 Cartons rouges")
+                            for idx, nom in enumerate(events.get("cartons_rouges", {})):
+                                st.selectbox(
+                                    f"Carton rouge {idx+1}", [""] + joueurs,
+                                    index=([""]+joueurs).index(nom) if nom in joueurs else 0,
                                     key=f"cr_{mid}_{idx}"
                                 )
-                                st.session_state["cartons"]["rouges"][idx] = joueur_cr
-                                if col_cr2.button("❌", key=f"del_cr_{mid}_{idx}"):
-                                    st.session_state["cartons"]["rouges"].pop(idx)
-                                    st.rerun()
-                    
-                            # Mise à jour events avec cartons
-                            for nom in st.session_state["cartons"]["jaunes"]:
-                                if nom:
-                                    events["cartons_jaunes"][nom] = events["cartons_jaunes"].get(nom, 0) + 1
-                            for nom in st.session_state["cartons"]["rouges"]:
-                                if nom:
-                                    events["cartons_rouges"][nom] = events["cartons_rouges"].get(nom, 0) + 1
                     
                             st.markdown("---")
                     
-                            # --- Notes joueurs ---
+                            # --- Notes ---
                             noter_joueurs = st.checkbox("Noter les joueurs ?", value=match.get("noter_joueurs", True), key=f"noter_{mid}")
                             match["noter_joueurs"] = noter_joueurs
-                    
                             if noter_joueurs:
                                 st.subheader("📊 Notes des joueurs")
                                 for nom in joueurs:
                                     events["notes"][nom] = st.slider(
-                                        f"{nom}",
-                                        min_value=0.0, max_value=10.0,
-                                        value=5.0, step=0.5,
-                                        key=f"note_{mid}_{nom}"
+                                        nom, 0.0, 10.0,
+                                        value=events.get("notes", {}).get(nom, 5.0),
+                                        step=0.5, key=f"note_{mid}_{nom}"
                                     )
                     
-                            st.markdown("---")
-                            hdm = st.selectbox("🏆 Homme du match", [""] + joueurs, key=f"hdm_{mid}")
-
+                            # --- Homme du match ---
+                            hdm = st.selectbox("🏆 Homme du match", [""] + joueurs,
+                                               index=([""]+joueurs).index(match.get("homme_du_match", "")) if match.get("homme_du_match") in joueurs else 0,
+                                               key=f"hdm_{mid}")
+                    
                             # --- Revue de presse ---
                             st.markdown("### 📰 Revue de presse")
                             revue_presse = st.text_area(
                                 "Ajoute ici ton texte libre (articles, commentaires, presse...)", 
-                                value=match.get("revue_presse", ""), 
-                                height=200, 
-                                key=f"revue_presse_{mid}"
+                                value=match.get("revue_presse", ""), height=200, key=f"revue_presse_{mid}"
                             )
-    
+                    
                             if st.button("💾", key=f"valide_{mid}"):
                                 match["events"] = events
                                 match["score_afc"] = score_afc
@@ -1449,25 +1448,22 @@ with tab1:
                                 unsafe_allow_html=True
                             )
                             
-                            # --- Buts ---
-                            buteurs = match["events"].get("buteurs", {})
-                            passeurs = match["events"].get("passeurs", {})
+                            # --- ⚽ Buts ---
+                            buteurs = match["events"].get("buteurs", {}).copy()
+                            passeurs = match["events"].get("passeurs", {}).copy()
                             
                             total_buts = sum(buteurs.values())
                             if total_buts > 0:
-                                st.markdown(
-                                    "<h5 style='text-align: center;'>⚽ Buts</h5>",
-                                    unsafe_allow_html=True
-                                )
+                                st.markdown("<h5 style='text-align: center;'>⚽ Buts</h5>", unsafe_allow_html=True)
                                 i = 1
                                 for buteur, nb in buteurs.items():
                                     for _ in range(nb):
-                                        # Cherche un passeur dispo (s'il en reste dans le compteur)
+                                        # on ne décrémente PAS, on cherche juste un passeur dispo
                                         passeur_affiche = None
-                                        for passeur, nbp in passeurs.items():
-                                            if nbp > 0:
-                                                passeur_affiche = passeur
-                                                passeurs[passeur] -= 1
+                                        for p in passeurs:
+                                            if passeurs[p] > 0:
+                                                passeur_affiche = p
+                                                passeurs[p] -= 1  # juste pour répartir les passes dans l’affichage
                                                 break
                             
                                         if passeur_affiche:
@@ -1482,11 +1478,8 @@ with tab1:
                                             )
                                         i += 1
                             
-                            # --- Discipline ---
-                            st.markdown(
-                                "<h5 style='text-align: center;'>👮🏼‍♂️ Discipline</h5>",
-                                unsafe_allow_html=True
-                            )
+                            # --- 👮 Discipline ---
+                            st.markdown("<h5 style='text-align: center;'>👮🏼‍♂️ Discipline</h5>", unsafe_allow_html=True)
                             
                             cartons_jaunes = match["events"].get("cartons_jaunes", {})
                             cartons_rouges = match["events"].get("cartons_rouges", {})
@@ -1494,20 +1487,20 @@ with tab1:
                             jaunes_affiches = False
                             rouges_affiches = False
                             
-                            if cartons_jaunes:
+                            if cartons_jaunes and any(nb > 0 for nb in cartons_jaunes.values()):
                                 st.markdown("<p style='text-align: center;'><b>🟨 Cartons jaunes</b></p>", unsafe_allow_html=True)
                                 for nom, nb in cartons_jaunes.items():
-                                    if isinstance(nb, int) and nb > 0:
+                                    if nb > 0:
                                         st.markdown(
                                             f"<p style='text-align: center;'>- {nom} : {nb}</p>",
                                             unsafe_allow_html=True
                                         )
                                         jaunes_affiches = True
                             
-                            if cartons_rouges:
+                            if cartons_rouges and any(nb > 0 for nb in cartons_rouges.values()):
                                 st.markdown("<p style='text-align: center;'><b>🟥 Cartons rouges</b></p>", unsafe_allow_html=True)
                                 for nom, nb in cartons_rouges.items():
-                                    if isinstance(nb, int) and nb > 0:
+                                    if nb > 0:
                                         st.markdown(
                                             f"<p style='text-align: center;'>- {nom} : {nb}</p>",
                                             unsafe_allow_html=True
@@ -1519,6 +1512,8 @@ with tab1:
                                     "<p style='text-align: center;'><i>Aucun carton n’a été distribué lors de ce match.</i></p>",
                                     unsafe_allow_html=True
                                 )
+                            
+                            st.markdown("---")
                             
                             st.markdown("---")
                             if match.get("revue_presse"):
@@ -1549,12 +1544,9 @@ with tab1:
                                     if j and isinstance(j, dict) and j["Nom"] == match.get("capitaine", ""):
                                         j["Capitaine"] = True
     
+                            player_stats = build_player_stats_from_events(match)
                             fig = plot_lineup_on_pitch_vertical(
-                                fig,
-                                match["details"],
-                                match["formation"],
-                                match.get("remplacants", []),
-                                player_stats=player_stats
+                                fig, match["details"], match["formation"], match.get("remplacants", []), player_stats
                             )
     
                             st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
