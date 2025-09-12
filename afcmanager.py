@@ -1391,20 +1391,19 @@ with tab1:
                         with st.expander("### 📝 Résumé du match"):
                             # --- Titre centré ---
                             st.markdown(
-                                f"<h2 style='text-align: center;'>{match['nom_match']}</h2>",
+                                f"<h3 style='text-align: center;'>{match['nom_match']}</h3>",
                                 unsafe_allow_html=True
                             )
-                    
+                            st.markdown("---")
                             if match.get("domicile") == "Domicile":
                                 score_line = f"AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}"
                             else:
                                 score_line = f"{match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC"
                     
                             st.markdown(
-                                f"<h3 style='text-align: center;'>{score_line}</h3>",
+                                f"<h3 style='text-align: center;'>{score_line}</h2>",
                                 unsafe_allow_html=True
                             )
-                    
                             st.markdown("---")
                     
                             # --- Homme du match ---
@@ -1419,7 +1418,7 @@ with tab1:
                                     unsafe_allow_html=True
                                 )
                     
-                            st.markdown("---")
+                                st.markdown("---")
                     
                             # --- Événements du match ---
                             st.markdown(
