@@ -1363,7 +1363,7 @@ with tab1:
                                 passeur = "" # Réinitialise le passeur
                                 passeur_actuel = editor_state["passeurs"][i]
                                 passeur = col_but2.selectbox(
-                                    f"Passeur du but {i}",
+                                    f"Passeur du but {}",
                                     [""] + joueurs,
                                      # Pré-sélectionne la valeur existante
                                     index=([""] + joueurs).index(passeur_actuel) if passeur_actuel in joueurs else 0,
