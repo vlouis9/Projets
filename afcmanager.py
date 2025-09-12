@@ -1612,7 +1612,7 @@ with tab1:
                             
                             total_buts = sum(buteurs_data.values()) + events_normalized.get("csc_count", 0)
                             if total_buts > 0:
-                                st.markdown("<h5 style='text-align: center;'>⚽ Buts</h5>", unsafe_allow_html=True)
+                                st.markdown("<h5 style='text-align: center;'>🥅 Buts</h5>", unsafe_allow_html=True)
                                 
                                 # CORRECTION : Affichage en ordre : CSC d'abord, puis buts normaux
                                 i = 1
