@@ -577,7 +577,7 @@ st.set_page_config(
 )
 
 # --- 🎨 En-tête visuel ---
-st.title("⚽ AFC Manager – Gestion complète de l'équipe")
+st.title("⚽ AFC Manager")
 #st.caption("🧪 Application Streamlit personnalisée pour suivre les performances, les compositions et les résultats du club AFC.")
 
 # --- 🧭 Bouton de rechargement des données (dans la sidebar) ---
@@ -1389,42 +1389,70 @@ with tab1:
                     # --- 🧾 Résumé si match noté ---
                     elif match.get("noted", False):
                         with st.expander("### 📝 Résumé du match"):
-                            st.title(f"{match['nom_match']}")
+                            # --- Titre centré ---
+                            st.markdown(
+                                f"<h2 style='text-align: center;'>{match['nom_match']}</h2>",
+                                unsafe_allow_html=True
+                            )
+                    
                             if match.get("domicile") == "Domicile":
-                                st.markdown(f"### AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}")
+                                score_line = f"AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}"
                             else:
-                                st.markdown(f"### {match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC")
-    
+                                score_line = f"{match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC"
+                    
+                            st.markdown(
+                                f"<h3 style='text-align: center;'>{score_line}</h3>",
+                                unsafe_allow_html=True
+                            )
+                    
                             st.markdown("---")
+                    
+                            # --- Homme du match ---
                             hdm = match.get("homme_du_match")
                             if hdm:
-                                st.markdown("#### 🏆 Homme du match")
-                                st.markdown(f"{hdm}")
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                st.markdown("#### 📊 Événements du match")
-                                if match["events"].get("buteurs"):
-                                    st.markdown("**⚽ Buteurs**")
-                                    for nom, nb in match["events"]["buteurs"].items():
-                                        if isinstance(nb, int) and nb > 0:
-                                            st.markdown(f"- {nom} : {nb}")
-                                if match["events"].get("passeurs"):
-                                    st.markdown("**🎯 Passeurs**")
-                                    for nom, nb in match["events"]["passeurs"].items():
-                                        if isinstance(nb, int) and nb > 0:
-                                            st.markdown(f"- {nom} : {nb}")
-                            with col2:
-                                st.markdown("#### 👮🏼‍♂️ Discipline")
-                                if match["events"].get("cartons_jaunes"):
-                                    st.markdown("**🟨 Cartons jaunes**")
-                                    for nom, nb in match["events"]["cartons_jaunes"].items():
-                                        if isinstance(nb, int) and nb > 0:
-                                            st.markdown(f"- {nom} : {nb}")
-                                if match["events"].get("cartons_rouges"):
-                                    st.markdown("**🟥 Cartons rouges**")
-                                    for nom, nb in match["events"]["cartons_rouges"].items():
-                                        if isinstance(nb, int) and nb > 0:
-                                            st.markdown(f"- {nom} : {nb}")
+                                st.markdown(
+                                    f"<h4 style='text-align: center;'>🏆 Homme du match</h4>",
+                                    unsafe_allow_html=True
+                                )
+                                st.markdown(
+                                    f"<p style='text-align: center; font-size: 18px;'>{hdm}</p>",
+                                    unsafe_allow_html=True
+                                )
+                    
+                            st.markdown("---")
+                    
+                            # --- Événements du match ---
+                            st.markdown(
+                                "<h4 style='text-align: center;'>📊 Événements du match</h4>",
+                                unsafe_allow_html=True
+                            )
+                    
+                            # Affichage des buts en séquence
+                            buts = match["events"].get("buts_list", [])  # nouvelle structure: liste de dict {buteur, passeur}
+                            if buts:
+                                st.markdown("**⚽ Buts**")
+                                for i, but in enumerate(buts, 1):
+                                    buteur = but.get("buteur", "")
+                                    passeur = but.get("passeur", "")
+                                    if buteur:
+                                        if passeur:
+                                            st.markdown(f"- ⚽ But {i} : **{buteur}** (passeur : {passeur})")
+                                        else:
+                                            st.markdown(f"- ⚽ But {i} : **{buteur}** (sans passeur)")
+                    
+                            # Affichage des cartons (un par ligne)
+                            jaunes = match["events"].get("cartons_jaunes_list", [])
+                            rouges = match["events"].get("cartons_rouges_list", [])
+                    
+                            if jaunes or rouges:
+                                st.markdown("**👮🏼‍♂️ Discipline**")
+                                for nom in jaunes:
+                                    if nom:
+                                        st.markdown(f"- 🟨 {nom}")
+                                for nom in rouges:
+                                    if nom:
+                                        st.markdown(f"- 🟥 {nom}")
+                    
                             st.markdown("---")
     
                             fig = draw_football_pitch_vertical()
