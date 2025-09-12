@@ -443,6 +443,7 @@
       "events": {
         "buteurs": {
           "Jos\u00e9 Mar\u00eda": 1,
+          "CSC": 1,
           "Abdel Jalil": 1
         },
         "passeurs": {
@@ -456,7 +457,7 @@
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": false,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
