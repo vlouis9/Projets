@@ -1045,10 +1045,21 @@ with tab1:
         if not st.session_state.matchs:
             st.info("📭 Aucun match enregistré.")
         else:
-            matchs_tries = sorted(st.session_state.matchs.items(), key=lambda x: x[1].get("date", ""), reverse=False)
-            for mid, match in matchs_tries:
-                with st.expander(match.get("nom_match", "Match sans nom")):
+            matchs_tries = sorted(
+                st.session_state.matchs.items(),
+                key=lambda x: (x[1].get("termine", False), x[1].get("date", "")),
+            )
     
+            for mid, match in matchs_tries:
+                # Style grisé si le match est terminé
+                nom_affiche = match.get("nom_match", "Match sans nom")
+                if match.get("termine", False):
+                    nom_affiche = f"<span style='color: gray;'>{nom_affiche}</span>
+                    with st.expander(
+                        nom_affiche,
+                        expanded=False
+                    ):
+                      
                     # --- ✅ Checkbox “Match terminé” ---
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
     
