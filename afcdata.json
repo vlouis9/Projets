@@ -449,19 +449,14 @@
           "Mehdi Zerrouki": 1,
           "Gregory Perrot": 1
         },
-        "cartons_jaunes": {
-          "Walid Chouchi": 1,
-          "Constant Augustin": 1
-        },
-        "cartons_rouges": {
-          "Constant Augustin": 1
-        },
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
         "notes": {}
       },
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": false,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
