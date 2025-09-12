@@ -1427,31 +1427,43 @@ with tab1:
                                 unsafe_allow_html=True
                             )
                     
-                            # Affichage des buts en séquence
-                            buts = match["events"].get("buts_list", [])  # nouvelle structure: liste de dict {buteur, passeur}
-                            if buts:
+                            # Buts : on génère une liste à partir des compteurs
+                            buteurs = match["events"].get("buteurs", {})
+                            passeurs = match["events"].get("passeurs", {})
+                    
+                            total_buts = sum(buteurs.values())
+                            if total_buts > 0:
                                 st.markdown("**⚽ Buts**")
-                                for i, but in enumerate(buts, 1):
-                                    buteur = but.get("buteur", "")
-                                    passeur = but.get("passeur", "")
-                                    if buteur:
-                                        if passeur:
-                                            st.markdown(f"- ⚽ But {i} : **{buteur}** (passeur : {passeur})")
+                                i = 1
+                                for buteur, nb in buteurs.items():
+                                    for _ in range(nb):
+                                        # Cherche un passeur dispo (s'il en reste dans le compteur)
+                                        passeur_affiche = None
+                                        for passeur, nbp in passeurs.items():
+                                            if nbp > 0:
+                                                passeur_affiche = passeur
+                                                passeurs[passeur] -= 1
+                                                break
+                    
+                                        if passeur_affiche:
+                                            st.markdown(f"- ⚽ But {i} : **{buteur}** (passeur : {passeur_affiche})")
                                         else:
-                                            st.markdown(f"- ⚽ But {i} : **{buteur}** (sans passeur)")
+                                            st.markdown(f"- ⚽ But {i} : **{buteur}**")
+                                        i += 1
                     
-                            # Affichage des cartons (un par ligne)
-                            jaunes = match["events"].get("cartons_jaunes_list", [])
-                            rouges = match["events"].get("cartons_rouges_list", [])
+                            # Discipline : on déroule les cartons selon les compteurs
+                            cj = match["events"].get("cartons_jaunes", {})
+                            cr = match["events"].get("cartons_rouges", {})
                     
-                            if jaunes or rouges:
+                            if any(cj.values()) or any(cr.values()):
                                 st.markdown("**👮🏼‍♂️ Discipline**")
-                                for nom in jaunes:
-                                    if nom:
-                                        st.markdown(f"- 🟨 {nom}")
-                                for nom in rouges:
-                                    if nom:
-                                        st.markdown(f"- 🟥 {nom}")
+                    
+                                for joueur, nb in cj.items():
+                                    for _ in range(nb):
+                                        st.markdown(f"- 🟨 {joueur}")
+                                for joueur, nb in cr.items():
+                                    for _ in range(nb):
+                                        st.markdown(f"- 🟥 {joueur}")
                     
                             st.markdown("---")
     
