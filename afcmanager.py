@@ -42,7 +42,7 @@ class AFCDataManager:
                 if "events" in match:
                     match["events"] = self.normalize_events(match["events"])
 
-            st.success("✅ Données chargées et normalisées")
+            #st.success("✅ Données chargées et normalisées")
         except Exception as e:
             st.error(f"❌ Échec du chargement des données : {e}")
 
