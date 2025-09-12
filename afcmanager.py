@@ -1385,6 +1385,15 @@ with tab1:
                     
                             st.markdown("---")
                             hdm = st.selectbox("🏆 Homme du match", [""] + joueurs, key=f"hdm_{mid}")
+
+                            # --- Revue de presse ---
+                            st.markdown("### 📰 Revue de presse")
+                            revue_presse = st.text_area(
+                                "Ajoute ici ton texte libre (articles, commentaires, presse...)", 
+                                value=match.get("revue_presse", ""), 
+                                height=200, 
+                                key=f"revue_presse_{mid}"
+                            )
     
                             if st.button("💾", key=f"valide_{mid}"):
                                 match["events"] = events
@@ -1394,6 +1403,7 @@ with tab1:
                                 match["noted"] = True
                                 match["termine"] = True
                                 match["homme_du_match"] = hdm
+                                match["revue_presse"] = revue_presse
                                 st.session_state.matchs[mid] = match
                                 manager.save()
                                 st.success("✅ Statistiques enregistrées")
@@ -1511,6 +1521,10 @@ with tab1:
                                 )
                             
                             st.markdown("---")
+                            if match.get("revue_presse"):
+                                st.markdown("### 📰 Revue de presse")
+                                st.markdown(f"<div style='white-space: pre-line;'>{match['revue_presse']}</div>", unsafe_allow_html=True)
+                                st.markdown("---")
     
                             fig = draw_football_pitch_vertical()
     
