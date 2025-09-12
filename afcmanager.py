@@ -47,25 +47,35 @@ class AFCDataManager:
             st.error(f"❌ Échec du chargement des données : {e}")
 
     def normalize_events(self, events):
-        """CORRECTION : Normalise tous les événements en dicts de comptage, gère CSC séparément."""
-        event_fields = ["buteurs", "passeurs", "cartons_jaunes", "cartons_rouges"]
+        """CORRECTION : Normalise les événements, stocke buts_list pour ordre exact."""
+        event_fields = ["passeurs", "cartons_jaunes", "cartons_rouges"]  # passeurs gardé pour compatibilité, mais priorise buts_list
         normalized = events.copy()
         for field in event_fields:
             data = events.get(field, {})
             if isinstance(data, list):
-                normalized[field] = {nom: data.count(nom) for nom in set(nom for nom in data if nom and nom != "CSC")}
+                normalized[field] = {nom: data.count(nom) for nom in set(nom for nom in data if nom)}
             elif isinstance(data, dict):
                 normalized[field] = data.copy()
             else:
                 normalized[field] = {}
-        # NOUVEAU : Gestion CSC
-        csc_list = events.get("csc", [])
-        normalized["csc"] = csc_list  # Garde la liste pour l'ordre
-        normalized["csc_count"] = len([c for c in csc_list if c is not None])  # Compteur valide
+        
+        # NOUVEAU : buts_list pour ordre exact (tuple: (buteur, passeur)), inclut CSC
+        buts_list_raw = events.get("buts_list", [])
+        normalized["buts_list"] = buts_list_raw  # Liste de tuples [(buteur, passeur), ...]
+        
+        # Compatibilité : Comptages (exclut CSC des buteurs)
+        buteurs_count = {}
+        for buteur, _ in buts_list_raw:
+            if buteur != "CSC":
+                buteurs_count[buteur] = buteurs_count.get(buteur, 0) + 1
+        normalized["buteurs"] = buteurs_count
+        
+        # Comptage CSC
+        normalized["csc_count"] = sum(1 for b, _ in buts_list_raw if b == "CSC")
+        
         if "notes" not in normalized:
             normalized["notes"] = {}
         return normalized
-
     def save(self):
         try:
             # NOUVEAU : Normaliser avant sauvegarde
@@ -1373,20 +1383,11 @@ with tab1:
                             if editor_state_key not in st.session_state:
                                 events = match.get("events", {})
                                 
-                                # CORRECTION : Reconstruire listes avec CSC
-                                buteurs_list = []
-                                for nom, count in events.get("buteurs", {}).items():
-                                    buteurs_list.extend([nom] * count)
-                                csc_list = events.get("csc", [])  # Liste des CSC avec passeurs
-                                buteurs_list = csc_list + buteurs_list  # CSC d'abord si ordre préservé
+                                # CORRECTION : Restaurer depuis buts_list pour ordre exact
+                                buts_list = events.get("buts_list", [])
+                                buteurs_list = [b for b, _ in buts_list]
+                                passeurs_list = [p for _, p in buts_list]
                                 
-                                passeurs_list = []
-                                for nom, count in events.get("passeurs", {}).items():
-                                    passeurs_list.extend([nom] * count)
-                                # Ajuster passeurs pour matcher le total (inclut CSC)
-                                while len(passeurs_list) < len(buteurs_list):
-                                    passeurs_list.append("")
-                                    
                                 jaunes_list = []
                                 for nom, count in events.get("cartons_jaunes", {}).items():
                                     jaunes_list.extend([nom] * count)
@@ -1531,17 +1532,15 @@ with tab1:
                             )
                     
                             if st.button("💾", key=f"valide_{mid}"):
-                                # CORRECTION : Sauvegarde CSC séparément
-                                csc_list = [p for b, p in zip(editor_state["buteurs"], editor_state["passeurs"]) if b == "CSC"]
-                                buteurs_no_csc = [b for b in editor_state["buteurs"] if b != "CSC"]
-                                passeurs_no_csc = [p for b, p in zip(editor_state["buteurs"], editor_state["passeurs"]) if b != "CSC"]
+                                # CORRECTION : Stocker liste complète pour ordre exact
+                                buts_list = list(zip(editor_state["buteurs"], editor_state["passeurs"]))  # Tuples (buteur, passeur)
                                 
                                 events = {
-                                    "buteurs": {nom: buteurs_no_csc.count(nom) for nom in set(buteurs_no_csc) if nom},
-                                    "passeurs": {nom: passeurs_no_csc.count(nom) for nom in set(passeurs_no_csc) if nom},
+                                    "buteurs": {nom: editor_state["buteurs"].count(nom) for nom in set(b for b in editor_state["buteurs"] if b != "CSC")},
+                                    "passeurs": {nom: editor_state["passeurs"].count(nom) for nom in set(p for p in editor_state["passeurs"] if p)},
                                     "cartons_jaunes": {nom: editor_state["cartons_jaunes"].count(nom) for nom in set(editor_state["cartons_jaunes"]) if nom},
                                     "cartons_rouges": {nom: editor_state["cartons_rouges"].count(nom) for nom in set(editor_state["cartons_rouges"]) if nom},
-                                    "csc": csc_list,  # Liste [passeur1, passeur2, ...] pour chaque CSC
+                                    "buts_list": buts_list,  # NOUVEAU : Ordre exact
                                     "notes": notes_actuelles
                                 }
                                 
@@ -1606,44 +1605,29 @@ with tab1:
                             
                             # --- ⚽ Buts ---
                             events_normalized = manager.normalize_events(match["events"])
-                            buteurs_data = events_normalized.get("buteurs", {})
-                            passeurs_data = events_normalized.get("passeurs", {})
-                            csc_list = events_normalized.get("csc", [])  # Liste des passeurs pour CSC
+                            buts_list = events_normalized.get("buts_list", [])
                             
-                            total_buts = sum(buteurs_data.values()) + events_normalized.get("csc_count", 0)
+                            total_buts = len(buts_list)
                             if total_buts > 0:
-                                st.markdown("<h5 style='text-align: center;'>🥅 Buts</h5>", unsafe_allow_html=True)
+                                st.markdown("<h5 style='text-align: center;'>⚽ Buts</h5>", unsafe_allow_html=True)
                                 
-                                # CORRECTION : Affichage en ordre : CSC d'abord, puis buts normaux
-                                i = 1
-                                # CSC
-                                for j, passeur_csc in enumerate(csc_list):
-                                    if passeur_csc:
-                                        st.markdown(
-                                            f"<p style='text-align: center;'>⚽ But {i} : <b>CSC</b> (passeur : {passeur_csc})</p>",
-                                            unsafe_allow_html=True
-                                        )
-                                    else:
-                                        st.markdown(
-                                            f"<p style='text-align: center;'>⚽ But {i} : <b>CSC</b></p>",
-                                            unsafe_allow_html=True
-                                        )
-                                    i += 1
-                                
-                                # Buts normaux (approximatif)
-                                passeurs_restants = passeurs_data.copy()
-                                for buteur, nb_buts in sorted(buteurs_data.items(), key=lambda x: x[1], reverse=True):
-                                    for _ in range(nb_buts):
-                                        passeur_affiche = None
-                                        for p in list(passeurs_restants.keys()):
-                                            if passeurs_restants[p] > 0:
-                                                passeur_affiche = p
-                                                passeurs_restants[p] -= 1
-                                                break
-                                            
-                                        if passeur_affiche:
+                                # CORRECTION : Affichage direct depuis buts_list (ordre exact)
+                                for i, (buteur, passeur) in enumerate(buts_list, 1):
+                                    if buteur == "CSC":
+                                        if passeur:
                                             st.markdown(
-                                                f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b> (passeur : {passeur_affiche})</p>",
+                                                f"<p style='text-align: center;'>⚽ But {i} : <b>CSC</b> (passeur : {passeur})</p>",
+                                                unsafe_allow_html=True
+                                            )
+                                        else:
+                                            st.markdown(
+                                                f"<p style='text-align: center;'>⚽ But {i} : <b>CSC</b></p>",
+                                                unsafe_allow_html=True
+                                            )
+                                    else:
+                                        if passeur:
+                                            st.markdown(
+                                                f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b> (passeur : {passeur})</p>",
                                                 unsafe_allow_html=True
                                             )
                                         else:
@@ -1651,7 +1635,6 @@ with tab1:
                                                 f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b></p>",
                                                 unsafe_allow_html=True
                                             )
-                                        i += 1
 
                             
                             # --- 👮 Discipline ---
