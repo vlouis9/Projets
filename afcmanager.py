@@ -1337,40 +1337,41 @@ with tab1:
                             
                             # --- Gestion des buts AFC ---
                             st.subheader("⚽ Buts AFC")
-                            # S'assurer que les listes de buteurs/passeurs correspondent au score
-                            while len(editor_state["buteurs"]) < score_afc: editor_state["buteurs"].append("")
-                            while len(editor_state["passeurs"]) < score_afc: editor_state["passeurs"].append("")
-                            
-                            # Tronquer si le score est réduit
-                            editor_state["buteurs"] = editor_state["buteurs"][:score_afc]
-                            editor_state["passeurs"] = editor_state["passeurs"][:score_afc]
-                    
                             for i in range(score_afc):
                                 col_but1, col_but2 = st.columns([2, 2])
+                            
+                                # Étape 1: Ajouter "CSC" à la liste des options pour le buteur
+                                options_buteurs = [""] + joueurs + ["CSC"]
                                 
-                                # Gérer le cas où un joueur sauvegardé n'est plus dans la liste
-                                buteur_actuel = editor_state["buteurs"][i]
-                                if buteur_actuel and buteur_actuel not in joueurs:
-                                    joueurs.append(buteur_actuel)
-                    
-                                passeur_actuel = editor_state["passeurs"][i]
-                                if passeur_actuel and passeur_actuel not in joueurs:
-                                    joueurs.append(passeur_actuel)
-                    
                                 buteur = col_but1.selectbox(
                                     f"Buteur du but {i+1}",
-                                    [""] + joueurs,
-                                    index=([""] + joueurs).index(buteur_actuel) if buteur_actuel in joueurs else 0,
+                                    options_buteurs,
                                     key=f"buteur_{mid}_{i}"
                                 )
-                                passeur = col_but2.selectbox(
-                                    f"Passeur du but {i+1}",
-                                    [""] + joueurs,
-                                    index=([""] + joueurs).index(passeur_actuel) if passeur_actuel in joueurs else 0,
-                                    key=f"passeur_{mid}_{i}"
-                                )
-                                editor_state["buteurs"][i] = buteur
-                                editor_state["passeurs"][i] = passeur
+                            
+                                # Étape 2: Gérer le passeur de manière conditionnelle
+                                passeur = "" # Initialiser le passeur à vide
+                                if buteur == "CSC":
+                                    # Si c'est un CSC, le champ passeur est désactivé
+                                    col_but2.selectbox(
+                                        f"Passeur du but {i+1}",
+                                        [""], # Aucune option
+                                        key=f"passeur_{mid}_{i}",
+                                        disabled=True # Champ grisé
+                                    )
+                                else:
+                                    # Sinon, le champ passeur est actif normalement
+                                    passeur = col_but2.selectbox(
+                                        f"Passeur du but {i+1}",
+                                        [""] + joueurs,
+                                        key=f"passeur_{mid}_{i}"
+                                    )
+                            
+                                if buteur:
+                                    events["buteurs"][buteur] = events["buteurs"].get(buteur, 0) + 1
+                                if passeur:
+                                    events["passeurs"][passeur] = events["passeurs"].get(passeur, 0) + 1
+
                     
                             st.markdown("---")
                             
