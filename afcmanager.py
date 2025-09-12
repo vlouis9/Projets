@@ -1425,11 +1425,11 @@ with tab1:
                                 "<h4 style='text-align: center;'>📊 Événements du match</h4>",
                                 unsafe_allow_html=True
                             )
-                    
-                            # Buts : on génère une liste à partir des compteurs
+                            
+                            # --- Buts ---
                             buteurs = match["events"].get("buteurs", {})
                             passeurs = match["events"].get("passeurs", {})
-                    
+                            
                             total_buts = sum(buteurs.values())
                             if total_buts > 0:
                                 st.markdown(
@@ -1446,23 +1446,25 @@ with tab1:
                                                 passeur_affiche = passeur
                                                 passeurs[passeur] -= 1
                                                 break
-                    
+                            
                                         if passeur_affiche:
                                             st.markdown(
-                                                "<h5 style='text-align: center;'>f"- ⚽ But {i} : **{buteur}** (passeur : {passeur_affiche})"</h5>",
+                                                f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b> (passeur : {passeur_affiche})</p>",
                                                 unsafe_allow_html=True
                                             )
                                         else:
                                             st.markdown(
-                                                "<h5 style='text-align: center;'>f"- ⚽ But {i} : **{buteur}**"</h5>",
+                                                f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b></p>",
                                                 unsafe_allow_html=True
                                             )
                                         i += 1
-                    
+                            
+                            # --- Discipline ---
                             st.markdown(
                                 "<h5 style='text-align: center;'>👮🏼‍♂️ Discipline</h5>",
                                 unsafe_allow_html=True
                             )
+                            
                             cartons_jaunes = match["events"].get("cartons_jaunes", {})
                             cartons_rouges = match["events"].get("cartons_rouges", {})
                             
@@ -1470,22 +1472,31 @@ with tab1:
                             rouges_affiches = False
                             
                             if cartons_jaunes:
-                                st.markdown("**🟨 Cartons jaunes**")
+                                st.markdown("<p style='text-align: center;'><b>🟨 Cartons jaunes</b></p>", unsafe_allow_html=True)
                                 for nom, nb in cartons_jaunes.items():
                                     if isinstance(nb, int) and nb > 0:
-                                        st.markdown(f"- {nom} : {nb}")
+                                        st.markdown(
+                                            f"<p style='text-align: center;'>- {nom} : {nb}</p>",
+                                            unsafe_allow_html=True
+                                        )
                                         jaunes_affiches = True
                             
                             if cartons_rouges:
-                                st.markdown("**🟥 Cartons rouges**")
+                                st.markdown("<p style='text-align: center;'><b>🟥 Cartons rouges</b></p>", unsafe_allow_html=True)
                                 for nom, nb in cartons_rouges.items():
                                     if isinstance(nb, int) and nb > 0:
-                                        st.markdown(f"- {nom} : {nb}")
+                                        st.markdown(
+                                            f"<p style='text-align: center;'>- {nom} : {nb}</p>",
+                                            unsafe_allow_html=True
+                                        )
                                         rouges_affiches = True
                             
                             if not jaunes_affiches and not rouges_affiches:
-                                st.markdown("_Aucun carton n’a été distribué lors de ce match._")
-                    
+                                st.markdown(
+                                    "<p style='text-align: center;'><i>Aucun carton n’a été distribué lors de ce match.</i></p>",
+                                    unsafe_allow_html=True
+                                )
+                            
                             st.markdown("---")
     
                             fig = draw_football_pitch_vertical()
