@@ -1298,136 +1298,170 @@ with tab1:
     
                     # --- 📝 Saisie des statistiques du match ---
                     elif match_ended and not match.get("noted", False):
-                        with st.expander("### 📝 Statistiques du match"):
+                        with st.expander("### 📝 Statistiques du match", expanded=True):
                             joueurs = [j["Nom"] for p in POSTES_ORDER for j in match.get("details", {}).get(p, []) if j]
                             joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
-                            joueurs = list(dict.fromkeys(joueurs))
+                            joueurs = sorted(list(dict.fromkeys(joueurs)))
                     
-                            # --- Score ---
+                            # --- Initialisation de l'état d'édition à partir des données sauvegardées ---
+                            editor_state_key = f"stats_editor_{mid}"
+                            if editor_state_key not in st.session_state:
+                                events = match.get("events", {})
+                                
+                                # Convertir les dictionnaires de comptage en listes simples pour l'interface
+                                buteurs_list = [b for b, count in events.get("buteurs", {}).items() for _ in range(count)]
+                                passeurs_list = [p for p, count in events.get("passeurs", {}).items() for _ in range(count)]
+                                jaunes_list = [j for j, count in events.get("cartons_jaunes", {}).items() for _ in range(count)]
+                                rouges_list = [r for r, count in events.get("cartons_rouges", {}).items() for _ in range(count)]
+                                
+                                st.session_state[editor_state_key] = {
+                                    "buteurs": buteurs_list,
+                                    "passeurs": passeurs_list,
+                                    "cartons_jaunes": jaunes_list,
+                                    "cartons_rouges": rouges_list
+                                }
+                            
+                            editor_state = st.session_state[editor_state_key]
+                    
                             col_eqdom, col_scoredom, col_scoreext, col_eqext = st.columns([3, 2, 2, 3])
-                            if match['domicile'] == "Domicile":
+                            if match['domicile'] == "Domicile": # Correction: la valeur est "Domicile", pas "domicile"
                                 col_eqdom.markdown("AFC")
-                                col_eqext.markdown(match['adversaire'])
-                                score_afc = col_scoredom.number_input("⚽", min_value=0, max_value=20,
-                                                                     value=match.get("score_afc", 0), key=f"score_afc_{mid}")
-                                score_adv = col_scoreext.number_input("⚽", min_value=0, max_value=20,
-                                                                     value=match.get("score_adv", 0), key=f"score_adv_{mid}")
+                                col_eqext.markdown(f"{match['adversaire']}")
+                                score_afc = col_scoredom.number_input("⚽", min_value=0, max_value=20, value=match.get("score_afc", 0), key=f"score_afc_{mid}")
+                                score_adv = col_scoreext.number_input(f"⚽", min_value=0, max_value=20, value=match.get("score_adv", 0), key=f"score_adv_{mid}")
                             else:
-                                col_eqdom.markdown(match['adversaire'])
+                                col_eqdom.markdown(f"{match['adversaire']}")
                                 col_eqext.markdown("AFC")
-                                score_afc = col_scoreext.number_input("⚽", min_value=0, max_value=20,
-                                                                     value=match.get("score_afc", 0), key=f"score_afc_{mid}")
-                                score_adv = col_scoredom.number_input("⚽", min_value=0, max_value=20,
-                                                                     value=match.get("score_adv", 0), key=f"score_adv_{mid}")
-                    
-                            # --- Events existants ---
-                            events = match.get("events", {
-                                "buteurs": {}, "passeurs": {}, "cartons_jaunes": {}, "cartons_rouges": {}, "notes": {}
-                            })
-                    
-                            # --- Buts ---
+                                score_afc = col_scoreext.number_input("⚽", min_value=0, max_value=20, value=match.get("score_afc", 0), key=f"score_afc_{mid}")
+                                score_adv = col_scoredom.number_input(f"⚽", min_value=0, max_value=20, value=match.get("score_adv", 0), key=f"score_adv_{mid}")
+                            
+                            # --- Gestion des buts AFC ---
                             st.subheader("⚽ Buts AFC")
-                            events["buteurs"] = {}
-                            events["passeurs"] = {}
+                            # S'assurer que les listes de buteurs/passeurs correspondent au score
+                            while len(editor_state["buteurs"]) < score_afc: editor_state["buteurs"].append("")
+                            while len(editor_state["passeurs"]) < score_afc: editor_state["passeurs"].append("")
                             
-                            buteurs_existants = list(match["events"].get("buteurs", {}).keys())
-                            passeurs_existants = list(match["events"].get("passeurs", {}).keys())
-                            
+                            # Tronquer si le score est réduit
+                            editor_state["buteurs"] = editor_state["buteurs"][:score_afc]
+                            editor_state["passeurs"] = editor_state["passeurs"][:score_afc]
+                    
                             for i in range(score_afc):
                                 col_but1, col_but2 = st.columns([2, 2])
-                            
-                                default_buteur = buteurs_existants[i] if i < len(buteurs_existants) else ""
-                                default_passeur = passeurs_existants[i] if i < len(passeurs_existants) else ""
-                            
+                                
+                                # Gérer le cas où un joueur sauvegardé n'est plus dans la liste
+                                buteur_actuel = editor_state["buteurs"][i]
+                                if buteur_actuel and buteur_actuel not in joueurs:
+                                    joueurs.append(buteur_actuel)
+                    
+                                passeur_actuel = editor_state["passeurs"][i]
+                                if passeur_actuel and passeur_actuel not in joueurs:
+                                    joueurs.append(passeur_actuel)
+                    
                                 buteur = col_but1.selectbox(
                                     f"Buteur du but {i+1}",
                                     [""] + joueurs,
-                                    index=([""] + joueurs).index(default_buteur) if default_buteur in joueurs else 0,
+                                    index=([""] + joueurs).index(buteur_actuel) if buteur_actuel in joueurs else 0,
                                     key=f"buteur_{mid}_{i}"
                                 )
                                 passeur = col_but2.selectbox(
                                     f"Passeur du but {i+1}",
                                     [""] + joueurs,
-                                    index=([""] + joueurs).index(default_passeur) if default_passeur in joueurs else 0,
+                                    index=([""] + joueurs).index(passeur_actuel) if passeur_actuel in joueurs else 0,
                                     key=f"passeur_{mid}_{i}"
                                 )
-                            
-                                if buteur:
-                                    events["buteurs"][buteur] = events["buteurs"].get(buteur, 0) + 1
-                                if passeur:
-                                    events["passeurs"][passeur] = events["passeurs"].get(passeur, 0) + 1
+                                editor_state["buteurs"][i] = buteur
+                                editor_state["passeurs"][i] = passeur
                     
                             st.markdown("---")
+                            
+                            # --- Gestion des cartons ---
+                            st.subheader("🟨🟥 Cartons")
+                            
+                            # Logique d'ajout/suppression pour les cartons jaunes
+                            col_cj_btn, _ = st.columns([1, 3])
+                            if col_cj_btn.button("Ajouter un carton jaune", key=f"add_cj_{mid}"):
+                                editor_state["cartons_jaunes"].append("")
+                                st.rerun()
                     
-                            # --- Cartons jaunes ---
-                            st.subheader("🟨 Cartons jaunes")
-                            
-                            # Réinitialiser avant de reconstruire
-                            events["cartons_jaunes"] = {}
-                            cj_existants = list(match["events"].get("cartons_jaunes", {}).keys())
-                            
-                            nb_cj = st.number_input("Nombre de cartons jaunes", min_value=0, max_value=20,
-                                                    value=len(cj_existants), key=f"nb_cj_{mid}")
-                            
-                            for i in range(nb_cj):
-                                joueur_cj = st.selectbox(
-                                    f"Carton jaune {i+1}",
+                            for idx, cj in enumerate(editor_state["cartons_jaunes"]):
+                                col_cj1, col_cj2 = st.columns([3, 1])
+                                joueur_cj = col_cj1.selectbox(
+                                    f"🟨 Carton jaune {idx+1}",
                                     [""] + joueurs,
-                                    index=([""] + joueurs).index(cj_existants[i]) if i < len(cj_existants) and cj_existants[i] in joueurs else 0,
-                                    key=f"cj_{mid}_{i}"
+                                    index=([""] + joueurs).index(cj) if cj in joueurs else 0,
+                                    key=f"cj_{mid}_{idx}"
                                 )
-                                if joueur_cj:
-                                    events["cartons_jaunes"][joueur_cj] = events["cartons_jaunes"].get(joueur_cj, 0) + 1
-                            
-                            st.markdown("---")
-                            
-                            # --- Cartons rouges ---
-                            st.subheader("🟥 Cartons rouges")
-                            
-                            # Réinitialiser avant de reconstruire
-                            events["cartons_rouges"] = {}
-                            cr_existants = list(match["events"].get("cartons_rouges", {}).keys())
-                            
-                            nb_cr = st.number_input("Nombre de cartons rouges", min_value=0, max_value=20,
-                                                    value=len(cr_existants), key=f"nb_cr_{mid}")
-                            
-                            for i in range(nb_cr):
-                                joueur_cr = st.selectbox(
-                                    f"Carton rouge {i+1}",
+                                editor_state["cartons_jaunes"][idx] = joueur_cj
+                                if col_cj2.button("❌", key=f"del_cj_{mid}_{idx}"):
+                                    editor_state["cartons_jaunes"].pop(idx)
+                                    st.rerun()
+                    
+                            # Logique d'ajout/suppression pour les cartons rouges
+                            col_cr_btn, _ = st.columns([1, 3])
+                            if col_cr_btn.button("Ajouter un carton rouge", key=f"add_cr_{mid}"):
+                                editor_state["cartons_rouges"].append("")
+                                st.rerun()
+                    
+                            for idx, cr in enumerate(editor_state["cartons_rouges"]):
+                                col_cr1, col_cr2 = st.columns([3, 1])
+                                joueur_cr = col_cr1.selectbox(
+                                    f"🟥 Carton rouge {idx+1}",
                                     [""] + joueurs,
-                                    index=([""] + joueurs).index(cr_existants[i]) if i < len(cr_existants) and cr_existants[i] in joueurs else 0,
-                                    key=f"cr_{mid}_{i}"
+                                    index=([""] + joueurs).index(cr) if cr in joueurs else 0,
+                                    key=f"cr_{mid}_{idx}"
                                 )
-                                if joueur_cr:
-                                    events["cartons_rouges"][joueur_cr] = events["cartons_rouges"].get(joueur_cr, 0) + 1
-
+                                editor_state["cartons_rouges"][idx] = joueur_cr
+                                if col_cr2.button("❌", key=f"del_cr_{mid}_{idx}"):
+                                    editor_state["cartons_rouges"].pop(idx)
+                                    st.rerun()
+                            
                             st.markdown("---")
                     
-                            # --- Notes ---
+                            # --- Notes joueurs ---
+                            notes_sauvegardees = match.get("events", {}).get("notes", {})
+                            notes_actuelles = {}
                             noter_joueurs = st.checkbox("Noter les joueurs ?", value=match.get("noter_joueurs", True), key=f"noter_{mid}")
                             match["noter_joueurs"] = noter_joueurs
+                    
                             if noter_joueurs:
                                 st.subheader("📊 Notes des joueurs")
                                 for nom in joueurs:
-                                    events["notes"][nom] = st.slider(
-                                        nom, 0.0, 10.0,
-                                        value=events.get("notes", {}).get(nom, 5.0),
-                                        step=0.5, key=f"note_{mid}_{nom}"
+                                    notes_actuelles[nom] = st.slider(
+                                        f"{nom}",
+                                        min_value=0.0, max_value=10.0,
+                                        value=notes_sauvegardees.get(nom, 5.0),  # Utilise la note sauvegardée ou 5.0 par défaut
+                                        step=0.5,
+                                        key=f"note_{mid}_{nom}"
                                     )
+                    
                             st.markdown("---")
-                            # --- Homme du match ---
-                            hdm = st.selectbox("🏆 Homme du match", [""] + joueurs,
-                                               index=([""]+joueurs).index(match.get("homme_du_match", "")) if match.get("homme_du_match") in joueurs else 0,
-                                               key=f"hdm_{mid}")
-                            st.markdown("---")
+                            hdm_sauvegarde = match.get("homme_du_match", "")
+                            hdm = st.selectbox(
+                                "🏆 Homme du match",
+                                [""] + joueurs,
+                                index=([""] + joueurs).index(hdm_sauvegarde) if hdm_sauvegarde in joueurs else 0,
+                                key=f"hdm_{mid}"
+                            )
+                            
                             # --- Revue de presse ---
                             st.markdown("### 📰 Revue de presse")
                             revue_presse = st.text_area(
                                 "Ajoute ici ton texte libre (articles, commentaires, presse...)", 
-                                value=match.get("revue_presse", ""), height=200, key=f"revue_presse_{mid}"
+                                value=match.get("revue_presse", ""), 
+                                height=200, 
+                                key=f"revue_presse_{mid}"
                             )
                     
                             if st.button("💾", key=f"valide_{mid}"):
+                                # Reconvertir les listes en dictionnaires de comptage pour la sauvegarde
+                                events = {
+                                    "buteurs": {nom: editor_state["buteurs"].count(nom) for nom in set(editor_state["buteurs"]) if nom},
+                                    "passeurs": {nom: editor_state["passeurs"].count(nom) for nom in set(editor_state["passeurs"]) if nom},
+                                    "cartons_jaunes": {nom: editor_state["cartons_jaunes"].count(nom) for nom in set(editor_state["cartons_jaunes"]) if nom},
+                                    "cartons_rouges": {nom: editor_state["cartons_rouges"].count(nom) for nom in set(editor_state["cartons_rouges"]) if nom},
+                                    "notes": notes_actuelles
+                                }
+                                
                                 match["events"] = events
                                 match["score_afc"] = score_afc
                                 match["score_adv"] = score_adv
@@ -1437,9 +1471,15 @@ with tab1:
                                 match["homme_du_match"] = hdm
                                 match["revue_presse"] = revue_presse
                                 st.session_state.matchs[mid] = match
+                                
+                                # Nettoyer l'état d'édition
+                                del st.session_state[editor_state_key]
+                    
                                 manager.save()
                                 st.success("✅ Statistiques enregistrées")
                                 st.rerun()
+                    
+
     
                     # --- 🧾 Résumé si match noté ---
                     elif match.get("noted", False):
