@@ -1609,7 +1609,7 @@ with tab1:
                             
                             total_buts = len(buts_list)
                             if total_buts > 0:
-                                st.markdown("<h5 style='text-align: center;'>⚽ Buts</h5>", unsafe_allow_html=True)
+                                st.markdown("<h5 style='text-align: center;'>🥅 Buts</h5>", unsafe_allow_html=True)
                                 
                                 # CORRECTION : Affichage direct depuis buts_list (ordre exact)
                                 for i, (buteur, passeur) in enumerate(buts_list, 1):
