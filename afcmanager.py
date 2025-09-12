@@ -1679,7 +1679,11 @@ with tab1:
                                 st.markdown("### 📰 Revue de presse")
                                 st.markdown(f"<div style='white-space: pre-line;'>{match['revue_presse']}</div>", unsafe_allow_html=True)
                                 st.markdown("---")
-    
+
+                            st.markdown(
+                                "<h4 style='text-align: center;'>👥 L'équipe du match</h4>",
+                                unsafe_allow_html=True
+                            )
                             fig = draw_football_pitch_vertical()
     
                             # Prépare les stats pour tous les joueurs (y compris remplaçants)
