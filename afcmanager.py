@@ -366,10 +366,32 @@ def compute_player_stats(joueur_nom):
         if joueurs:
             titularisations += 1
         events = match.get("events", {})
-        buts += events.get("buteurs", {}).get(joueur_nom, 0)
-        passes += events.get("passeurs", {}).get(joueur_nom, 0)
-        cj += events.get("cartons_jaunes", {}).get(joueur_nom, 0)
-        cr += events.get("cartons_rouges", {}).get(joueur_nom, 0)
+        
+        # CORRECTION : Gestion robuste des types de données
+        buteurs_data = events.get("buteurs", {})
+        if isinstance(buteurs_data, dict):
+            buts += buteurs_data.get(joueur_nom, 0)
+        elif isinstance(buteurs_data, list):
+            buts += buteurs_data.count(joueur_nom)
+            
+        passeurs_data = events.get("passeurs", {})
+        if isinstance(passeurs_data, dict):
+            passes += passeurs_data.get(joueur_nom, 0)
+        elif isinstance(passeurs_data, list):
+            passes += passeurs_data.count(joueur_nom)
+            
+        cartons_jaunes_data = events.get("cartons_jaunes", {})
+        if isinstance(cartons_jaunes_data, dict):
+            cj += cartons_jaunes_data.get(joueur_nom, 0)
+        elif isinstance(cartons_jaunes_data, list):
+            cj += cartons_jaunes_data.count(joueur_nom)
+            
+        cartons_rouges_data = events.get("cartons_rouges", {})
+        if isinstance(cartons_rouges_data, dict):
+            cr += cartons_rouges_data.get(joueur_nom, 0)
+        elif isinstance(cartons_rouges_data, list):
+            cr += cartons_rouges_data.count(joueur_nom)
+            
         if joueur_nom in events.get("notes", {}):
             note_sum += events["notes"][joueur_nom]
             note_count += 1
@@ -406,29 +428,48 @@ def compute_clean_sheets():
 
 def build_player_stats_from_events(match):
     """
-    Convertit les données 'events' du match (buteurs, passeurs, cartons, notes)
-    en structure player_stats compatible avec plot_lineup_on_pitch_vertical.
+    CORRECTION : Convertit les données 'events' du match en structure player_stats
+    Gère à la fois les listes et les dictionnaires
     """
     player_stats = {}
     events = match.get("events", {})
     all_names = set()
 
-    # Récupérer tous les joueurs concernés
+    # Récupérer tous les joueurs concernés (gestion robuste des types)
     for d in ["buteurs", "passeurs", "cartons_jaunes", "cartons_rouges", "notes"]:
-        all_names.update(events.get(d, {}).keys())
+        event_data = events.get(d, {})
+        if isinstance(event_data, dict):
+            all_names.update(event_data.keys())
+        elif isinstance(event_data, list):
+            all_names.update([nom for nom in event_data if nom])
+            
     if match.get("homme_du_match"):
         all_names.add(match["homme_du_match"])
 
     for nom in all_names:
+        # Gestion robuste pour chaque type d'événement
+        buteurs_data = events.get("buteurs", {})
+        buts = buteurs_data.get(nom, 0) if isinstance(buteurs_data, dict) else buteurs_data.count(nom) if isinstance(buteurs_data, list) else 0
+        
+        passeurs_data = events.get("passeurs", {})
+        passes = passeurs_data.get(nom, 0) if isinstance(passeurs_data, dict) else passeurs_data.count(nom) if isinstance(passeurs_data, list) else 0
+        
+        cj_data = events.get("cartons_jaunes", {})
+        cj = cj_data.get(nom, 0) if isinstance(cj_data, dict) else cj_data.count(nom) if isinstance(cj_data, list) else 0
+        
+        cr_data = events.get("cartons_rouges", {})
+        cr = cr_data.get(nom, 0) if isinstance(cr_data, dict) else cr_data.count(nom) if isinstance(cr_data, list) else 0
+        
         player_stats[nom] = {
-            "buts": events.get("buteurs", {}).get(nom, 0),
-            "passes": events.get("passeurs", {}).get(nom, 0),
-            "cj": events.get("cartons_jaunes", {}).get(nom, 0),
-            "cr": events.get("cartons_rouges", {}).get(nom, 0),
+            "buts": buts,
+            "passes": passes,
+            "cj": cj,
+            "cr": cr,
             "note": events.get("notes", {}).get(nom),
             "hdm": (match.get("homme_du_match") == nom),
         }
     return player_stats
+
 
 def get_classement(championnat_scores, adversaires):
     stats = {adv: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for adv in adversaires + ["AFC"]}
@@ -1524,34 +1565,69 @@ with tab1:
                             )
                             
                             # --- ⚽ Buts ---
-                            buteurs = match["events"].get("buteurs", {}).copy()
-                            passeurs = match["events"].get("passeurs", {}).copy()
+                            buteurs_data = match["events"].get("buteurs", {})
+                            passeurs_data = match["events"].get("passeurs", {})
+                            
+                            # Normaliser les données en dictionnaires si nécessaire
+                            if isinstance(buteurs_data, list):
+                                buteurs = {nom: buteurs_data.count(nom) for nom in set(buteurs_data) if nom}
+                            else:
+                                buteurs = buteurs_data.copy()
+                                
+                            if isinstance(passeurs_data, list):
+                                passeurs = {nom: passeurs_data.count(nom) for nom in set(passeurs_data) if nom}
+                            else:
+                                passeurs = passeurs_data.copy()
                             
                             total_buts = sum(buteurs.values())
                             if total_buts > 0:
                                 st.markdown("<h5 style='text-align: center;'>⚽ Buts</h5>", unsafe_allow_html=True)
-                                i = 1
-                                for buteur, nb in buteurs.items():
-                                    for _ in range(nb):
-                                        # on ne décrémente PAS, on cherche juste un passeur dispo
-                                        passeur_affiche = None
-                                        for p in passeurs:
-                                            if passeurs[p] > 0:
-                                                passeur_affiche = p
-                                                passeurs[p] -= 1  # juste pour répartir les passes dans l’affichage
-                                                break
-                            
-                                        if passeur_affiche:
-                                            st.markdown(
-                                                f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b> (passeur : {passeur_affiche})</p>",
-                                                unsafe_allow_html=True
-                                            )
-                                        else:
-                                            st.markdown(
-                                                f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b></p>",
-                                                unsafe_allow_html=True
-                                            )
-                                        i += 1
+                                
+                                # CORRECTION : Reconstituer l'ordre des buts depuis l'état d'édition si disponible
+                                editor_state_key = f"stats_editor_{mid}"  # Vous devrez passer mid en paramètre
+                                if editor_state_key in st.session_state:
+                                    # Utiliser l'ordre de saisie
+                                    buteurs_ordre = st.session_state[editor_state_key]["buteurs"]
+                                    passeurs_ordre = st.session_state[editor_state_key]["passeurs"]
+                                    
+                                    for i, (buteur, passeur) in enumerate(zip(buteurs_ordre, passeurs_ordre), 1):
+                                        if buteur:  # Ignorer les entrées vides
+                                            if passeur:
+                                                st.markdown(
+                                                    f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b> (passeur : {passeur})</p>",
+                                                    unsafe_allow_html=True
+                                                )
+                                            else:
+                                                st.markdown(
+                                                    f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b></p>",
+                                                    unsafe_allow_html=True
+                                                )
+                                else:
+                                    # Fallback : affichage basé sur les compteurs
+                                    i = 1
+                                    passeurs_restants = passeurs.copy()
+                                    for buteur, nb_buts in buteurs.items():
+                                        for _ in range(nb_buts):
+                                            # Chercher un passeur disponible
+                                            passeur_affiche = None
+                                            for p in passeurs_restants:
+                                                if passeurs_restants[p] > 0:
+                                                    passeur_affiche = p
+                                                    passeurs_restants[p] -= 1
+                                                    break
+                                            
+                                            if passeur_affiche:
+                                                st.markdown(
+                                                    f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b> (passeur : {passeur_affiche})</p>",
+                                                    unsafe_allow_html=True
+                                                )
+                                            else:
+                                                st.markdown(
+                                                    f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b></p>",
+                                                    unsafe_allow_html=True
+                                                )
+                                            i += 1
+
                             
                             # --- 👮 Discipline ---
                             st.markdown("<h5 style='text-align: center;'>👮🏼‍♂️ Discipline</h5>", unsafe_allow_html=True)
