@@ -1401,7 +1401,7 @@ with tab1:
                                 score_line = f"{match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC"
                     
                             st.markdown(
-                                f"<h3 style='text-align: center;'>{score_line}</h2>",
+                                f"<h1 style='text-align: center;'>{score_line}</h1>",
                                 unsafe_allow_html=True
                             )
                             st.markdown("---")
