@@ -1327,6 +1327,12 @@ with tab1:
                     
                             # --- Buts ---
                             st.subheader("⚽ Buts AFC")
+                            events["buteurs"] = {}
+                            events["passeurs"] = {}
+                            
+                            buteurs_existants = list(match["events"].get("buteurs", {}).keys())
+                            passeurs_existants = list(match["events"].get("passeurs", {}).keys())
+                            
                             for i in range(score_afc):
                                 col_but1, col_but2 = st.columns([2, 2])
                                 # valeurs existantes
@@ -1352,6 +1358,9 @@ with tab1:
                     
                             # --- Cartons jaunes ---
                             st.subheader("🟨 Cartons jaunes")
+                            events["cartons_jaunes"] = {}
+                            cj_existants = list(match["events"].get("cartons_jaunes", {}).keys())
+                            
                             for idx, nom in enumerate(events.get("cartons_jaunes", {})):
                                 st.selectbox(
                                     f"Carton jaune {idx+1}", [""] + joueurs,
@@ -1361,6 +1370,8 @@ with tab1:
                     
                             # --- Cartons rouges ---
                             st.subheader("🟥 Cartons rouges")
+                            events["cartons_rouges"] = {}
+                            cr_existants = list(match["events"].get("cartons_rouges", {}).keys())
                             for idx, nom in enumerate(events.get("cartons_rouges", {})):
                                 st.selectbox(
                                     f"Carton rouge {idx+1}", [""] + joueurs,
