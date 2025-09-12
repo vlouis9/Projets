@@ -1055,10 +1055,10 @@ with tab1:
                 nom_affiche = match.get("nom_match", "Match sans nom")
                 if match.get("termine", False):
                     nom_affiche = f"<span style='color: gray;'>{nom_affiche}</span>
-                    with st.expander(
-                        nom_affiche,
-                        expanded=False
-                    ):
+                with st.expander(
+                    nom_affiche,
+                    expanded=False
+                ):
                       
                     # --- ✅ Checkbox “Match terminé” ---
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
