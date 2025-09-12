@@ -1058,31 +1058,31 @@ with tab1:
                         manager.save()
                         st.rerun()
     
-                    # --- 👥 Sélection des joueurs disponibles ---
-                    players_df = st.session_state.players.copy()
-                    players_df = players_df.sort_values(["Poste", "Nom"])
-                    joueurs_tries = players_df["Nom"].tolist()
-                    if "joueurs_disponibles" not in match:
-                        match["joueurs_disponibles"] = players_df.copy()
-                    with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
-                        selected_dispo = st.multiselect(
-                            "Joueurs disponibles",
-                            joueurs_tries,
-                            default=match.get("joueurs_disponibles", []),
-                            key=f"joueurs_dispo_{mid}"
-                        )
-                        match["joueurs_disponibles"] = selected_dispo
-                        st.session_state.matchs[mid] = match
-                        st.markdown(f"Joueurs disponibles : {len(selected_dispo)}/{len(joueurs_tries)}")
-
-                        if st.button("💾 Sauvegarder la liste des joueurs disponibles", key=f"save_dispo_{mid}"):
+                    if not match.get("termine"):
+                        # --- 👥 Sélection des joueurs disponibles ---
+                        players_df = st.session_state.players.copy()
+                        players_df = players_df.sort_values(["Poste", "Nom"])
+                        joueurs_tries = players_df["Nom"].tolist()
+                        if "joueurs_disponibles" not in match:
+                            match["joueurs_disponibles"] = players_df.copy()
+                        with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
+                            selected_dispo = st.multiselect(
+                                "Joueurs disponibles",
+                                joueurs_tries,
+                                default=match.get("joueurs_disponibles", []),
+                                key=f"joueurs_dispo_{mid}"
+                            )
                             match["joueurs_disponibles"] = selected_dispo
                             st.session_state.matchs[mid] = match
-                            manager.save()
-                            st.success("Liste des joueurs disponibles sauvegardée !")
+                            st.markdown(f"Joueurs disponibles : {len(selected_dispo)}/{len(joueurs_tries)}")
     
-                    # --- 🏟️ Créer composition pour ce match ---
-                    if not match.get("termine"):
+                            if st.button("💾 Sauvegarder la liste des joueurs disponibles", key=f"save_dispo_{mid}"):
+                                match["joueurs_disponibles"] = selected_dispo
+                                st.session_state.matchs[mid] = match
+                                manager.save()
+                                st.success("Liste des joueurs disponibles sauvegardée !")
+        
+                        # --- 🏟️ Créer composition pour ce match ---
                         with st.expander("### 🏟️ Composition du match"):
                             formation = match.get("formation", DEFAULT_FORMATION)
                             terrain_key = f"terrain_match_{mid}"
@@ -1263,7 +1263,7 @@ with tab1:
                             joueurs = [j["Nom"] for p in POSTES_ORDER for j in match.get("details", {}).get(p, []) if j]
                             joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
                             joueurs = list(dict.fromkeys(joueurs))
-    
+                    
                             col_eqdom, col_scoredom, col_scoreext, col_eqext = st.columns([3, 2, 2, 3])
                             if match['domicile'] == "domicile":
                                 col_eqdom.markdown("AFC")
@@ -1275,7 +1275,8 @@ with tab1:
                                 col_eqext.markdown("AFC")
                                 score_afc = col_scoreext.number_input("⚽", min_value=0, max_value=20, value=0, key=f"score_afc_{mid}")
                                 score_adv = col_scoredom.number_input(f"⚽", min_value=0, max_value=20, value=0, key=f"score_adv_{mid}")
-    
+                    
+                            # Structure événements
                             events = {
                                 "buteurs": {},
                                 "passeurs": {},
@@ -1283,26 +1284,93 @@ with tab1:
                                 "cartons_rouges": {},
                                 "notes": {}
                             }
-    
-                            # Option pour noter ou non les joueurs
+                    
+                            # --- Gestion des buts AFC ---
+                            st.subheader("⚽ Buts AFC")
+                            for i in range(score_afc):
+                                col_but1, col_but2 = st.columns([2, 2])
+                                buteur = col_but1.selectbox(
+                                    f"Buteur du but {i+1}",
+                                    [""] + joueurs,
+                                    key=f"buteur_{mid}_{i}"
+                                )
+                                passeur = col_but2.selectbox(
+                                    f"Passeur du but {i+1}",
+                                    [""] + joueurs,
+                                    key=f"passeur_{mid}_{i}"
+                                )
+                                if buteur:
+                                    events["buteurs"][buteur] = events["buteurs"].get(buteur, 0) + 1
+                                if passeur:
+                                    events["passeurs"][passeur] = events["passeurs"].get(passeur, 0) + 1
+                    
+                            st.markdown("---")
+                    
+                            # --- Gestion des cartons ---
+                            st.subheader("🟨🟥 Cartons")
+                            if "cartons" not in st.session_state:
+                                st.session_state["cartons"] = {"jaunes": [], "rouges": []}
+                    
+                            # Ajouter un carton jaune
+                            if st.button("Ajouter un carton jaune", key=f"add_cj_{mid}"):
+                                st.session_state["cartons"]["jaunes"].append("")
+                            # Ajouter un carton rouge
+                            if st.button("Ajouter un carton rouge", key=f"add_cr_{mid}"):
+                                st.session_state["cartons"]["rouges"].append("")
+                    
+                            # Afficher les cartons jaunes
+                            for idx, cj in enumerate(st.session_state["cartons"]["jaunes"]):
+                                col_cj1, col_cj2 = st.columns([3, 1])
+                                joueur_cj = col_cj1.selectbox(
+                                    f"🟨 Carton jaune {idx+1}",
+                                    [""] + joueurs,
+                                    index=([""] + joueurs).index(cj) if cj in joueurs else 0,
+                                    key=f"cj_{mid}_{idx}"
+                                )
+                                st.session_state["cartons"]["jaunes"][idx] = joueur_cj
+                                if col_cj2.button("❌", key=f"del_cj_{mid}_{idx}"):
+                                    st.session_state["cartons"]["jaunes"].pop(idx)
+                                    st.rerun()
+                    
+                            # Afficher les cartons rouges
+                            for idx, cr in enumerate(st.session_state["cartons"]["rouges"]):
+                                col_cr1, col_cr2 = st.columns([3, 1])
+                                joueur_cr = col_cr1.selectbox(
+                                    f"🟥 Carton rouge {idx+1}",
+                                    [""] + joueurs,
+                                    index=([""] + joueurs).index(cr) if cr in joueurs else 0,
+                                    key=f"cr_{mid}_{idx}"
+                                )
+                                st.session_state["cartons"]["rouges"][idx] = joueur_cr
+                                if col_cr2.button("❌", key=f"del_cr_{mid}_{idx}"):
+                                    st.session_state["cartons"]["rouges"].pop(idx)
+                                    st.rerun()
+                    
+                            # Mise à jour events avec cartons
+                            for nom in st.session_state["cartons"]["jaunes"]:
+                                if nom:
+                                    events["cartons_jaunes"][nom] = events["cartons_jaunes"].get(nom, 0) + 1
+                            for nom in st.session_state["cartons"]["rouges"]:
+                                if nom:
+                                    events["cartons_rouges"][nom] = events["cartons_rouges"].get(nom, 0) + 1
+                    
+                            st.markdown("---")
+                    
+                            # --- Notes joueurs ---
                             noter_joueurs = st.checkbox("Noter les joueurs ?", value=match.get("noter_joueurs", True), key=f"noter_{mid}")
                             match["noter_joueurs"] = noter_joueurs
-    
-                            for nom in joueurs:
-                                col1, col2, col3, col4, col5 = st.columns([1, 1, 1, 1, 4])
-                                st.markdown(f"{nom}")
-                                with col1:
-                                    events["buteurs"][nom] = st.number_input(f"Buts", min_value=0, value=0, key=f"but_{mid}_{nom}")
-                                with col2:
-                                    events["passeurs"][nom] = st.number_input(f"Passes", min_value=0, value=0, key=f"pass_{mid}_{nom}")
-                                with col5:
-                                    if noter_joueurs:
-                                        events["notes"][nom] = st.slider(f"Note", min_value=0.0, max_value=10.0, value=5.0, step=0.5, key=f"note_{mid}_{nom}")
-                                with col3:
-                                    events["cartons_jaunes"][nom] = st.number_input(f"🟨", min_value=0, value=0, key=f"cj_{mid}_{nom}")
-                                with col4:
-                                    events["cartons_rouges"][nom] = st.number_input(f"🟥", min_value=0, value=0, key=f"cr_{mid}_{nom}")
-                            st.markdown("----")
+                    
+                            if noter_joueurs:
+                                st.subheader("📊 Notes des joueurs")
+                                for nom in joueurs:
+                                    events["notes"][nom] = st.slider(
+                                        f"{nom}",
+                                        min_value=0.0, max_value=10.0,
+                                        value=5.0, step=0.5,
+                                        key=f"note_{mid}_{nom}"
+                                    )
+                    
+                            st.markdown("---")
                             hdm = st.selectbox("🏆 Homme du match", [""] + joueurs, key=f"hdm_{mid}")
     
                             if st.button("💾", key=f"valide_{mid}"):
