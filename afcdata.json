@@ -458,9 +458,9 @@
           "Gregory Perrot": 0,
           "Thomas B. ": 0,
           "Giovanni Filippi": 0,
-          "Abdel Jalil": 0,
+          "Abdel Jalil": 1,
           "Jos\u00e9 Mar\u00eda": 1,
-          "Hicham Grerifa": 1
+          "Hicham Grerifa": 0
         },
         "passeurs": {
           "Pierre Tarasinski": 0,
@@ -530,9 +530,9 @@
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": false,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "Jos\u00e9 Mar\u00eda",
+      "homme_du_match": "",
       "joueurs_disponibles": [
         "Pierre Pavia",
         "Thibault Rigal",
