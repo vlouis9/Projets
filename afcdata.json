@@ -471,7 +471,7 @@
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": false,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
@@ -499,7 +499,7 @@
       ],
       "capitaine": "Thibault Rigal",
       "noter_joueurs": false,
-      "revue_presse": "*Le mot des coachs:*\nBienvenus \u00e0 Constant, Mehdi et Jos\u00e9 dans l'\u00e9quipe et bon retour \u00e0 Sofian! Notre directeur sportif \u00e0 \u00e9t\u00e9 actif sur le march\u00e9 des transferts et a permis \u00e0 l'\u00e9quipe de se renforcer, avec des recrues d\u00e9j\u00e0 d\u00e9cisives dans un match... exp\u00e9rimental. \n\n*Commentaires r\u00e9colt\u00e9s sur le bord du terrain par l'Equipe Rocco :*\n\n\u00ab\u00a06-3, le manque de pr\u00e9paration de Max se fait d\u00e9j\u00e0 sentir \u00bb\n\u00ab\u00a0Merci \u00e0 Thomas qui repart dans l'\u00e9quipe UNFP\u00a0\u00bb\n\u00ab\u00a0Apr\u00e8s ses deux d\u00e9faites de l'\u00e9t\u00e9, Thib le runner continue sur sa lanc\u00e9e\u00a0\u00bb\n\u00ab\u00a0Comme au 1er match de la World cup \u00e0 Dusseldorf, Mitra oublie le mode d'emploi de son pied gauche et donne du boulot aux ramasseurs de balles\u00a0\u00bb\u00a0"
+      "revue_presse": "*Le mot des coachs:*\nBienvenus \u00e0 Constant, Mehdi et Jos\u00e9 dans l'\u00e9quipe et bon retour \u00e0 Sofian! Notre directeur sportif \u00e0 \u00e9t\u00e9 actif sur le march\u00e9 des transferts et a permis \u00e0 l'\u00e9quipe de se renforcer, avec des recrues d\u00e9j\u00e0 d\u00e9cisives dans un match... exp\u00e9rimental. \n\n\n*Commentaires r\u00e9colt\u00e9s sur le bord du terrain par l'Equipe Rocco :*\n\u00ab\u00a06-3, le manque de pr\u00e9paration de Max se fait d\u00e9j\u00e0 sentir \u00bb\n\u00ab\u00a0Merci \u00e0 Thomas qui repart dans l'\u00e9quipe UNFP\u00a0\u00bb\n\u00ab\u00a0Apr\u00e8s ses deux d\u00e9faites de l'\u00e9t\u00e9, Thib le runner continue sur sa lanc\u00e9e\u00a0\u00bb\n\u00ab\u00a0Comme au 1er match de la World cup \u00e0 Dusseldorf, Mitra oublie le mode d'emploi de son pied gauche et donne du boulot aux ramasseurs de balles\u00a0\u00bb\u00a0"
     },
     "98099698-9268-4596-80ac-e15a3ff1bb64": {
       "type": "Championnat",
