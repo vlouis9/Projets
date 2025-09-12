@@ -1362,26 +1362,14 @@ with tab1:
                                 
                                 passeur = "" # Réinitialise le passeur
                                 passeur_actuel = editor_state["passeurs"][i]
-                            
-                                if buteur == "CSC":
-                                    # Si c'est un CSC, le champ passeur est désactivé
-                                    col_but2.selectbox(
-                                        f"Passeur du but {i+1}",
-                                        [""], # Aucune option
-                                        key=f"passeur_{mid}_{i}",
-                                        disabled=True # Champ grisé
-                                    )
-                                    passeur = "" # On s'assure que le passeur est vide
-                                else:
-                                    # Sinon, le champ passeur est actif normalement
-                                    passeur = col_but2.selectbox(
-                                        f"Passeur du but {i+1}",
-                                        [""] + joueurs,
-                                         # Pré-sélectionne la valeur existante
-                                        index=([""] + joueurs).index(passeur_actuel) if passeur_actuel in joueurs else 0,
-                                        key=f"passeur_{mid}_{i}"
-                                    )
-                            
+                                passeur = col_but2.selectbox(
+                                    f"Passeur du but {i+1}",
+                                    [""] + joueurs,
+                                     # Pré-sélectionne la valeur existante
+                                    index=([""] + joueurs).index(passeur_actuel) if passeur_actuel in joueurs else 0,
+                                    key=f"passeur_{mid}_{i}"
+                                )
+                        
                                 # Met à jour les listes dans l'état d'édition (la bonne méthode)
                                 editor_state["buteurs"][i] = buteur
                                 editor_state["passeurs"][i] = passeur
