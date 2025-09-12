@@ -451,12 +451,16 @@
         },
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "csc": [
+          ""
+        ],
+        "notes": {},
+        "csc_count": 1
       },
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": false,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
@@ -503,7 +507,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -563,7 +569,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -623,7 +631,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -683,7 +693,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -743,7 +755,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -803,7 +817,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -863,7 +879,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -923,7 +941,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -983,7 +1003,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -1043,7 +1065,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -1103,7 +1127,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -1163,7 +1189,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
@@ -1223,7 +1251,9 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {}
+        "notes": {},
+        "csc": [],
+        "csc_count": 0
       },
       "score": "",
       "score_afc": 0,
