@@ -1337,20 +1337,32 @@ with tab1:
                             
                             # --- Gestion des buts AFC ---
                             st.subheader("⚽ Buts AFC")
+                            # S'assurer que les listes de buteurs/passeurs correspondent au score
+                            while len(editor_state["buteurs"]) < score_afc: editor_state["buteurs"].append("")
+                            while len(editor_state["passeurs"]) < score_afc: editor_state["passeurs"].append("")
+                            
+                            # Tronquer si le score est réduit
+                            editor_state["buteurs"] = editor_state["buteurs"][:score_afc]
+                            editor_state["passeurs"] = editor_state["passeurs"][:score_afc]
+                            
                             for i in range(score_afc):
                                 col_but1, col_but2 = st.columns([2, 2])
-                            
-                                # Étape 1: Ajouter "CSC" à la liste des options pour le buteur
-                                options_buteurs = [""] + joueurs + ["CSC"]
                                 
+                                # Prépare les options en incluant "CSC"
+                                options_buteurs = [""] + joueurs + ["CSC"]
+                                buteur_actuel = editor_state["buteurs"][i]
+                            
                                 buteur = col_but1.selectbox(
                                     f"Buteur du but {i+1}",
                                     options_buteurs,
+                                    # Pré-sélectionne la valeur existante
+                                    index=options_buteurs.index(buteur_actuel) if buteur_actuel in options_buteurs else 0,
                                     key=f"buteur_{mid}_{i}"
                                 )
+                                
+                                passeur = "" # Réinitialise le passeur
+                                passeur_actuel = editor_state["passeurs"][i]
                             
-                                # Étape 2: Gérer le passeur de manière conditionnelle
-                                passeur = "" # Initialiser le passeur à vide
                                 if buteur == "CSC":
                                     # Si c'est un CSC, le champ passeur est désactivé
                                     col_but2.selectbox(
@@ -1359,20 +1371,21 @@ with tab1:
                                         key=f"passeur_{mid}_{i}",
                                         disabled=True # Champ grisé
                                     )
+                                    passeur = "" # On s'assure que le passeur est vide
                                 else:
                                     # Sinon, le champ passeur est actif normalement
                                     passeur = col_but2.selectbox(
                                         f"Passeur du but {i+1}",
                                         [""] + joueurs,
+                                         # Pré-sélectionne la valeur existante
+                                        index=([""] + joueurs).index(passeur_actuel) if passeur_actuel in joueurs else 0,
                                         key=f"passeur_{mid}_{i}"
                                     )
                             
-                                if buteur:
-                                    events["buteurs"][buteur] = events["buteurs"].get(buteur, 0) + 1
-                                if passeur:
-                                    events["passeurs"][passeur] = events["passeurs"].get(passeur, 0) + 1
-
-                    
+                                # Met à jour les listes dans l'état d'édition (la bonne méthode)
+                                editor_state["buteurs"][i] = buteur
+                                editor_state["passeurs"][i] = passeur
+                        
                             st.markdown("---")
                             
                             # --- Gestion des cartons ---
