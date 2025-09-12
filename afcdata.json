@@ -441,11 +441,17 @@
         }
       ],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
+        "buteurs": {
+          "Jos\u00e9 Mar\u00eda": 1,
+          "Abdel Jalil": 1
+        },
+        "passeurs": {
+          "Mehdi Zerrouki": 1,
+          "Gregory Perrot": 1
+        },
         "cartons_jaunes": {
-          "Constant Augustin": 1,
-          "Walid Chouchi": 1
+          "Walid Chouchi": 1,
+          "Constant Augustin": 1
         },
         "cartons_rouges": {
           "Constant Augustin": 1
@@ -455,7 +461,7 @@
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": false,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
