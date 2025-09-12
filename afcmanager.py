@@ -1054,7 +1054,7 @@ with tab1:
                 # Style grisé si le match est terminé
                 nom_affiche = match.get("nom_match", "Match sans nom")
                 if match.get("termine", False):
-                    nom_affiche = f"<span style='color: gray;'>{nom_affiche}</span>
+                    nom_affiche = f"<span style='color: gray;'>{nom_affiche}</span>"
                 with st.expander(
                     nom_affiche,
                     expanded=False
