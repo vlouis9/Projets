@@ -1432,7 +1432,10 @@ with tab1:
                     
                             total_buts = sum(buteurs.values())
                             if total_buts > 0:
-                                st.markdown("**⚽ Buts**")
+                                st.markdown(
+                                    "<h5 style='text-align: center;'>⚽ Buts</h5>",
+                                    unsafe_allow_html=True
+                                )
                                 i = 1
                                 for buteur, nb in buteurs.items():
                                     for _ in range(nb):
@@ -1445,12 +1448,21 @@ with tab1:
                                                 break
                     
                                         if passeur_affiche:
-                                            st.markdown(f"- ⚽ But {i} : **{buteur}** (passeur : {passeur_affiche})")
+                                            st.markdown(
+                                                "<h5 style='text-align: center;'>f"- ⚽ But {i} : **{buteur}** (passeur : {passeur_affiche})"</h5>",
+                                                unsafe_allow_html=True
+                                            )
                                         else:
-                                            st.markdown(f"- ⚽ But {i} : **{buteur}**")
+                                            st.markdown(
+                                                "<h5 style='text-align: center;'>f"- ⚽ But {i} : **{buteur}**"</h5>",
+                                                unsafe_allow_html=True
+                                            )
                                         i += 1
                     
-                            st.markdown("#### 👮🏼‍♂️ Discipline")
+                            st.markdown(
+                                "<h5 style='text-align: center;'>👮🏼‍♂️ Discipline</h5>",
+                                unsafe_allow_html=True
+                            )
                             cartons_jaunes = match["events"].get("cartons_jaunes", {})
                             cartons_rouges = match["events"].get("cartons_rouges", {})
                             
