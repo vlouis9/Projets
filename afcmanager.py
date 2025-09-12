@@ -1361,27 +1361,46 @@ with tab1:
                     
                             # --- Cartons jaunes ---
                             st.subheader("🟨 Cartons jaunes")
+                            
+                            # Réinitialiser avant de reconstruire
                             events["cartons_jaunes"] = {}
                             cj_existants = list(match["events"].get("cartons_jaunes", {}).keys())
                             
-                            for idx, nom in enumerate(events.get("cartons_jaunes", {})):
-                                st.selectbox(
-                                    f"Carton jaune {idx+1}", [""] + joueurs,
-                                    index=([""]+joueurs).index(nom) if nom in joueurs else 0,
-                                    key=f"cj_{mid}_{idx}"
+                            nb_cj = st.number_input("Nombre de cartons jaunes", min_value=0, max_value=20,
+                                                    value=len(cj_existants), key=f"nb_cj_{mid}")
+                            
+                            for i in range(nb_cj):
+                                joueur_cj = st.selectbox(
+                                    f"Carton jaune {i+1}",
+                                    [""] + joueurs,
+                                    index=([""] + joueurs).index(cj_existants[i]) if i < len(cj_existants) and cj_existants[i] in joueurs else 0,
+                                    key=f"cj_{mid}_{i}"
                                 )
-                    
+                                if joueur_cj:
+                                    events["cartons_jaunes"][joueur_cj] = events["cartons_jaunes"].get(joueur_cj, 0) + 1
+                            
+                            st.markdown("---")
+                            
                             # --- Cartons rouges ---
                             st.subheader("🟥 Cartons rouges")
+                            
+                            # Réinitialiser avant de reconstruire
                             events["cartons_rouges"] = {}
                             cr_existants = list(match["events"].get("cartons_rouges", {}).keys())
-                            for idx, nom in enumerate(events.get("cartons_rouges", {})):
-                                st.selectbox(
-                                    f"Carton rouge {idx+1}", [""] + joueurs,
-                                    index=([""]+joueurs).index(nom) if nom in joueurs else 0,
-                                    key=f"cr_{mid}_{idx}"
+                            
+                            nb_cr = st.number_input("Nombre de cartons rouges", min_value=0, max_value=20,
+                                                    value=len(cr_existants), key=f"nb_cr_{mid}")
+                            
+                            for i in range(nb_cr):
+                                joueur_cr = st.selectbox(
+                                    f"Carton rouge {i+1}",
+                                    [""] + joueurs,
+                                    index=([""] + joueurs).index(cr_existants[i]) if i < len(cr_existants) and cr_existants[i] in joueurs else 0,
+                                    key=f"cr_{mid}_{i}"
                                 )
-                    
+                                if joueur_cr:
+                                    events["cartons_rouges"][joueur_cr] = events["cartons_rouges"].get(joueur_cr, 0) + 1
+
                             st.markdown("---")
                     
                             # --- Notes ---
@@ -1395,12 +1414,12 @@ with tab1:
                                         value=events.get("notes", {}).get(nom, 5.0),
                                         step=0.5, key=f"note_{mid}_{nom}"
                                     )
-                    
+                            st.markdown("---")
                             # --- Homme du match ---
                             hdm = st.selectbox("🏆 Homme du match", [""] + joueurs,
                                                index=([""]+joueurs).index(match.get("homme_du_match", "")) if match.get("homme_du_match") in joueurs else 0,
                                                key=f"hdm_{mid}")
-                    
+                            st.markdown("---")
                             # --- Revue de presse ---
                             st.markdown("### 📰 Revue de presse")
                             revue_presse = st.text_area(
