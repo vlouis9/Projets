@@ -1451,19 +1451,29 @@ with tab1:
                                             st.markdown(f"- ⚽ But {i} : **{buteur}**")
                                         i += 1
                     
-                            # Discipline : on déroule les cartons selon les compteurs
-                            cj = match["events"].get("cartons_jaunes", {})
-                            cr = match["events"].get("cartons_rouges", {})
-                    
-                            if any(cj.values()) or any(cr.values()):
-                                st.markdown("**👮🏼‍♂️ Discipline**")
-                    
-                                for joueur, nb in cj.items():
-                                    for _ in range(nb):
-                                        st.markdown(f"- 🟨 {joueur}")
-                                for joueur, nb in cr.items():
-                                    for _ in range(nb):
-                                        st.markdown(f"- 🟥 {joueur}")
+                            st.markdown("#### 👮🏼‍♂️ Discipline")
+                            cartons_jaunes = match["events"].get("cartons_jaunes", {})
+                            cartons_rouges = match["events"].get("cartons_rouges", {})
+                            
+                            jaunes_affiches = False
+                            rouges_affiches = False
+                            
+                            if cartons_jaunes:
+                                st.markdown("**🟨 Cartons jaunes**")
+                                for nom, nb in cartons_jaunes.items():
+                                    if isinstance(nb, int) and nb > 0:
+                                        st.markdown(f"- {nom} : {nb}")
+                                        jaunes_affiches = True
+                            
+                            if cartons_rouges:
+                                st.markdown("**🟥 Cartons rouges**")
+                                for nom, nb in cartons_rouges.items():
+                                    if isinstance(nb, int) and nb > 0:
+                                        st.markdown(f"- {nom} : {nb}")
+                                        rouges_affiches = True
+                            
+                            if not jaunes_affiches and not rouges_affiches:
+                                st.markdown("_Aucun carton n’a été distribué lors de ce match._")
                     
                             st.markdown("---")
     
