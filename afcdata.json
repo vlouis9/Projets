@@ -441,16 +441,14 @@
         }
       ],
       "events": {
-        "buteurs": [
-          "CSC",
-          "Jos\u00e9 Mar\u00eda",
-          "Abdel Jalil"
-        ],
-        "passeurs": [
-          "",
-          "Gregory Perrot",
-          "Mehdi Zerrouki"
-        ],
+        "buteurs": {
+          "Jos\u00e9 Mar\u00eda": 1,
+          "Abdel Jalil": 1
+        },
+        "passeurs": {
+          "Mehdi Zerrouki": 1,
+          "Gregory Perrot": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
         "notes": {}
@@ -458,7 +456,7 @@
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": true,
+      "noted": false,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
@@ -500,7 +498,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -554,7 +558,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -608,7 +618,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -662,7 +678,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -716,7 +738,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -770,7 +798,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -824,7 +858,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -878,7 +918,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -932,7 +978,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -986,7 +1038,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -1040,7 +1098,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -1094,7 +1158,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
@@ -1148,7 +1218,13 @@
       "formation": "",
       "details": [],
       "remplacants": [],
-      "events": {},
+      "events": {
+        "buteurs": {},
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "notes": {}
+      },
       "score": "",
       "score_afc": 0,
       "score_adv": 0,
