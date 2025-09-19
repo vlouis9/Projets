@@ -510,9 +510,85 @@
       "journee": "J01",
       "nom_match": "\ud83d\udcc8 2025-09-24 : Championnat - J01 - AFC vs INTERNAT FC",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1"
+          }
+        ],
+        "D": [
+          null,
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5"
+          },
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "4"
+          },
+          {
+            "Nom": "Constant Augustin",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2"
+          }
+        ],
+        "M": [
+          null,
+          null,
+          {
+            "Nom": "Mehdi Zerrouki",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11"
+          },
+          {
+            "Nom": "Sofian Labrinssi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10"
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7"
+          }
+        ],
+        "A": [
+          null
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Nicolas Gardan",
+          "Numero": ""
+        },
+        {
+          "Nom": "Hicham Grerifa",
+          "Numero": ""
+        },
+        {
+          "Nom": "Adrien Dugenet",
+          "Numero": ""
+        },
+        {
+          "Nom": "Nicolas Mitrano",
+          "Numero": ""
+        },
+        {
+          "Nom": "Abdel Jalil",
+          "Numero": ""
+        }
+      ],
       "events": {
         "buteurs": {},
         "passeurs": {},
@@ -544,7 +620,8 @@
         "Louis Vermeulen",
         "Nicolas Mitrano",
         "Sofian Labrinssi"
-      ]
+      ],
+      "capitaine": "Thibault Rigal"
     },
     "60971cf0-b8a5-4090-baa7-cf81945a9fd1": {
       "type": "Coupe",
