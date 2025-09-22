@@ -528,18 +528,8 @@
         "D": [
           null,
           null,
-          {
-            "Nom": "Pierre Pavia",
-            "Poste": "D",
-            "Infos": "",
-            "Numero": "4"
-          },
-          {
-            "Nom": "Constant Augustin",
-            "Poste": "D",
-            "Infos": "",
-            "Numero": "2"
-          }
+          null,
+          null
         ],
         "M": [
           {
@@ -548,7 +538,12 @@
             "Infos": "",
             "Numero": "8"
           },
-          null,
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "6"
+          },
           {
             "Nom": "Mehdi Zerrouki",
             "Poste": "A",
