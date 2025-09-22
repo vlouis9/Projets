@@ -527,12 +527,7 @@
         ],
         "D": [
           null,
-          {
-            "Nom": "Thibault Rigal",
-            "Poste": "D",
-            "Infos": "",
-            "Numero": "5"
-          },
+          null,
           {
             "Nom": "Pierre Pavia",
             "Poste": "D",
@@ -547,7 +542,12 @@
           }
         ],
         "M": [
-          null,
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "8"
+          },
           null,
           {
             "Nom": "Mehdi Zerrouki",
@@ -561,12 +561,7 @@
             "Infos": "",
             "Numero": "10"
           },
-          {
-            "Nom": "Louis Vermeulen",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "7"
-          }
+          null
         ],
         "A": [
           null
