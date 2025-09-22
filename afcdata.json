@@ -526,10 +526,30 @@
           }
         ],
         "D": [
-          null,
-          null,
-          null,
-          null
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "3"
+          },
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5"
+          },
+          {
+            "Nom": "Constant Augustin",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "4"
+          },
+          {
+            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2"
+          }
         ],
         "M": [
           {
@@ -548,7 +568,7 @@
             "Nom": "Mehdi Zerrouki",
             "Poste": "A",
             "Infos": "",
-            "Numero": "11"
+            "Numero": "7"
           },
           {
             "Nom": "Sofian Labrinssi",
@@ -556,32 +576,38 @@
             "Infos": "",
             "Numero": "10"
           },
-          null
+          {
+            "Nom": "Emmanuel Pannier",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11"
+          }
         ],
         "A": [
-          null
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "9"
+          }
         ]
       },
       "remplacants": [
         {
-          "Nom": "Nicolas Gardan",
-          "Numero": ""
+          "Nom": "Arthur Couto",
+          "Numero": "12"
         },
         {
           "Nom": "Hicham Grerifa",
-          "Numero": ""
+          "Numero": "13"
         },
         {
           "Nom": "Adrien Dugenet",
-          "Numero": ""
+          "Numero": "14"
         },
         {
           "Nom": "Nicolas Mitrano",
-          "Numero": ""
-        },
-        {
-          "Nom": "Abdel Jalil",
-          "Numero": ""
+          "Numero": "15"
         }
       ],
       "events": {
