@@ -1460,8 +1460,8 @@
     "J01": [
       {
         "domicile": "AFC",
-        "exterieur": "INTERNAT FC",
         "score_dom": 4,
+        "exterieur": "INTERNAT FC",
         "score_ext": 3
       }
     ]
