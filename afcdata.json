@@ -556,7 +556,8 @@
             "Nom": "Thibault Rigal",
             "Poste": "D",
             "Infos": "",
-            "Numero": "6"
+            "Numero": "6",
+            "Capitaine": true
           },
           {
             "Nom": "Walid Chouchi",
@@ -1455,7 +1456,16 @@
     "CHU TOULOUSE FC",
     "LIEBHERR FOOT"
   ],
-  "championnat_scores": {},
+  "championnat_scores": {
+    "J01": [
+      {
+        "domicile": "AFC",
+        "exterieur": "INTERNAT FC",
+        "score_dom": 4,
+        "score_ext": 3
+      }
+    ]
+  },
   "profondeur_effectif": {
     "4-2-3-1": {
       "G": {
