@@ -530,13 +530,7 @@
             "Nom": "Nicolas Gardan",
             "Poste": "D",
             "Infos": "",
-            "Numero": "3"
-          },
-          {
-            "Nom": "Pierre Pavia",
-            "Poste": "D",
-            "Infos": "",
-            "Numero": "5"
+            "Numero": "2"
           },
           {
             "Nom": "Constant Augustin",
@@ -545,10 +539,16 @@
             "Numero": "4"
           },
           {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5"
+          },
+          {
             "Nom": "Olivier Saint-Sa\u00ebns",
             "Poste": "D",
             "Infos": "",
-            "Numero": "2"
+            "Numero": "3"
           }
         ],
         "M": [
@@ -556,13 +556,13 @@
             "Nom": "Thibault Rigal",
             "Poste": "D",
             "Infos": "",
-            "Numero": "8"
+            "Numero": "6"
           },
           {
             "Nom": "Walid Chouchi",
             "Poste": "M",
             "Infos": "",
-            "Numero": "6"
+            "Numero": "8"
           },
           {
             "Nom": "Mehdi Zerrouki",
@@ -594,15 +594,15 @@
       },
       "remplacants": [
         {
-          "Nom": "Arthur Couto",
+          "Nom": "Adrien Dugenet",
           "Numero": "12"
         },
         {
-          "Nom": "Hicham Grerifa",
+          "Nom": "Arthur Couto",
           "Numero": "13"
         },
         {
-          "Nom": "Adrien Dugenet",
+          "Nom": "Hicham Grerifa",
           "Numero": "14"
         },
         {
