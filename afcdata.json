@@ -611,21 +611,61 @@
         }
       ],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
+        "buteurs": {
+          "Abdel Jalil": 3,
+          "Thibault Rigal": 1
+        },
+        "passeurs": {
+          "Emmanuel Pannier": 1,
+          "Walid Chouchi": 1,
+          "Sofian Labrinssi": 1,
+          "Mehdi Zerrouki": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "buts_list": [
+          [
+            "Abdel Jalil",
+            "Emmanuel Pannier"
+          ],
+          [
+            "Thibault Rigal",
+            "Walid Chouchi"
+          ],
+          [
+            "Abdel Jalil",
+            "Mehdi Zerrouki"
+          ],
+          [
+            "Abdel Jalil",
+            "Sofian Labrinssi"
+          ]
+        ],
+        "notes": {
+          "Abdel Jalil": 5.0,
+          "Adrien Dugenet": 5.0,
+          "Arthur Couto": 5.0,
+          "Constant Augustin": 5.0,
+          "Emmanuel Pannier": 5.0,
+          "Hicham Grerifa": 5.0,
+          "Mehdi Zerrouki": 5.0,
+          "Nicolas Gardan": 5.0,
+          "Nicolas Mitrano": 5.0,
+          "Olivier Saint-Sa\u00ebns": 5.0,
+          "Pierre Pavia": 5.0,
+          "Sofian Labrinssi": 5.0,
+          "Thibault Rigal": 5.0,
+          "Walid Chouchi": 5.0,
+          "William Toumelin": 5.0
+        },
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "4-3",
+      "score_afc": 4,
+      "score_adv": 3,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Abdel Jalil",
       "joueurs_disponibles": [
         "Abdel Jalil",
         "Mehdi Zerrouki",
@@ -643,7 +683,9 @@
         "Olivier Saint-Sa\u00ebns",
         "Walid Chouchi"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": true,
+      "revue_presse": ""
     },
     "60971cf0-b8a5-4090-baa7-cf81945a9fd1": {
       "type": "Coupe",
