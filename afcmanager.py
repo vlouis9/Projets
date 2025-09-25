@@ -108,7 +108,7 @@ class AFCDataManager:
 
             put_resp = requests.put(self.api_url, headers=self.headers, json=update)
             if put_resp.status_code in [200, 201]:
-                st.success("✅ Données sauvegardées sur GitHub")
+                st.success("✅ Données sauvegardées")
             else:
                 st.error(f"❌ Erreur GitHub : {put_resp.status_code}")
         except Exception as e:
@@ -1372,7 +1372,7 @@ with tab1:
                                 st.markdown("</div>", unsafe_allow_html=True)
     
                     # --- 📝 Saisie des statistiques du match ---
-                    elif match_ended and not match.get("noted", False):
+                    elif match_ended:
                         with st.expander("### 📝 Statistiques du match", expanded=True):
                             joueurs = [j["Nom"] for p in POSTES_ORDER for j in match.get("details", {}).get(p, []) if j]
                             joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
