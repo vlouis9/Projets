@@ -1373,7 +1373,7 @@ with tab1:
     
                     # --- 📝 Saisie des statistiques du match ---
                     elif match_ended:
-                        with st.expander("### 📝 Statistiques du match", expanded=True):
+                        with st.expander("### 📝 Statistiques du match"):
                             joueurs = [j["Nom"] for p in POSTES_ORDER for j in match.get("details", {}).get(p, []) if j]
                             joueurs += [r["Nom"] for r in match.get("remplacants", []) if r.get("Nom")]
                             joueurs = sorted(list(dict.fromkeys(joueurs)))
