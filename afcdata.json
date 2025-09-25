@@ -1472,7 +1472,13 @@
       },
       {
         "domicile": "ASFP LUSITANOS",
+        "score_dom": 0,
         "exterieur": "CHU TOULOUSE FC",
+        "score_ext": 0
+      },
+      {
+        "domicile": "AS DRT",
+        "exterieur": "ALTRAN FOOT",
         "score_dom": 0,
         "score_ext": 0
       }
