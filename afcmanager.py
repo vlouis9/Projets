@@ -747,7 +747,7 @@ with tab_acc:
     
     # 📈 Forme récent
     derniers_resultats = []
-    for match in sorted(matchs.values(), key=lambda m: m.get("date", ""), reverse=True):
+    for match in sorted(matchs.values(), key=lambda m: m.get("date", "")):
         try:
             date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
             if date_match < today and match.get("termine") and match.get("noted"):
