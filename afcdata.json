@@ -1466,7 +1466,13 @@
       },
       {
         "domicile": "FORZA VIOLA FC",
+        "score_dom": 0,
         "exterieur": "LIEBHERR FOOT",
+        "score_ext": 0
+      },
+      {
+        "domicile": "ASFP LUSITANOS",
+        "exterieur": "CHU TOULOUSE FC",
         "score_dom": 0,
         "score_ext": 0
       }
