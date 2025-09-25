@@ -398,6 +398,8 @@ def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     matchs = st.session_state.get("matchs", {})
     for match in matchs.values():
+        if match.get("type", "").lower() == "amical":
+            continue
         if not match.get("termine") and not match.get("noted"):
             continue
         details = match.get("details", {})
@@ -452,6 +454,8 @@ def compute_clean_sheets():
     matchs = st.session_state.get("matchs", {})
     clean_sheets = {}
     for match in matchs.values():
+        if match.get("type", "").lower() == "amical":
+            continue
         if not match.get("noted"):
             continue
         if match.get("score_adv", 1) > 0:
