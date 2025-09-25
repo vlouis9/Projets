@@ -1564,172 +1564,172 @@ with tab1:
 
     
                     # --- 🧾 Résumé si match noté ---
-                    elif match.get("noted", False):
-                        with st.expander("### 📝 Résumé du match"):
-                            # --- Titre centré ---
-                            st.markdown(
-                                f"<h3 style='text-align: center;'>{match['nom_match']}</h3>",
-                                unsafe_allow_html=True
-                            )
-                            st.markdown("---")
-                            if match.get("domicile") == "Domicile":
-                                score_line = f"AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}"
-                            else:
-                                score_line = f"{match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC"
-                    
-                            st.markdown(
-                                f"<h1 style='text-align: center;'>{score_line}</h1>",
-                                unsafe_allow_html=True
-                            )
-                            st.markdown("---")
-                    
-                            # --- Homme du match ---
-                            hdm = match.get("homme_du_match")
-                            if hdm:
+                        if match.get("noted", False):
+                            with st.expander("### 📝 Résumé du match"):
+                                # --- Titre centré ---
                                 st.markdown(
-                                    f"<h4 style='text-align: center;'>🏆 Homme du match</h4>",
+                                    f"<h3 style='text-align: center;'>{match['nom_match']}</h3>",
                                     unsafe_allow_html=True
                                 )
-                                st.markdown(
-                                    f"<p style='text-align: center; font-size: 18px;'>{hdm}</p>",
-                                    unsafe_allow_html=True
-                                )
-                    
                                 st.markdown("---")
-                    
-                            # --- Événements du match ---
-                            st.markdown(
-                                "<h4 style='text-align: center;'>📊 Événements du match</h4>",
-                                unsafe_allow_html=True
-                            )
-                            
-                            # --- ⚽ Buts ---
-                            events_normalized = manager.normalize_events(match["events"])
-                            buts_list = events_normalized.get("buts_list", [])
-                            
-                            total_buts = len(buts_list)
-                            if total_buts > 0:
-                                st.markdown("<h5 style='text-align: center;'>🥅 Buts</h5>", unsafe_allow_html=True)
+                                if match.get("domicile") == "Domicile":
+                                    score_line = f"AFC {match['score_afc']} - {match['score_adv']} {match['adversaire']}"
+                                else:
+                                    score_line = f"{match['adversaire']} {match['score_adv']} - {match['score_afc']} AFC"
+                        
+                                st.markdown(
+                                    f"<h1 style='text-align: center;'>{score_line}</h1>",
+                                    unsafe_allow_html=True
+                                )
+                                st.markdown("---")
+                        
+                                # --- Homme du match ---
+                                hdm = match.get("homme_du_match")
+                                if hdm:
+                                    st.markdown(
+                                        f"<h4 style='text-align: center;'>🏆 Homme du match</h4>",
+                                        unsafe_allow_html=True
+                                    )
+                                    st.markdown(
+                                        f"<p style='text-align: center; font-size: 18px;'>{hdm}</p>",
+                                        unsafe_allow_html=True
+                                    )
+                        
+                                    st.markdown("---")
+                        
+                                # --- Événements du match ---
+                                st.markdown(
+                                    "<h4 style='text-align: center;'>📊 Événements du match</h4>",
+                                    unsafe_allow_html=True
+                                )
                                 
-                                # CORRECTION : Affichage direct depuis buts_list (ordre exact)
-                                for i, (buteur, passeur) in enumerate(buts_list, 1):
-                                    if buteur == "CSC":
-                                        if passeur:
-                                            st.markdown(
-                                                f"<p style='text-align: center;'>⚽ <b>CSC</b> (passeur : {passeur})</p>",
-                                                unsafe_allow_html=True
-                                            )
+                                # --- ⚽ Buts ---
+                                events_normalized = manager.normalize_events(match["events"])
+                                buts_list = events_normalized.get("buts_list", [])
+                                
+                                total_buts = len(buts_list)
+                                if total_buts > 0:
+                                    st.markdown("<h5 style='text-align: center;'>🥅 Buts</h5>", unsafe_allow_html=True)
+                                    
+                                    # CORRECTION : Affichage direct depuis buts_list (ordre exact)
+                                    for i, (buteur, passeur) in enumerate(buts_list, 1):
+                                        if buteur == "CSC":
+                                            if passeur:
+                                                st.markdown(
+                                                    f"<p style='text-align: center;'>⚽ <b>CSC</b> (passeur : {passeur})</p>",
+                                                    unsafe_allow_html=True
+                                                )
+                                            else:
+                                                st.markdown(
+                                                    f"<p style='text-align: center;'>⚽ <b>CSC</b></p>",
+                                                    unsafe_allow_html=True
+                                                )
                                         else:
+                                            if passeur:
+                                                st.markdown(
+                                                    f"<p style='text-align: center;'>⚽ <b>{buteur}</b> (passeur : {passeur})</p>",
+                                                    unsafe_allow_html=True
+                                                )
+                                            else:
+                                                st.markdown(
+                                                    f"<p style='text-align: center;'>⚽ <b>{buteur}</b></p>",
+                                                    unsafe_allow_html=True
+                                                )
+    
+                                
+                                # --- 👮 Discipline ---
+                                st.markdown("<h5 style='text-align: center;'>👮🏼‍♂️ Discipline</h5>", unsafe_allow_html=True)
+                                
+                                cartons_jaunes = events_normalized.get("cartons_jaunes", {})
+                                cartons_rouges = events_normalized.get("cartons_rouges", {})
+                                
+                                jaunes_affiches = False
+                                rouges_affiches = False
+                                
+                                if any(nb > 0 for nb in cartons_jaunes.values()):
+                                    st.markdown("<p style='text-align: center;'><b>🟨 Cartons jaunes</b></p>", unsafe_allow_html=True)
+                                    for nom, nb in sorted(cartons_jaunes.items(), key=lambda x: x[1], reverse=True):
+                                        if nb > 0:
                                             st.markdown(
-                                                f"<p style='text-align: center;'>⚽ <b>CSC</b></p>",
+                                                f"<p style='text-align: center;'>- {nom} : {nb}</p>",
                                                 unsafe_allow_html=True
                                             )
-                                    else:
-                                        if passeur:
+                                            jaunes_affiches = True
+                                
+                                if any(nb > 0 for nb in cartons_rouges.values()):
+                                    st.markdown("<p style='text-align: center;'><b>🟥 Cartons rouges</b></p>", unsafe_allow_html=True)
+                                    for nom, nb in sorted(cartons_rouges.items(), key=lambda x: x[1], reverse=True):
+                                        if nb > 0:
                                             st.markdown(
-                                                f"<p style='text-align: center;'>⚽ <b>{buteur}</b> (passeur : {passeur})</p>",
+                                                f"<p style='text-align: center;'>- {nom} : {nb}</p>",
                                                 unsafe_allow_html=True
                                             )
-                                        else:
-                                            st.markdown(
-                                                f"<p style='text-align: center;'>⚽ <b>{buteur}</b></p>",
-                                                unsafe_allow_html=True
-                                            )
-
-                            
-                            # --- 👮 Discipline ---
-                            st.markdown("<h5 style='text-align: center;'>👮🏼‍♂️ Discipline</h5>", unsafe_allow_html=True)
-                            
-                            cartons_jaunes = events_normalized.get("cartons_jaunes", {})
-                            cartons_rouges = events_normalized.get("cartons_rouges", {})
-                            
-                            jaunes_affiches = False
-                            rouges_affiches = False
-                            
-                            if any(nb > 0 for nb in cartons_jaunes.values()):
-                                st.markdown("<p style='text-align: center;'><b>🟨 Cartons jaunes</b></p>", unsafe_allow_html=True)
-                                for nom, nb in sorted(cartons_jaunes.items(), key=lambda x: x[1], reverse=True):
-                                    if nb > 0:
-                                        st.markdown(
-                                            f"<p style='text-align: center;'>- {nom} : {nb}</p>",
-                                            unsafe_allow_html=True
-                                        )
-                                        jaunes_affiches = True
-                            
-                            if any(nb > 0 for nb in cartons_rouges.values()):
-                                st.markdown("<p style='text-align: center;'><b>🟥 Cartons rouges</b></p>", unsafe_allow_html=True)
-                                for nom, nb in sorted(cartons_rouges.items(), key=lambda x: x[1], reverse=True):
-                                    if nb > 0:
-                                        st.markdown(
-                                            f"<p style='text-align: center;'>- {nom} : {nb}</p>",
-                                            unsafe_allow_html=True
-                                        )
-                                        rouges_affiches = True
-                            
-                            if not jaunes_affiches and not rouges_affiches:
+                                            rouges_affiches = True
+                                
+                                if not jaunes_affiches and not rouges_affiches:
+                                    st.markdown(
+                                        "<p style='text-align: center;'><i>Aucun carton n’a été distribué lors de ce match.</i></p>",
+                                        unsafe_allow_html=True
+                                    )
+                                
+                                st.markdown("---")
+                                
+                                st.markdown("---")
+                                if match.get("revue_presse"):
+                                    st.markdown("### 📰 Revue de presse")
+                                    st.markdown(f"<div style='white-space: pre-line;'>{match['revue_presse']}</div>", unsafe_allow_html=True)
+                                    st.markdown("---")
+    
                                 st.markdown(
-                                    "<p style='text-align: center;'><i>Aucun carton n’a été distribué lors de ce match.</i></p>",
+                                    "<h4 style='text-align: center;'>👥 L'équipe du match</h4>",
                                     unsafe_allow_html=True
                                 )
-                            
-                            st.markdown("---")
-                            
-                            st.markdown("---")
-                            if match.get("revue_presse"):
-                                st.markdown("### 📰 Revue de presse")
-                                st.markdown(f"<div style='white-space: pre-line;'>{match['revue_presse']}</div>", unsafe_allow_html=True)
-                                st.markdown("---")
-
-                            st.markdown(
-                                "<h4 style='text-align: center;'>👥 L'équipe du match</h4>",
-                                unsafe_allow_html=True
-                            )
-                            fig = draw_football_pitch_vertical()
-    
-                            # Prépare les stats pour tous les joueurs (y compris remplaçants)
-                            joueurs_titulaires = [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
-                            joueurs_remplacants = [r["Nom"] for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]
-                            joueurs_all = list(dict.fromkeys(joueurs_titulaires + joueurs_remplacants))
-                            
-                            # CORRECTION : Utilise la fonction normalisée pour player_stats
-                            player_stats = build_player_stats_from_events(match)
-                            
-                            # Affichage du capitaine
-                            for poste in POSTES_ORDER:
-                                for j in match["details"].get(poste, []):
-                                    if j and isinstance(j, dict) and j["Nom"] == match.get("capitaine", ""):
-                                        j["Capitaine"] = True
-    
-                            fig = plot_lineup_on_pitch_vertical(
-                                fig, match["details"], match["formation"], match.get("remplacants", []), player_stats
-                            )
-    
-                            st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
-                            if st.button("✏️", key=f"edit_stats_{mid}"):
-                                match["noted"] = False
-                                st.session_state.matchs[mid] = match
-                                manager.save()
-                                st.rerun()
-    
-                    col_gauche, col_droite, col_space = st.columns([0.5, 0.5, 9])
-                    if not match.get("termine"):
-                        with col_gauche:
-                            if st.button("✏️", key=f"btn_edit_{mid}"):
-                                st.session_state["edit_match"] = (mid, match)
-                                st.rerun()
-                        with col_droite:
-                            if st.button("🗑️", key=f"delete_match_{mid}"):
-                                del st.session_state.matchs[mid]
-                                manager.save()
-                                st.success("🧹 Match supprimé")
-                                st.rerun()
-                    else:
-                        with col_gauche:
-                            if st.button("🗑️", key=f"delete_match_{mid}"):
-                                del st.session_state.matchs[mid]
-                                manager.save()
-                                st.success("🧹 Match supprimé")
-                                st.rerun()
+                                fig = draw_football_pitch_vertical()
+        
+                                # Prépare les stats pour tous les joueurs (y compris remplaçants)
+                                joueurs_titulaires = [j["Nom"] for p in POSTES_ORDER for j in match["details"].get(p, []) if j]
+                                joueurs_remplacants = [r["Nom"] for r in match.get("remplacants", []) if isinstance(r, dict) and r.get("Nom")]
+                                joueurs_all = list(dict.fromkeys(joueurs_titulaires + joueurs_remplacants))
+                                
+                                # CORRECTION : Utilise la fonction normalisée pour player_stats
+                                player_stats = build_player_stats_from_events(match)
+                                
+                                # Affichage du capitaine
+                                for poste in POSTES_ORDER:
+                                    for j in match["details"].get(poste, []):
+                                        if j and isinstance(j, dict) and j["Nom"] == match.get("capitaine", ""):
+                                            j["Capitaine"] = True
+        
+                                fig = plot_lineup_on_pitch_vertical(
+                                    fig, match["details"], match["formation"], match.get("remplacants", []), player_stats
+                                )
+        
+                                st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
+                                if st.button("✏️", key=f"edit_stats_{mid}"):
+                                    match["noted"] = False
+                                    st.session_state.matchs[mid] = match
+                                    manager.save()
+                                    st.rerun()
+        
+                        col_gauche, col_droite, col_space = st.columns([0.5, 0.5, 9])
+                        if not match.get("termine"):
+                            with col_gauche:
+                                if st.button("✏️", key=f"btn_edit_{mid}"):
+                                    st.session_state["edit_match"] = (mid, match)
+                                    st.rerun()
+                            with col_droite:
+                                if st.button("🗑️", key=f"delete_match_{mid}"):
+                                    del st.session_state.matchs[mid]
+                                    manager.save()
+                                    st.success("🧹 Match supprimé")
+                                    st.rerun()
+                        else:
+                            with col_gauche:
+                                if st.button("🗑️", key=f"delete_match_{mid}"):
+                                    del st.session_state.matchs[mid]
+                                    manager.save()
+                                    st.success("🧹 Match supprimé")
+                                    st.rerun()
 
 # --- 📈 Onglet Suivi Championnat ---
 with tab2:
