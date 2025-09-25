@@ -451,8 +451,8 @@
           "Abdel Jalil": 1
         },
         "passeurs": {
-          "Mehdi Zerrouki": 1,
-          "Gregory Perrot": 1
+          "Gregory Perrot": 1,
+          "Mehdi Zerrouki": 1
         },
         "cartons_jaunes": {},
         "cartons_rouges": {},
@@ -476,7 +476,7 @@
       "score": "3-6",
       "score_afc": 3,
       "score_adv": 6,
-      "noted": false,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
