@@ -1616,23 +1616,23 @@ with tab1:
                                     if buteur == "CSC":
                                         if passeur:
                                             st.markdown(
-                                                f"<p style='text-align: center;'>⚽ But {i} : <b>CSC</b> (passeur : {passeur})</p>",
+                                                f"<p style='text-align: center;'>⚽ <b>CSC</b> (passeur : {passeur})</p>",
                                                 unsafe_allow_html=True
                                             )
                                         else:
                                             st.markdown(
-                                                f"<p style='text-align: center;'>⚽ But {i} : <b>CSC</b></p>",
+                                                f"<p style='text-align: center;'>⚽ <b>CSC</b></p>",
                                                 unsafe_allow_html=True
                                             )
                                     else:
                                         if passeur:
                                             st.markdown(
-                                                f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b> (passeur : {passeur})</p>",
+                                                f"<p style='text-align: center;'>⚽ <b>{buteur}</b> (passeur : {passeur})</p>",
                                                 unsafe_allow_html=True
                                             )
                                         else:
                                             st.markdown(
-                                                f"<p style='text-align: center;'>⚽ But {i} : <b>{buteur}</b></p>",
+                                                f"<p style='text-align: center;'>⚽ <b>{buteur}</b></p>",
                                                 unsafe_allow_html=True
                                             )
 
