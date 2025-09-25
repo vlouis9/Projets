@@ -642,31 +642,15 @@
             "Sofian Labrinssi"
           ]
         ],
-        "notes": {
-          "Abdel Jalil": 5.0,
-          "Adrien Dugenet": 5.0,
-          "Arthur Couto": 5.0,
-          "Constant Augustin": 5.0,
-          "Emmanuel Pannier": 5.0,
-          "Hicham Grerifa": 5.0,
-          "Mehdi Zerrouki": 5.0,
-          "Nicolas Gardan": 5.0,
-          "Nicolas Mitrano": 5.0,
-          "Olivier Saint-Sa\u00ebns": 5.0,
-          "Pierre Pavia": 5.0,
-          "Sofian Labrinssi": 5.0,
-          "Thibault Rigal": 5.0,
-          "Walid Chouchi": 5.0,
-          "William Toumelin": 5.0
-        },
+        "notes": {},
         "csc_count": 0
       },
       "score": "4-3",
       "score_afc": 4,
       "score_adv": 3,
-      "noted": false,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "Abdel Jalil",
+      "homme_du_match": "",
       "joueurs_disponibles": [
         "Abdel Jalil",
         "Mehdi Zerrouki",
@@ -685,7 +669,7 @@
         "Walid Chouchi"
       ],
       "capitaine": "Thibault Rigal",
-      "noter_joueurs": true,
+      "noter_joueurs": false,
       "revue_presse": ""
     },
     "60971cf0-b8a5-4090-baa7-cf81945a9fd1": {
