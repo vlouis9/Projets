@@ -1460,7 +1460,13 @@
       },
       {
         "domicile": "TOAC 2",
+        "score_dom": 0,
         "exterieur": "ATHLETICO TOLOSA B",
+        "score_ext": 0
+      },
+      {
+        "domicile": "FORZA VIOLA FC",
+        "exterieur": "LIEBHERR FOOT",
         "score_dom": 0,
         "score_ext": 0
       }
