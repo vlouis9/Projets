@@ -1187,7 +1187,7 @@ with tab1:
                             selected_dispo = st.multiselect(
                                 "Joueurs disponibles",
                                 joueurs_tries,
-                                default=match.get("joueurs_disponibles", []),
+                                default=[],
                                 key=f"joueurs_dispo_{mid}"
                             )
                             match["joueurs_disponibles"] = selected_dispo
