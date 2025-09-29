@@ -322,26 +322,28 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 ))
 
     # Remplaçants : positions variables selon nombre
-    remplacants = remplacants or []
-    n = len(remplacants)
-    if n:
-        positions_remp = []
-        # Répartition plus flexible
-        if n<4:
+    positions_remp = []
+    if n > 0:
+        if n <= 6:
+            # 3 par ligne
+            n_per_row = 3
+            n_rows = (n + n_per_row - 1) // n_per_row
             for i in range(n):
-                x = 5 + int((i / max(n-1, 1)) * 58)
-                y = -10
+                row = i // n_per_row
+                pos_in_row = i % n_per_row
+                # x: réparti entre 5 et 65
+                x = 5 + int(pos_in_row * ((65-5) // (n_per_row-1))) if n_per_row > 1 else 34
+                y = -10 - 12 * row
                 positions_remp.append((x, y))
         else:
-            n_top = (n + 1) // 2 
-            n_bottom = n - n_top
-            for i in range(n_top):
-                x = 5 + int((i / max(n_top-1, 1)) * 58)
-                y = -10
-                positions_remp.append((x, y))
-            for i in range(n_bottom):
-                x = 5 + int((i / max(n_bottom-1, 1)) * 58)
-                y = -25
+            # 4 par ligne
+            n_per_row = 4
+            n_rows = (n + n_per_row - 1) // n_per_row
+            for i in range(n):
+                row = i // n_per_row
+                pos_in_row = i % n_per_row
+                x = 5 + int(pos_in_row * ((65-5) // (n_per_row-1))) if n_per_row > 1 else 34
+                y = -10 - 12 * row
                 positions_remp.append((x, y))
                                       
         for idx, remp in enumerate(remplacants):
