@@ -1264,11 +1264,6 @@ with tab1:
                                 
                             with col_right:
                                 fig = draw_football_pitch_vertical()
-                                # Affichage du capitaine
-                                for poste in POSTES_ORDER:
-                                    for j in match["details"].get(poste, []):
-                                        if j and isinstance(j, dict) and j["Nom"] == match.get("capitaine", ""):
-                                            j["Capitaine"] = True
                                 fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
                                 st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
     
