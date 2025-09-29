@@ -1766,16 +1766,18 @@ with tab2:
                     if sd > se:
                         stats[dom]["V"] += 1
                         stats[ext]["D"] += 1
-                        stats[dom]["Pts"] += 3
+                        stats[dom]["Pts"] += 4
+                        stats[ext]["Pts"] += 1
                     elif se > sd:
                         stats[ext]["V"] += 1
                         stats[dom]["D"] += 1
-                        stats[ext]["Pts"] += 3
+                        stats[ext]["Pts"] += 4
+                        stats[dom]["Pts"] += 1
                     else:
                         stats[dom]["N"] += 1
                         stats[ext]["N"] += 1
-                        stats[dom]["Pts"] += 1
-                        stats[ext]["Pts"] += 1
+                        stats[dom]["Pts"] += 2
+                        stats[ext]["Pts"] += 2
 
         for v in stats.values():
             v["Diff"] = v["BP"] - v["BC"]
