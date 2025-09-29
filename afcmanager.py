@@ -322,6 +322,8 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 ))
 
     # Remplaçants : positions variables selon nombre
+    remplacants = remplacants or []
+    n = len(remplacants)
     positions_remp = []
     if n > 0:
         if n <= 6:
