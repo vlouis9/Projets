@@ -1265,6 +1265,11 @@ with tab1:
                             with col_right:
                                 fig = draw_football_pitch_vertical()
                                 fig = plot_lineup_on_pitch_vertical(fig, terrain, formation, remplacants)
+                                # Marquer le capitaine pour l'affichage
+                                for poste in POSTES_ORDER:
+                                    for joueur in terrain.get(poste, []):
+                                        if joueur and isinstance(joueur, dict):
+                                            joueur["Capitaine"] = (joueur["Nom"] == capitaine)
                                 st.plotly_chart(fig, use_container_width=True, config={"staticPlot": True}, key=f"fig_match_{mid}")
     
                                 # Visualisation des joueurs disponibles non retenus
