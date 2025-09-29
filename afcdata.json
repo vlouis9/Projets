@@ -698,7 +698,8 @@
             "Nom": "William Toumelin",
             "Poste": "G",
             "Infos": "",
-            "Numero": "1"
+            "Numero": "1",
+            "Capitaine": false
           }
         ],
         "D": [
@@ -706,25 +707,29 @@
             "Nom": "Nicolas Gardan",
             "Poste": "D",
             "Infos": "",
-            "Numero": "3"
+            "Numero": "3",
+            "Capitaine": false
           },
           {
             "Nom": "Constant Augustin",
             "Poste": "D",
             "Infos": "",
-            "Numero": "4"
+            "Numero": "4",
+            "Capitaine": false
           },
           {
             "Nom": "Pierre Pavia",
             "Poste": "D",
             "Infos": "",
-            "Numero": "5"
+            "Numero": "5",
+            "Capitaine": false
           },
           {
             "Nom": "Arthur Couto",
             "Poste": "D",
             "Infos": "",
-            "Numero": "2"
+            "Numero": "2",
+            "Capitaine": false
           }
         ],
         "M": [
@@ -732,31 +737,36 @@
             "Nom": "Thibault Rigal",
             "Poste": "D",
             "Infos": "",
-            "Numero": "6"
+            "Numero": "6",
+            "Capitaine": true
           },
           {
             "Nom": "Nicolas Mitrano",
             "Poste": "M",
             "Infos": "",
-            "Numero": "8"
+            "Numero": "8",
+            "Capitaine": false
           },
           {
             "Nom": "Hicham Grerifa",
             "Poste": "M",
             "Infos": "",
-            "Numero": "7"
+            "Numero": "7",
+            "Capitaine": false
           },
           {
             "Nom": "Gregory Perrot",
             "Poste": "A",
             "Infos": "",
-            "Numero": "10"
+            "Numero": "10",
+            "Capitaine": false
           },
           {
             "Nom": "Emmanuel Pannier",
             "Poste": "A",
             "Infos": "",
-            "Numero": "11"
+            "Numero": "11",
+            "Capitaine": false
           }
         ],
         "A": [
@@ -764,7 +774,8 @@
             "Nom": "Abdel Jalil",
             "Poste": "A",
             "Infos": "",
-            "Numero": "9"
+            "Numero": "9",
+            "Capitaine": false
           }
         ]
       },
