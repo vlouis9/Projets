@@ -741,15 +741,15 @@
             "Capitaine": true
           },
           {
-            "Nom": "Nicolas Mitrano",
+            "Nom": "Louis Vermeulen",
             "Poste": "M",
             "Infos": "",
             "Numero": "8",
             "Capitaine": false
           },
           {
-            "Nom": "Hicham Grerifa",
-            "Poste": "M",
+            "Nom": "Mehdi Zerrouki",
+            "Poste": "A",
             "Infos": "",
             "Numero": "7",
             "Capitaine": false
@@ -793,11 +793,11 @@
           "Numero": "14"
         },
         {
-          "Nom": "Louis Vermeulen",
+          "Nom": "Nicolas Mitrano",
           "Numero": "15"
         },
         {
-          "Nom": "Mehdi Zerrouki",
+          "Nom": "Hicham Grerifa",
           "Numero": "16"
         }
       ],
