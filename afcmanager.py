@@ -568,12 +568,15 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
         formation = DEFAULT_FORMATION
 
     players_df = st.session_state.players
-    # Restreindre à la liste fournie de joueurs disponibles
     if joueurs_disponibles is not None:
         players_df = players_df[players_df["Nom"].isin(joueurs_disponibles)]
     if players_df.empty:
         st.info("Aucun joueur dans la base. Merci d'importer ou d'ajouter des joueurs.")
         return {poste: [] for poste in POSTES_ORDER}
+
+    # --- Correction ici ---
+    if joueurs_disponibles is None:
+        joueurs_disponibles = players_df["Nom"].tolist()
 
     # Initialisation terrain
     if terrain_key not in st.session_state:
