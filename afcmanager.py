@@ -568,6 +568,7 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
         formation = DEFAULT_FORMATION
 
     players_df = st.session_state.players
+    # Restreindre à la liste fournie de joueurs disponibles
     if joueurs_disponibles is not None:
         players_df = players_df[players_df["Nom"].isin(joueurs_disponibles)]
     if players_df.empty:
@@ -585,7 +586,6 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
         st.session_state[remp_key] = []
 
     # Récupère les noms de titulaires/remplaçants
-    titulaires = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict)]
     remplacants = [r["Nom"] for r in st.session_state[remp_key] if r and r.get("Nom")]
 
     stats_data = []
@@ -607,11 +607,21 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
             current = terrain[poste][i]
             current_nom = current["Nom"] if current and isinstance(current, dict) else ""
 
-            # Liste des joueurs libres + remplaçants
-            all_selected = [j["Nom"] for p in POSTES_ORDER for j in terrain.get(p, []) if j and isinstance(j, dict)]
-            options_libres = [n for n in stats_df["Nom"] if n not in all_selected and n not in remplacants]
+            # --- Correction ici : joueurs assignés à un autre poste (hors celui-ci)
+            all_selected = []
+            for p in POSTES_ORDER:
+                for idx, j in enumerate(terrain.get(p, [])):
+                    # Exclure le poste et l'indice en cours
+                    if j and isinstance(j, dict):
+                        if not (p == poste and idx == i):
+                            all_selected.append(j["Nom"])
+
+            # Liste déroulante : joueurs dispo et non assignés à un autre poste, + remplaçants, + joueur actuel
+            options_libres = [n for n in joueurs_disponibles if n not in all_selected and n not in remplacants]
             options_remp = [r for r in remplacants if r != current_nom]
             options = [""] + options_libres + options_remp
+            if current_nom and current_nom not in options:
+                options.append(current_nom)  # Toujours proposer le joueur déjà en place
 
             key_select = f"selectbox_{key_prefix}_{poste}_{i}_{current_nom}"
             choix = st.selectbox(label, options, index=options.index(current_nom) if current_nom in options else 0, key=key_select)
@@ -623,9 +633,7 @@ def terrain_interactif(formation, terrain_key, key_suffix=None, joueurs_disponib
                 joueur_info["Numero"] = num
                 if choix in options_remp:
                     # Échange: remplaçant devient titulaire, titulaire va dans remplaçants
-                    # Retire le remplaçant choisi de la liste remplaçants
                     st.session_state[remp_key] = [r for r in st.session_state[remp_key] if r.get("Nom") != choix]
-                    # Ajoute l'ancien titulaire (s'il existe) comme remplaçant
                     if current_nom and current_nom not in remplacants:
                         st.session_state[remp_key].append({"Nom": current_nom, "Numero": ""})
                 terrain[poste][i] = joueur_info
