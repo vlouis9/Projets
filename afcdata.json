@@ -1529,9 +1529,9 @@
       },
       {
         "domicile": "FORZA VIOLA FC",
-        "score_dom": 0,
+        "score_dom": 3,
         "exterieur": "LIEBHERR FOOT",
-        "score_ext": 0
+        "score_ext": 1
       },
       {
         "domicile": "ASFP LUSITANOS",
@@ -1541,9 +1541,9 @@
       },
       {
         "domicile": "AS DRT",
-        "score_dom": 0,
+        "score_dom": 1,
         "exterieur": "ALTRAN FOOT",
-        "score_ext": 0
+        "score_ext": 5
       }
     ]
   },
