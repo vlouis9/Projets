@@ -704,8 +704,8 @@
         ],
         "D": [
           {
-            "Nom": "Nicolas Gardan",
-            "Poste": "D",
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
             "Infos": "",
             "Numero": "3",
             "Capitaine": false
@@ -734,32 +734,32 @@
         ],
         "M": [
           {
-            "Nom": "Thibault Rigal",
+            "Nom": "Nicolas Mitrano",
             "Poste": "M",
             "Infos": "",
-            "Numero": "8",
-            "Capitaine": true
+            "Numero": "10",
+            "Capitaine": false
           },
           {
             "Nom": "Arthur Couto",
             "Poste": "D",
             "Infos": "",
-            "Numero": "6",
+            "Numero": "7",
             "Capitaine": false
           },
           {
             "Nom": "Gregory Perrot",
             "Poste": "A",
             "Infos": "",
-            "Numero": "7",
+            "Numero": "8",
             "Capitaine": false
           },
           {
-            "Nom": "Louis Vermeulen",
+            "Nom": "Thibault Rigal",
             "Poste": "M",
             "Infos": "",
-            "Numero": "10",
-            "Capitaine": false
+            "Numero": "6",
+            "Capitaine": true
           },
           {
             "Nom": "Mehdi Zerrouki",
@@ -781,11 +781,11 @@
       },
       "remplacants": [
         {
-          "Nom": "Amine El Bahraoui",
+          "Nom": "Adrien Dugenet",
           "Numero": "12"
         },
         {
-          "Nom": "Adjmal Akhtari",
+          "Nom": "Louis Vermeulen",
           "Numero": "13"
         },
         {
@@ -793,11 +793,11 @@
           "Numero": "14"
         },
         {
-          "Nom": "Adrien Dugenet",
+          "Nom": "Amine El Bahraoui",
           "Numero": "15"
         },
         {
-          "Nom": "Hicham Grerifa",
+          "Nom": "Adjmal Akhtari",
           "Numero": "16"
         }
       ],
