@@ -804,17 +804,18 @@
       "events": {
         "buteurs": {},
         "passeurs": {},
-        "cartons_jaunes": {},
+        "cartons_jaunes": {
+          "Louis Vermeulen": 1
+        },
         "cartons_rouges": {},
+        "buts_list": [],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
+      "score": "0-0",
       "score_afc": 0,
       "score_adv": 0,
-      "noted": false,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
@@ -837,7 +838,9 @@
         "Mehdi Zerrouki",
         "Olivier Saint-Sa\u00ebns"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "e75c3488-d727-423d-88ed-b02413c0b724": {
       "type": "Championnat",
