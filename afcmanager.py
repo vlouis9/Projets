@@ -1600,7 +1600,7 @@ with tab1:
                                 hdm = match.get("homme_du_match")
                                 if hdm:
                                     st.markdown(
-                                        f"<h4 style='text-align: center;'>🏆 Homme du match</h4>",
+                                        f"<h4 style='text-align: center;'>🏆 Notre homme du match</h4>",
                                         unsafe_allow_html=True
                                     )
                                     st.markdown(
