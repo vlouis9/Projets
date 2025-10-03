@@ -335,7 +335,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 pos_in_row = i % n_per_row
                 # x: réparti entre 5 et 65
                 x = 5 + int(pos_in_row * ((65-5) // (n_per_row-1))) if n_per_row > 1 else 34
-                y = -10 - 12 * row
+                y = -10 - 15 * row
                 positions_remp.append((x, y))
         else:
             # 4 par ligne
@@ -345,7 +345,7 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
                 row = i // n_per_row
                 pos_in_row = i % n_per_row
                 x = 5 + int(pos_in_row * ((65-5) // (n_per_row-1))) if n_per_row > 1 else 34
-                y = -10 - 12 * row
+                y = -10 - 15 * row
                 positions_remp.append((x, y))
                                       
         for idx, remp in enumerate(remplacants):
