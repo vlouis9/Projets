@@ -1529,7 +1529,7 @@ with tab1:
                             st.markdown("---")
                             hdm_sauvegarde = match.get("homme_du_match", "")
                             hdm = st.selectbox(
-                                "🏆 Homme du match",
+                                "🏆 Notre homme du match",
                                 [""] + joueurs,
                                 index=([""] + joueurs).index(hdm_sauvegarde) if hdm_sauvegarde in joueurs else 0,
                                 key=f"hdm_{mid}"
