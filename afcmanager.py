@@ -1687,7 +1687,6 @@ with tab1:
                                 
                                 st.markdown("---")
                                 
-                                st.markdown("---")
                                 if match.get("revue_presse"):
                                     st.markdown("### 📰 Revue de presse")
                                     st.markdown(f"<div style='white-space: pre-line;'>{match['revue_presse']}</div>", unsafe_allow_html=True)
