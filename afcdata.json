@@ -906,7 +906,13 @@
           }
         ],
         "A": [
-          null
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "9",
+            "Capitaine": false
+          }
         ]
       },
       "remplacants": [],
