@@ -863,8 +863,20 @@
           }
         ],
         "D": [
-          null,
-          null,
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Maxime Pujol",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "4",
+            "Capitaine": false
+          },
           {
             "Nom": "Pierre Pavia",
             "Poste": "D",
@@ -881,7 +893,13 @@
           }
         ],
         "M": [
-          null,
+          {
+            "Nom": "Nicolas Mitrano",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "8",
+            "Capitaine": false
+          },
           {
             "Nom": "Arthur Couto",
             "Poste": "D",
@@ -889,7 +907,13 @@
             "Numero": "6",
             "Capitaine": false
           },
-          null,
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "7",
+            "Capitaine": false
+          },
           {
             "Nom": "Sofian Labrinssi",
             "Poste": "M",
@@ -902,7 +926,7 @@
             "Poste": "A",
             "Infos": "",
             "Numero": "11",
-            "Capitaine": false
+            "Capitaine": true
           }
         ],
         "A": [
@@ -915,7 +939,20 @@
           }
         ]
       },
-      "remplacants": [],
+      "remplacants": [
+        {
+          "Nom": "Hicham Grerifa",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Adjmal Akhtari",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Jos\u00e9 Mar\u00eda",
+          "Numero": "14"
+        }
+      ],
       "events": {
         "buteurs": {},
         "passeurs": {},
@@ -949,7 +986,7 @@
         "Adjmal Akhtari",
         "Hicham Grerifa"
       ],
-      "capitaine": ""
+      "capitaine": "Axel Soldadi\u00e9"
     },
     "1b9c308c-5510-4c77-bce1-930df7ce59f6": {
       "type": "Coupe",
