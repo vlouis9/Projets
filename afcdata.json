@@ -851,8 +851,40 @@
       "journee": "J02",
       "nom_match": "\ud83d\udcc8 2025-10-09 : Championnat - J02 -  ALTRAN FOOT vs AFC",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Pierre Tarasinski",
+            "Poste": "G",
+            "Infos": "",
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          null,
+          null,
+          null,
+          {
+            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "A": [
+          null
+        ]
+      },
       "remplacants": [],
       "events": {
         "buteurs": {},
@@ -886,7 +918,8 @@
         "William Toumelin",
         "Adjmal Akhtari",
         "Hicham Grerifa"
-      ]
+      ],
+      "capitaine": ""
     },
     "1b9c308c-5510-4c77-bce1-930df7ce59f6": {
       "type": "Coupe",
