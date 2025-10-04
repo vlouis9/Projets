@@ -865,7 +865,13 @@
         "D": [
           null,
           null,
-          null,
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "5",
+            "Capitaine": false
+          },
           {
             "Nom": "Olivier Saint-Sa\u00ebns",
             "Poste": "D",
@@ -876,10 +882,28 @@
         ],
         "M": [
           null,
+          {
+            "Nom": "Arthur Couto",
+            "Poste": "D",
+            "Infos": "",
+            "Numero": "6",
+            "Capitaine": false
+          },
           null,
-          null,
-          null,
-          null
+          {
+            "Nom": "Sofian Labrinssi",
+            "Poste": "M",
+            "Infos": "",
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "Numero": "11",
+            "Capitaine": false
+          }
         ],
         "A": [
           null
