@@ -894,7 +894,7 @@
         ],
         "M": [
           {
-            "Nom": "Nicolas Mitrano",
+            "Nom": "Louis Vermeulen",
             "Poste": "M",
             "Infos": "",
             "Numero": "8",
@@ -908,7 +908,7 @@
             "Capitaine": false
           },
           {
-            "Nom": "Louis Vermeulen",
+            "Nom": "Jos\u00e9 Mar\u00eda",
             "Poste": "M",
             "Infos": "",
             "Numero": "7",
@@ -949,8 +949,12 @@
           "Numero": "13"
         },
         {
-          "Nom": "Jos\u00e9 Mar\u00eda",
+          "Nom": "Adrien Dugenet",
           "Numero": "14"
+        },
+        {
+          "Nom": "Amine El Bahraoui",
+          "Numero": "15"
         }
       ],
       "events": {
