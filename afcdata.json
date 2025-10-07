@@ -1021,8 +1021,12 @@
       "noted": false,
       "termine": false,
       "homme_du_match": "",
-      "joueurs_disponibles": [],
-      "nibles": []
+      "joueurs_disponibles": [
+        "Louis Vermeulen"
+      ],
+      "nibles": [
+        "Louis Vermeulen"
+      ]
     },
     "7a4ad109-3d90-4f38-b8ae-5fe83c4eea19": {
       "type": "Coupe",
