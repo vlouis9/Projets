@@ -1185,8 +1185,8 @@ with tab1:
                         players_df = st.session_state.players.copy()
                         players_df = players_df.sort_values(["Poste", "Nom"])
                         joueurs_tries = players_df["Nom"].tolist()
-                        if "joueurs_disponibles" not in match:
-                            match["joueurs_disponibles"] = players_df.copy()
+                        #if "joueurs_disponibles" not in match:
+                        #    match["joueurs_disponibles"] = players_df.copy()
                         with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
                             selected_dispo = st.multiselect(
                                 "Joueurs disponibles",
@@ -1199,7 +1199,7 @@ with tab1:
                             st.markdown(f"Joueurs disponibles : {len(selected_dispo)}/{len(joueurs_tries)}")
     
                             if st.button("💾", key=f"save_dispo_{mid}"):
-                                match["joueurs_disponibles"] = selected_dispo
+                                match["nibles"] = selected_dispo
                                 st.session_state.matchs[mid] = match
                                 manager.save()
                                 st.success("Liste des joueurs disponibles sauvegardée !")
