@@ -3,177 +3,212 @@
     {
       "Nom": "William Toumelin",
       "Poste": "G",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Pierre Pavia",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Charles Plun",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Thibault Rigal",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Maxime Pujol",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Axel Soldadi\u00e9",
       "Poste": "A",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Gregory Perrot",
       "Poste": "A",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Louis Vermeulen",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Nicolas Gardan",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Arthur Bouchet",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Arthur Couto",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Pierre Tarasinski",
       "Poste": "G",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Thibault Defaye",
       "Poste": "G",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Hicham Grerifa",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Nicolas Mitrano",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Abdel Jalil",
       "Poste": "A",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Emmanuel Pannier",
       "Poste": "A",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Florentin Reynaud",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Yoann Perzynski",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Walid Chouchi",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Abdel Ouachouo",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Zakaria Benihoud",
       "Poste": "A",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Mehdi Zerrouki",
       "Poste": "A",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Sofian Labrinssi",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Adrien Dugenet",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Constant Augustin",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Giovanni Filippi",
       "Poste": "A",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Loris Traor\u00e9",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Thomas B. ",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Jos\u00e9 Mar\u00eda",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Olivier Saint-Sa\u00ebns",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Amine Benalla",
       "Poste": "D",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Amine El Bahraoui",
       "Poste": "A",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Adjmal Akhtari",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": true
     },
     {
       "Nom": "Mathieu Gadet",
       "Poste": "M",
-      "Infos": ""
+      "Infos": "",
+      "S\u00e9lectionnable": false
     }
   ],
   "lineups": {
