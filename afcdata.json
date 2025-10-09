@@ -1668,6 +1668,12 @@
         "score_dom": 0,
         "exterieur": "AS DRT",
         "score_ext": 0
+      },
+      {
+        "domicile": "FOOT APEM",
+        "exterieur": "ASFP LUSITANOS",
+        "score_dom": 1,
+        "score_ext": 3
       }
     ]
   },
