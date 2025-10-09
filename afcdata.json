@@ -1581,8 +1581,8 @@
     "J02": [
       {
         "domicile": "ALTRAN FOOT",
-        "exterieur": "AFC",
         "score_dom": 5,
+        "exterieur": "AFC",
         "score_ext": 0
       }
     ]
