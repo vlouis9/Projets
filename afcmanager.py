@@ -44,8 +44,24 @@ class AFCDataManager:
                 if "events" in match:
                     match["events"] = self.normalize_events(match["events"])
 
-            if "Sélectionnable" not in st.session_state.players.columns:
-                st.session_state.players["Sélectionnable"] = True
+            # Initialisation robuste des clés session_state
+            if "players" not in st.session_state or not isinstance(st.session_state.players, pd.DataFrame):
+                st.session_state.players = pd.DataFrame(columns=["Nom", "Poste", "Infos", "Sélectionnable"])
+            for col in ["Nom", "Poste", "Infos", "Sélectionnable"]:
+                if col not in st.session_state.players.columns:
+                    st.session_state.players[col] = "" if col != "Sélectionnable" else True
+            
+            for key, default in [
+                ("lineups", {}),
+                ("matchs", {}),
+                ("adversaires", []),
+                ("championnat_scores", {}),
+                ("profondeur_effectif", {}),
+                ("coupe_scores", {}),
+                ("coupe_adversaires", []),
+            ]:
+                if key not in st.session_state:
+                    st.session_state[key] = default
 
             #st.success("✅ Données chargées et normalisées")
         except Exception as e:
