@@ -994,7 +994,7 @@
       "score_afc": 0,
       "score_adv": 5,
       "noted": true,
-      "termine": false,
+      "termine": true,
       "homme_du_match": "William Toumelin",
       "joueurs_disponibles": [
         "Louis Vermeulen",
