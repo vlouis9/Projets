@@ -29,40 +29,30 @@ class AFCDataManager:
             raw = resp.json()
             content = base64.b64decode(raw["content"]).decode()
             data = json.loads(content)
-
+    
+            # Chargement des joueurs
             st.session_state.players = pd.DataFrame(data.get("players", []))
+            # Initialisation robuste (rétrocompatibilité colonne Sélectionnable)
+            for col in ["Nom", "Poste", "Infos", "Sélectionnable"]:
+                if col not in st.session_state.players.columns:
+                    st.session_state.players[col] = "" if col != "Sélectionnable" else True
+    
+            # Chargement des autres structures
             st.session_state.lineups = data.get("lineups", {})
             st.session_state.matchs = data.get("matchs", {})
             st.session_state.adversaires = data.get("adversaires", [])
             st.session_state.championnat_scores = data.get("championnat_scores", {})
             st.session_state.profondeur_effectif = data.get("profondeur_effectif", {})
+    
+            # --- Ajout pour la coupe ---
             st.session_state.coupe_scores = data.get("coupe_scores", {})
             st.session_state.coupe_adversaires = data.get("coupe_adversaires", [])
-
+    
             # NOUVEAU : Normaliser les événements des matchs au chargement
             for match_id, match in st.session_state.matchs.items():
                 if "events" in match:
                     match["events"] = self.normalize_events(match["events"])
-
-            # Initialisation robuste des clés session_state
-            if "players" not in st.session_state or not isinstance(st.session_state.players, pd.DataFrame):
-                st.session_state.players = pd.DataFrame(columns=["Nom", "Poste", "Infos", "Sélectionnable"])
-            for col in ["Nom", "Poste", "Infos", "Sélectionnable"]:
-                if col not in st.session_state.players.columns:
-                    st.session_state.players[col] = "" if col != "Sélectionnable" else True
-            
-            for key, default in [
-                ("lineups", {}),
-                ("matchs", {}),
-                ("adversaires", []),
-                ("championnat_scores", {}),
-                ("profondeur_effectif", {}),
-                ("coupe_scores", {}),
-                ("coupe_adversaires", []),
-            ]:
-                if key not in st.session_state:
-                    st.session_state[key] = default
-
+    
             #st.success("✅ Données chargées et normalisées")
         except Exception as e:
             st.error(f"❌ Échec du chargement des données : {e}")
