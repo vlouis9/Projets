@@ -404,6 +404,22 @@ def plot_lineup_on_pitch_vertical(fig, details, formation, remplacants=None, pla
 
 # --- 📊 STATISTIQUES JOUEURS ---
 
+def compute_clean_sheets():
+    matchs = st.session_state.get("matchs", {})
+    clean_sheets = {}
+    for match in matchs.values():
+        if match.get("type", "").lower() == "amical":
+            continue
+        if not match.get("noted"):
+            continue
+        if match.get("score_adv", 1) > 0:
+            continue
+        for joueur in match.get("details", {}).get("G", []):
+            if joueur and isinstance(joueur, dict) and joueur.get("Nom"):
+                name = joueur["Nom"]
+                clean_sheets[name] = clean_sheets.get(name, 0) + 1
+    return clean_sheets
+
 def compute_player_stats(joueur_nom):
     buts = passes = cj = cr = selections = titularisations = note_sum = note_count = hdm = 0
     matchs = st.session_state.get("matchs", {})
@@ -450,7 +466,7 @@ def compute_player_stats(joueur_nom):
     return {
         "Buts": buts,
         "Passes décisives": passes,
-        "Buts + Passes": buts + passes,
+        "Buts + Passes": buts + passes + compute_clean_sheets(),
         "Décisif par match": decisif,
         "Cartons jaunes": cj,
         "Cartons rouges": cr,
@@ -460,21 +476,7 @@ def compute_player_stats(joueur_nom):
         "Homme du match": hdm
     }
 
-def compute_clean_sheets():
-    matchs = st.session_state.get("matchs", {})
-    clean_sheets = {}
-    for match in matchs.values():
-        if match.get("type", "").lower() == "amical":
-            continue
-        if not match.get("noted"):
-            continue
-        if match.get("score_adv", 1) > 0:
-            continue
-        for joueur in match.get("details", {}).get("G", []):
-            if joueur and isinstance(joueur, dict) and joueur.get("Nom"):
-                name = joueur["Nom"]
-                clean_sheets[name] = clean_sheets.get(name, 0) + 1
-    return clean_sheets
+
 
 def build_player_stats_from_events(match):
     """
@@ -849,17 +851,18 @@ with tab3:
                 st.dataframe(top_buts[["Nom", "Buts"]], use_container_width=True, hide_index=True)
                 st.subheader("🎯 Top 5 Passeurs")
                 st.dataframe(top_passes[["Nom", "Passes décisives"]], use_container_width=True, hide_index=True)
+                st.subheader("🧤 Clean Sheets")
+                st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True, hide_index=True)
                 st.subheader("🔥 Top 5 Décisifs")
                 st.dataframe(top_decisive[["Nom", "Buts + Passes"]], use_container_width=True, hide_index=True)
                 st.subheader("⚡ Ratio par match")
                 st.dataframe(top_ratio[["Nom", "Décisif par match"]], use_container_width=True, hide_index=True)
-                st.subheader("🧤 Clean Sheets")
-                st.dataframe(top_clean[["Nom", "Clean sheets"]], use_container_width=True, hide_index=True)
+                
             with col2:
-                st.subheader("⭐ Top 5 Notes")
-                st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
                 st.subheader("🏆 Top 5 Homme du match")
                 st.dataframe(top_hdm[["Nom", "Homme du match"]], use_container_width=True, hide_index=True)
+                st.subheader("⭐ Top 5 Notes")
+                st.dataframe(top_rating[["Nom", "Note générale"]], use_container_width=True, hide_index=True)
                 st.subheader("🔁 Plus utilisés")
                 st.dataframe(top_used[["Nom", "Titularisations"]], use_container_width=True, hide_index=True)
                 st.subheader("🟥🟨 Bouchers")
