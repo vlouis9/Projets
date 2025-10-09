@@ -651,7 +651,10 @@ def remplacants_interactif(key, titulaires, key_suffix=None, joueurs_disponibles
         stats_data.append({**row, **s})
     stats_df = pd.DataFrame(stats_data)
 
-    stats_df["Titularisations"] = pd.to_numeric(stats_df.get("Titularisations", 0), errors="coerce").fillna(0)
+    if "Titularisations" not in stats_df.columns:
+        stats_df["Titularisations"] = 0
+    else:
+        stats_df["Titularisations"] = pd.to_numeric(stats_df["Titularisations"], errors="coerce").fillna(0)
     dispo_base = stats_df.sort_values("Titularisations", ascending=False)["Nom"].tolist()
     dispo = [n for n in dispo_base if n not in titulaires]
 
