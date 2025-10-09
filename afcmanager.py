@@ -723,17 +723,6 @@ st.set_page_config(
     layout="wide"
 )
 
-# --- 🎨 En-tête visuel ---
-st.title("⚽ AFC Manager")
-#st.caption("🧪 Application Streamlit personnalisée pour suivre les performances, les compositions et les résultats du club AFC.")
-
-# --- 🧭 Bouton de rechargement des données (dans la sidebar) ---
-#with st.sidebar:
-    #st.header("🔧 Options")
-    #if st.button("🔄 Recharger les données depuis GitHub"):
-        #manager.load()
-        #st.success("✅ Données rechargées")
-        #st.rerun()
 
 # --- 🧭 Onglets principaux de navigation ---
 tab_acc, tab1, tab2, tab_coupe, tab3, tab4 = st.tabs([
@@ -777,34 +766,6 @@ with tab_acc:
         )
     except IndexError:
         st.warning("AFC ne figure pas encore dans le classement.")
-
-     # 🏆 Parcours en coupe
-    match_coupe_a_venir = None
-    dernier_tour_coupe = None
-    for match in matchs.values():
-        if match.get("type", "").lower() == "coupe":
-            try:
-                date_match = datetime.strptime(match["date"], "%Y-%m-%d").date()
-                if date_match >= today:
-                    if not match_coupe_a_venir or date_match < datetime.strptime(match_coupe_a_venir["date"], "%Y-%m-%d").date():
-                        match_coupe_a_venir = match
-                elif not dernier_tour_coupe or date_match > datetime.strptime(dernier_tour_coupe["date"], "%Y-%m-%d").date():
-                    dernier_tour_coupe = match
-            except:
-                continue
-
-    if match_coupe_a_venir:
-        col1.markdown(
-            f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{match_coupe_a_venir.get('journee', 'Tour à venir')}</span>",
-            unsafe_allow_html=True
-        )
-    elif dernier_tour_coupe:
-        col1.markdown(
-            f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{dernier_tour_coupe.get('journee', 'Tour inconnu')}</span>",
-            unsafe_allow_html=True
-        )
-    else:
-        st.info("Coupe pas encore entamée.")
     
     # 📈 Forme récent
     derniers_resultats = []
@@ -2154,4 +2115,7 @@ with tab_coupe:
         if st.button("💾",key=f"save_coupe_adv_{selected}"):
             st.session_state.coupe_adversaires = edited_df["Nom"].dropna().astype(str).tolist()
             manager.save()
-            st.success("✅ Liste mise à jour")# --- 🏆 Onglet Suivi Coupe ---
+            st.success("✅ Liste mise à jour")
+
+# --- 🎨 En-pied visuel ---
+st.markdown("⚽ AFC Manager")
