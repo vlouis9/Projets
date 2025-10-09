@@ -993,7 +993,7 @@
       "score_afc": 0,
       "score_adv": 0,
       "noted": false,
-      "termine": false,
+      "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
         "Louis Vermeulen",
