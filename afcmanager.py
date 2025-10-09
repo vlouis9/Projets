@@ -527,10 +527,8 @@ def build_player_stats_from_events(match):
 
 
 def get_classement(championnat_scores, adversaires):
-    if isinstance(adversaires, str):
-        adversaires = [adversaires]
-    elif adversaires is None:
-        adversaires = []
+    if not isinstance(adversaires, list):
+        adversaires = [adversaires] if adversaires else []
     stats = {adv: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for adv in adversaires + ["AFC"]}
     for journee, matchs in championnat_scores.items():
         for m in matchs:
