@@ -1658,7 +1658,14 @@
         "score_ext": 3
       }
     ],
-    "T02": []
+    "T02": [
+      {
+        "domicile": "AFC",
+        "exterieur": "AS DRT",
+        "score_dom": 0,
+        "score_ext": 0
+      }
+    ]
   },
   "coupe_adversaires": [
     "AS DRT",
