@@ -1578,7 +1578,14 @@
         "score_ext": 1
       }
     ],
-    "J02": []
+    "J02": [
+      {
+        "domicile": "ALTRAN FOOT",
+        "exterieur": "AFC",
+        "score_dom": 5,
+        "score_ext": 0
+      }
+    ]
   },
   "profondeur_effectif": {
     "4-2-3-1": {
