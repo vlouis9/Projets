@@ -982,19 +982,20 @@
       "events": {
         "buteurs": {},
         "passeurs": {},
-        "cartons_jaunes": {},
+        "cartons_jaunes": {
+          "Maxime Pujol": 1
+        },
         "cartons_rouges": {},
+        "buts_list": [],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
+      "score": "0-5",
       "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score_adv": 5,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "William Toumelin",
       "joueurs_disponibles": [
         "Louis Vermeulen",
         "Axel Soldadi\u00e9",
@@ -1013,7 +1014,9 @@
         "Amine El Bahraoui",
         "Adrien Dugenet"
       ],
-      "capitaine": "Maxime Pujol"
+      "capitaine": "Maxime Pujol",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "1b9c308c-5510-4c77-bce1-930df7ce59f6": {
       "type": "Coupe",
