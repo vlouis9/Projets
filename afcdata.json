@@ -1668,7 +1668,7 @@
     "T01": [
       {
         "domicile": "AFC",
-        "score_dom": O,
+        "score_dom": 0,
         "exterieur": "AS DRT",
         "score_ext": 0
       }
