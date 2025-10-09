@@ -1187,6 +1187,7 @@ with tab1:
                     if not match.get("termine"):
                         # --- 👥 Sélection des joueurs disponibles ---
                         players_df = st.session_state.players.copy()
+                        players_df = players_df[players_df["Sélectionnable"] == True]
                         players_df = players_df.sort_values(["Poste", "Nom"])
                         joueurs_tries = players_df["Nom"].tolist()
                         #if "joueurs_disponibles" not in match:
