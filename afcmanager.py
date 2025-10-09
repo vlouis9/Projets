@@ -466,7 +466,7 @@ def compute_player_stats(joueur_nom):
     return {
         "Buts": buts,
         "Passes décisives": passes,
-        "Buts + Passes": buts + passes + compute_clean_sheets(),
+        "Buts + Passes": buts + passes,
         "Décisif par match": decisif,
         "Cartons jaunes": cj,
         "Cartons rouges": cr,
