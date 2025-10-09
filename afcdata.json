@@ -1647,15 +1647,15 @@
     "T01": [
       {
         "domicile": "AFC",
-        "score_dom": 0,
+        "score_dom": 7,
         "exterieur": "AS DRT",
-        "score_ext": 0
+        "score_ext": 1
       },
       {
-        "domicile": "FOOT APEM",
-        "score_dom": 1,
+        "domicile": "FC POTO",
+        "score_dom": 3,
         "exterieur": "ASFP LUSITANOS",
-        "score_ext": 3
+        "score_ext": 1
       }
     ],
     "T02": [
