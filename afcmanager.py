@@ -552,7 +552,7 @@ def get_classement(championnat_scores, adversaires):
     return classement
 
 def get_classement_coupe(coupe_scores, coupe_adversaires):
-    stats = {adv: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for adv in adversaires + ["AFC"]}
+    stats = {adv: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for adv in coupe_adversaires + ["AFC"]}
     for journee, matchs in coupe_scores.items():
         for m in matchs:
             dom, ext = m["domicile"], m["exterieur"]
