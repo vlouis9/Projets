@@ -869,75 +869,85 @@
             "Nom": "William Toumelin",
             "Poste": "G",
             "Infos": "",
+            "S\u00e9lectionnable": true,
             "Numero": "1",
             "Capitaine": false
           }
         ],
         "D": [
           {
-            "Nom": "Nicolas Gardan",
+            "Nom": "Olivier Saint-Sa\u00ebns",
             "Poste": "D",
             "Infos": "",
-            "Numero": "3",
+            "S\u00e9lectionnable": true,
+            "Numero": "2",
             "Capitaine": false
           },
           {
             "Nom": "Maxime Pujol",
             "Poste": "D",
             "Infos": "",
+            "S\u00e9lectionnable": true,
             "Numero": "4",
-            "Capitaine": false
+            "Capitaine": true
           },
           {
             "Nom": "Pierre Pavia",
             "Poste": "D",
             "Infos": "",
+            "S\u00e9lectionnable": true,
             "Numero": "5",
             "Capitaine": false
           },
           {
-            "Nom": "Olivier Saint-Sa\u00ebns",
-            "Poste": "D",
+            "Nom": "Adrien Dugenet",
+            "Poste": "M",
             "Infos": "",
-            "Numero": "2",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
             "Capitaine": false
           }
         ],
         "M": [
           {
-            "Nom": "Louis Vermeulen",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "8",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Arthur Couto",
+            "Nom": "Nicolas Gardan",
             "Poste": "D",
             "Infos": "",
+            "S\u00e9lectionnable": true,
             "Numero": "6",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Jos\u00e9 Mar\u00eda",
-            "Poste": "M",
-            "Infos": "",
-            "Numero": "7",
             "Capitaine": false
           },
           {
             "Nom": "Sofian Labrinssi",
             "Poste": "M",
             "Infos": "",
-            "Numero": "10",
+            "S\u00e9lectionnable": true,
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jos\u00e9 Mar\u00eda",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
             "Capitaine": false
           },
           {
             "Nom": "Axel Soldadi\u00e9",
             "Poste": "A",
             "Infos": "",
-            "Numero": "11",
-            "Capitaine": true
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
           }
         ],
         "A": [
@@ -945,6 +955,7 @@
             "Nom": "Abdel Jalil",
             "Poste": "A",
             "Infos": "",
+            "S\u00e9lectionnable": true,
             "Numero": "9",
             "Capitaine": false
           }
@@ -952,19 +963,19 @@
       },
       "remplacants": [
         {
-          "Nom": "Hicham Grerifa",
+          "Nom": "Louis Vermeulen",
           "Numero": "12"
         },
         {
-          "Nom": "Adjmal Akhtari",
+          "Nom": "Amine El Bahraoui",
           "Numero": "13"
         },
         {
-          "Nom": "Adrien Dugenet",
+          "Nom": "Adjmal Akhtari",
           "Numero": "14"
         },
         {
-          "Nom": "Amine El Bahraoui",
+          "Nom": "Arthur Couto",
           "Numero": "15"
         }
       ],
@@ -1002,7 +1013,7 @@
         "Amine El Bahraoui",
         "Adrien Dugenet"
       ],
-      "capitaine": "Axel Soldadi\u00e9"
+      "capitaine": "Maxime Pujol"
     },
     "1b9c308c-5510-4c77-bce1-930df7ce59f6": {
       "type": "Coupe",
