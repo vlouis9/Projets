@@ -31,6 +31,8 @@ class AFCDataManager:
             data = json.loads(content)
 
             st.session_state.players = pd.DataFrame(data.get("players", []))
+            if "Sélectionnable" not in st.session_state.players.columns:
+                st.session_state.players["Sélectionnable"] = True
             st.session_state.lineups = data.get("lineups", {})
             st.session_state.matchs = data.get("matchs", {})
             st.session_state.adversaires = data.get("adversaires", [])
