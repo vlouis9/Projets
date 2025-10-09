@@ -1661,9 +1661,15 @@
     "T02": [
       {
         "domicile": "AFC",
-        "exterieur": "AS DRT",
         "score_dom": 0,
+        "exterieur": "AS DRT",
         "score_ext": 0
+      },
+      {
+        "domicile": "FOOT APEM",
+        "exterieur": "ASFP LUSITANOS",
+        "score_dom": 3,
+        "score_ext": 1
       }
     ]
   },
