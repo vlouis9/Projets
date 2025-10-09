@@ -736,6 +736,9 @@ tab_acc, tab1, tab2, tab_coupe, tab3, tab4 = st.tabs([
 
 # --- 🏟️ Onglet Accueil (Tableau de bord) ---
 with tab_acc:
+    # --- 🎨 En-pied visuel ---
+    st.title("⚽ AFC Manager")
+    
     today = datetime.today().date()
     matchs = st.session_state.get("matchs", {})
     classement = get_classement(
@@ -2117,5 +2120,4 @@ with tab_coupe:
             manager.save()
             st.success("✅ Liste mise à jour")
 
-# --- 🎨 En-pied visuel ---
-st.markdown("⚽ AFC Manager")
+
