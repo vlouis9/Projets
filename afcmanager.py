@@ -130,7 +130,7 @@ for key in ["lineups", "matchs", "adversaires", "championnat_scores", "profondeu
         st.session_state[key] = {}
 
 # --- ⚙️ CONSTANTES FORMATION ---
-PLAYER_COLS = ["Nom", "Poste", "Infos"]
+PLAYER_COLS = ["Nom", "Poste", "Infos", "Sélectionnable"]
 DEFAULT_FORMATION = "4-2-3-1"
 MAX_REMPLACANTS = 5
 
@@ -867,7 +867,7 @@ with tab3:
             s = compute_player_stats(row["Nom"])
             stats_data.append({**row, **s})
         df_stats = pd.DataFrame(stats_data, columns=[
-            "Nom", "Poste", "Infos", "Buts", "Passes décisives", "Buts + Passes",
+            "Nom", "Poste", "Infos", "Sélectionnable", "Buts", "Passes décisives", "Buts + Passes",
             "Décisif par match", "Cartons jaunes", "Cartons rouges", "Sélections",
             "Titularisations", "Note générale", "Homme du match"
         ])
@@ -881,6 +881,7 @@ with tab3:
                 "Nom": st.column_config.TextColumn(required=True),
                 "Poste": st.column_config.SelectboxColumn(options=POSTES_ORDER, required=True, default="G"),
                 "Infos": st.column_config.TextColumn(),
+                "Sélectionnable": st.column_config.CheckboxColumn(required=False, default=True),
                 "Buts": st.column_config.NumberColumn(disabled=True),
                 "Passes décisives": st.column_config.NumberColumn(disabled=True),
                 "Buts + Passes": st.column_config.NumberColumn(disabled=True),
