@@ -1741,5 +1741,18 @@
         ]
       }
     }
+  },
+  "adversaires_coupe": [
+    "AS DRT"
+  ],
+  "coupe_scores": {
+    "J01": [
+      {
+        "domicile": "AFC",
+        "score_dom": 0,
+        "exterieur": "AS DRT",
+        "score_ext": 0
+      }
+    ]
   }
 }
