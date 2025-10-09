@@ -132,7 +132,7 @@ manager = AFCDataManager()
 manager.load()
 
 # 🧩 Initialiser structures vides si besoin
-if not isinstance(st.session_state.players, pd.DataFrame):
+if 'players' not in st.session_state or not isinstance(st.session_state.players, pd.DataFrame):
     st.session_state.players = pd.DataFrame(columns=["Nom", "Poste", "Infos", "Sélectionnable"])
 for col in ["Nom", "Poste", "Infos", "Sélectionnable"]:
     if col not in st.session_state.players.columns:
