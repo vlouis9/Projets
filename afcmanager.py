@@ -761,7 +761,7 @@ with tab_acc:
             if date_match < today and match.get("termine") and match.get("noted"):
                 score_afc = match.get("score_afc")
                 score_adv = match.get("score_adv")
-                symbol = "✅" if score_afc > score_adv else "⚖️" if score_afc == score_adv else "❌"
+                symbol = "✅" if score_afc > score_adv else "🟰" if score_afc == score_adv else "❌"
                 derniers_resultats.append(symbol)
             if len(derniers_resultats) == 5:
                 break
