@@ -748,12 +748,12 @@ with tab_acc:
                 continue
 
     if match_coupe_a_venir:
-        col2.markdown(
+        col1.markdown(
             f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{match_coupe_a_venir.get('journee', 'Tour à venir')}</span>",
             unsafe_allow_html=True
         )
     elif dernier_tour_coupe:
-        col2.markdown(
+        col1.markdown(
             f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{dernier_tour_coupe.get('journee', 'Tour inconnu')}</span>",
             unsafe_allow_html=True
         )
@@ -776,7 +776,7 @@ with tab_acc:
             continue
 
     if derniers_resultats:
-       col1.markdown(
+       col2.markdown(
         f"<span style='font-size:22px;'>📈 Forme récente :</span> <span style='font-size:36px; font-weight:bold;'>{' '.join(derniers_resultats)}</span>",
             unsafe_allow_html=True
        )
