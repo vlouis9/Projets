@@ -1908,8 +1908,181 @@ with tab2:
             st.session_state.adversaires = edited_df["Nom"].dropna().astype(str).tolist()
             manager.save()
             st.success("✅ Liste mise à jour")
-
 # --- 🏆 Onglet Suivi Coupe ---
+with tab_coupe:
+    subtab1, subtab2, subtab3 = st.tabs([
+        "Classement Poule", 
+        "Saisie des scores", 
+        "Gestion des adversaires"
+    ])
+
+    # --- Classement Poule ---
+    with subtab1:
+        equipes = ["AFC"] + st.session_state.get("coupe_adversaires", [])
+        scores = st.session_state.get("coupe_scores", {})
+        stats = {team: {"MJ": 0, "Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for team in equipes}
+
+        for tour, matchs in scores.items():
+            for m in matchs:
+                dom, ext = m["domicile"], m["exterieur"]
+                sd, se = m["score_dom"], m["score_ext"]
+
+                if sd is not None and se is not None:
+                    stats[dom]["MJ"] += 1
+                    stats[ext]["MJ"] += 1
+                    stats[dom]["BP"] += sd
+                    stats[dom]["BC"] += se
+                    stats[ext]["BP"] += se
+                    stats[ext]["BC"] += sd
+
+                    # Coupe, généralement 3 pts victoire, 1 nul, 0 défaite
+                    if sd > se:
+                        stats[dom]["V"] += 1
+                        stats[ext]["D"] += 1
+                        stats[dom]["Pts"] += 3
+                    elif se > sd:
+                        stats[ext]["V"] += 1
+                        stats[dom]["D"] += 1
+                        stats[ext]["Pts"] += 3
+                    else:
+                        stats[dom]["N"] += 1
+                        stats[ext]["N"] += 1
+                        stats[dom]["Pts"] += 1
+                        stats[ext]["Pts"] += 1
+
+        for v in stats.values():
+            v["Diff"] = v["BP"] - v["BC"]
+
+        df = pd.DataFrame([
+            {"Équipe": k, **v} for k, v in stats.items()
+        ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
+
+        st.dataframe(df, hide_index=True, use_container_width=True)
+        st.caption("Classement de la poule de coupe")
+
+    # --- Saisie des scores ---
+    with subtab2:
+        def next_tour_key():
+            existing = [int(t[1:]) for t in st.session_state.coupe_scores if t.startswith("T")]
+            return f"T{max(existing, default=0)+1:02d}"
+
+        if not st.session_state.coupe_scores:
+            st.session_state.coupe_scores["T01"] = []
+
+        tours = sorted(st.session_state.coupe_scores.keys())
+        if "selected_tour" not in st.session_state:
+            st.session_state.selected_tour = tours[0]
+        selected = st.session_state.selected_tour
+
+        idx = tours.index(selected)
+        col_spacer1, col_prev, col_title, col_next, col_spacer2 = st.columns([3, 1, 2, 1, 3])
+
+        with col_prev:
+            if idx > 0 and st.button("←", key=f"tour_prev_{selected}"):
+                st.session_state.selected_tour = tours[idx - 1]
+                st.rerun()
+        
+        with col_title:
+            st.markdown(
+                f"<h2 style='text-align: center;'>🏆 {selected}</h2>",
+                unsafe_allow_html=True
+            )
+        
+        with col_next:
+            if idx < len(tours) - 1 and st.button("→", key=f"tour_next_{selected}"):
+                st.session_state.selected_tour = tours[idx + 1]
+                st.rerun()
+
+        selected = st.session_state.selected_tour
+        matchs = st.session_state.coupe_scores.get(selected, [])
+
+        # Affichage/édition des matchs
+        for i, match in enumerate(matchs):
+            col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 3, 1])
+            dom = col1.selectbox(
+                f"Domicile {i+1}", equipes, 
+                index=equipes.index(match["domicile"]), 
+                key=f"coupe_dom_{selected}_{i}"
+            )
+            score_dom = col2.number_input(
+                "⚽", value=match.get("score_dom", 0), min_value=0, max_value=30, 
+                key=f"coupe_score_dom_{selected}_{i}"
+            )
+            score_ext = col3.number_input(
+                "⚽", value=match.get("score_ext", 0), min_value=0, max_value=30, 
+                key=f"coupe_score_ext_{selected}_{i}"
+            )
+            ext = col4.selectbox(
+                f"Extérieur {i+1}", equipes, 
+                index=equipes.index(match["exterieur"]), 
+                key=f"coupe_ext_{selected}_{i}"
+            )
+            matchs[i] = {
+                "domicile": dom,
+                "score_dom": score_dom,
+                "exterieur": ext,
+                "score_ext": score_ext
+            }
+            
+            if col5.button("🗑️", key=f"delete_coupe_match_{selected}_{i}"):
+                del matchs[i]
+                st.session_state.coupe_scores[selected] = matchs
+                manager.save()
+                st.success("🧹 Match supprimé")
+                st.rerun()
+                
+        uniquekeysave = f"savescores_coupe_{selected}"
+        if st.button("💾",key=uniquekeysave):
+            st.session_state.coupe_scores[selected] = matchs
+            manager.save()
+            st.success("✅ Scores mis à jour")
+            st.rerun()
+
+        # Ajouter un match
+        st.markdown("---")
+        with st.expander("➕ Ajouter un match à ce tour"):
+            col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 3, 1])
+            dom_new = col1.selectbox(
+                "Domicile", equipes, key=f"coupe_add_dom_{selected}"
+            )
+            ext_new = col4.selectbox(
+                "Extérieur", [e for e in equipes if e != dom_new], key=f"coupe_add_ext_{selected}"
+            )
+            score_dom_new = col2.number_input(
+                "⚽ Score domicile", min_value=0, value=0, key=f"coupe_add_score_dom_{selected}"
+            )
+            score_ext_new = col3.number_input(
+                "⚽ Score extérieur", min_value=0, value=0, key=f"coupe_add_score_ext_{selected}"
+            )
+            if col5.button("➕", key=f"coupe_add_match_{selected}"):
+                matchs.append({
+                    "domicile": dom_new,
+                    "exterieur": ext_new,
+                    "score_dom": score_dom_new,
+                    "score_ext": score_ext_new
+                })
+                st.session_state.coupe_scores[selected] = matchs
+                manager.save()
+                st.success("✅ Match ajouté")
+                st.rerun()
+        st.markdown("---")
+        # Ajouter une nouvelle journée
+        if st.button("🗓️ Ajouter un tour", key=f"add_coupe_tour_{selected}"):
+            new_key = next_tour_key()
+            st.session_state.coupe_scores[new_key] = []
+            manager.save()
+            st.success(f"🏆 {new_key} créé")
+            st.rerun()
+
+    # --- Gestion des adversaires coupe ---
+    with subtab3:
+        adv_df = pd.DataFrame({"Nom": st.session_state.coupe_adversaires}, dtype="object")
+        edited_df = st.data_editor(adv_df, num_rows="dynamic", hide_index=True, key="coupe_adv_editor")
+
+        if st.button("💾",key=f"save_coupe_adv_{selected}"):
+            st.session_state.coupe_adversaires = edited_df["Nom"].dropna().astype(str).tolist()
+            manager.save()
+            st.success("✅ Liste mise à jour")# --- 🏆 Onglet Suivi Coupe ---
 with tab_coupe:
     subtab1, subtab2, subtab3 = st.tabs([
         "Classement Poule", 
