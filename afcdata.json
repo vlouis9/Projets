@@ -1661,9 +1661,6 @@
       }
     }
   },
-  "coupe_adversaires": [
-    "AS DRT"
-  ],
   "coupe_scores": {
     "T01": [
       {
@@ -1673,5 +1670,10 @@
         "score_ext": 0
       }
     ]
-  }
+  },
+  "coupe_adversaires": [
+    "AS DRT",
+    "FOOT APEM",
+    "ASFP LUSITANOS"
+  ]
 }
