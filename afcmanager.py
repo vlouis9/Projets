@@ -96,7 +96,9 @@ class AFCDataManager:
                 "matchs": matchs_normalized,
                 "adversaires": st.session_state.adversaires,
                 "championnat_scores": st.session_state.championnat_scores,
-                "profondeur_effectif": st.session_state.profondeur_effectif
+                "profondeur_effectif": st.session_state.profondeur_effectif,
+                "coupe_scores": st.session_state.coupe_scores,
+                "coupe_adversaires": st.session_state.coupe_adversaires
             }
             encoded = base64.b64encode(json.dumps(payload, indent=2).encode()).decode()
 
