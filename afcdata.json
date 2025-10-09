@@ -1652,10 +1652,10 @@
         "score_ext": 1
       },
       {
-        "domicile": "FC POTO",
-        "score_dom": 3,
-        "exterieur": "ASFP LUSITANOS",
-        "score_ext": 1
+        "domicile": "ASFP LUSITANOS",
+        "score_dom": 1,
+        "exterieur": "FC POTO",
+        "score_ext": 3
       }
     ],
     "T02": [
