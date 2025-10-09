@@ -1820,7 +1820,7 @@ with tab2:
         col_spacer1, col_prev, col_title, col_next, col_spacer2 = st.columns([3, 1, 2, 1, 3])
 
         with col_prev:
-            if idx > 0 and st.button("←", key="journee_prev"):
+            if idx > 0 and st.button("←", key=f"journee_prev_{selected}"):
                 st.session_state.selected_journee = journees[idx - 1]
                 st.rerun()
         
@@ -1831,7 +1831,7 @@ with tab2:
             )
         
         with col_next:
-            if idx < len(journees) - 1 and st.button("→", key="journee_next"):
+            if idx < len(journees) - 1 and st.button("→", key=f"journee_next_{selected}"):
                 st.session_state.selected_journee = journees[idx + 1]
                 st.rerun()
 
@@ -1841,10 +1841,24 @@ with tab2:
         # Affichage/édition des matchs
         for i, match in enumerate(matchs):
             col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 3, 1])
-            dom = col1.selectbox(f"Domicile {i+1}", equipes, index=equipes.index(match["domicile"]), key=f"dom_{selected}_{i}")
-            score_dom = col2.number_input("⚽", value=match.get("score_dom", 0), min_value=0, max_value=30, key=f"score_dom_{selected}_{i}")
-            score_ext = col3.number_input("⚽", value=match.get("score_ext", 0), min_value=0, max_value=30, key=f"score_ext_{selected}_{i}")
-            ext = col4.selectbox(f"Extérieur {i+1}", equipes, index=equipes.index(match["exterieur"]), key=f"ext_{selected}_{i}")
+            dom = col1.selectbox(
+                f"Domicile {i+1}", equipes, 
+                index=equipes.index(match["domicile"]), 
+                key=f"champ_dom_{selected}_{i}"
+            )
+            score_dom = col2.number_input(
+                "⚽", value=match.get("score_dom", 0), min_value=0, max_value=30, 
+                key=f"champ_score_dom_{selected}_{i}"
+            )
+            score_ext = col3.number_input(
+                "⚽", value=match.get("score_ext", 0), min_value=0, max_value=30, 
+                key=f"champ_score_ext_{selected}_{i}"
+            )
+            ext = col4.selectbox(
+                f"Extérieur {i+1}", equipes, 
+                index=equipes.index(match["exterieur"]), 
+                key=f"champ_ext_{selected}_{i}"
+            )
             matchs[i] = {
                 "domicile": dom,
                 "score_dom": score_dom,
@@ -1861,25 +1875,33 @@ with tab2:
                 
         uniquekeysave = f"savescores_{selected}"
         if st.button("💾",key=uniquekeysave):
-                st.session_state.championnat_scores[selected] = matchs
-                manager.save()
-                classement = get_classement(
-                    st.session_state.championnat_scores,
-                    st.session_state.adversaires
-                )
-                st.session_state["classement_live"] = classement  # (Optionnel, si tu veux le réutiliser ailleurs)
-                st.success("✅ Scores mis à jour")
-                st.rerun()
+            st.session_state.championnat_scores[selected] = matchs
+            manager.save()
+            classement = get_classement(
+                st.session_state.championnat_scores,
+                st.session_state.adversaires
+            )
+            st.session_state["classement_live"] = classement  # (Optionnel, si tu veux le réutiliser ailleurs)
+            st.success("✅ Scores mis à jour")
+            st.rerun()
 
         # Ajouter un match
         st.markdown("---")
         with st.expander("➕ Ajouter un match à cette journée"):
             col1, col2, col3, col4, col5 = st.columns([3, 1, 1, 3, 1])
-            dom_new = col1.selectbox("Domicile", equipes)
-            ext_new = col4.selectbox("Extérieur", [e for e in equipes if e != dom_new])
-            score_dom_new = col2.number_input("⚽ Score domicile", min_value=0, value=0)
-            score_ext_new = col3.number_input("⚽ Score extérieur", min_value=0, value=0)
-            if col5.button("➕"):
+            dom_new = col1.selectbox(
+                "Domicile", equipes, key=f"champ_add_dom_{selected}"
+            )
+            ext_new = col4.selectbox(
+                "Extérieur", [e for e in equipes if e != dom_new], key=f"champ_add_ext_{selected}"
+            )
+            score_dom_new = col2.number_input(
+                "⚽ Score domicile", min_value=0, value=0, key=f"champ_add_score_dom_{selected}"
+            )
+            score_ext_new = col3.number_input(
+                "⚽ Score extérieur", min_value=0, value=0, key=f"champ_add_score_ext_{selected}"
+            )
+            if col5.button("➕", key=f"champ_add_match_{selected}"):
                 matchs.append({
                     "domicile": dom_new,
                     "exterieur": ext_new,
@@ -1892,7 +1914,7 @@ with tab2:
                 st.rerun()
         st.markdown("---")
         # Ajouter une nouvelle journée
-        if st.button("🗓️ Ajouter une journée"):
+        if st.button("🗓️ Ajouter une journée", key=f"add_champ_journee_{selected}"):
             new_key = next_journee_key()
             st.session_state.championnat_scores[new_key] = []
             manager.save()
@@ -1902,12 +1924,13 @@ with tab2:
     # --- 🧑‍🤝‍🧑 Gestion des adversaires ---
     with subtab3:
         adv_df = pd.DataFrame({"Nom": st.session_state.adversaires}, dtype="object")
-        edited_df = st.data_editor(adv_df, num_rows="dynamic", hide_index=True)
+        edited_df = st.data_editor(adv_df, num_rows="dynamic", hide_index=True, key="champ_adv_editor")
 
-        if st.button("💾",key=f"save_{adv_df}"):
+        if st.button("💾",key=f"save_champ_adv_{selected}"):
             st.session_state.adversaires = edited_df["Nom"].dropna().astype(str).tolist()
             manager.save()
             st.success("✅ Liste mise à jour")
+            
 # --- 🏆 Onglet Suivi Coupe ---
 with tab_coupe:
     subtab1, subtab2, subtab3 = st.tabs([
