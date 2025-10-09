@@ -551,6 +551,38 @@ def get_classement(championnat_scores, adversaires):
     ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
     return classement
 
+def get_classement_coupe(coupe_scores, coupe_adversaires):
+    stats = {adv: {"Pts": 0, "V": 0, "N": 0, "D": 0, "BP": 0, "BC": 0} for adv in adversaires + ["AFC"]}
+    for journee, matchs in coupe_scores.items():
+        for m in matchs:
+            dom, ext = m["domicile"], m["exterieur"]
+            sd, se = m["score_dom"], m["score_ext"]
+            # Mise à jour des scores
+            stats[dom]["BP"] += sd
+            stats[dom]["BC"] += se
+            stats[ext]["BP"] += se
+            stats[ext]["BC"] += sd
+            # Attribution des points
+            if sd > se:
+                stats[dom]["V"] += 1
+                stats[ext]["D"] += 1
+                stats[dom]["Pts"] += 3
+            elif se > sd:
+                stats[ext]["V"] += 1
+                stats[dom]["D"] += 1
+                stats[ext]["Pts"] += 3
+            else:
+                stats[dom]["N"] += 1
+                stats[ext]["N"] += 1
+                stats[dom]["Pts"] += 1
+                stats[ext]["Pts"] += 1
+    for v in stats.values():
+        v["Diff"] = v["BP"] - v["BC"]
+    classement_coupe = pd.DataFrame([
+        {"Équipe": k, **v} for k, v in stats.items()
+    ]).sort_values(["Pts", "Diff", "BP"], ascending=[False, False, False])
+    return classement_coupe
+
 def style_classement(df):
     styles = []
     for i in range(len(df)):
@@ -721,12 +753,26 @@ with tab_acc:
         st.session_state.get("championnat_scores", {}),
         st.session_state.get("adversaires", [])
     )
+    classement_coupe = get_classement_coupe(
+        st.session_state.get("coupe_scores", {}),
+        st.session_state.get("coupe_adversaires", [])
+    )
     col1, col2 = st.columns(2)
     # 📊 Classement championnat
     try:
         rang_afc = classement.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
         col1.markdown(
             f"<span style='font-size:22px;'>📊 Championnat :</span> <span style='font-size:36px; font-weight:bold;'>{rang_afc}ᵉ</span>",
+            unsafe_allow_html=True
+        )
+    except IndexError:
+        st.warning("AFC ne figure pas encore dans le classement.")
+
+    # 🏆 Classement coupe
+    try:
+        rang_afc_coupe = classement_coupe.reset_index(drop=True).query("Équipe == 'AFC'").index[0] + 1
+        col1.markdown(
+            f"<span style='font-size:22px;'>🏆 Coupe :</span> <span style='font-size:36px; font-weight:bold;'>{rang_afc_coupe}ᵉ</span>",
             unsafe_allow_html=True
         )
     except IndexError:
