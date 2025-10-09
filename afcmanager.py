@@ -1190,15 +1190,14 @@ with tab1:
                         players_df = players_df[players_df["Sélectionnable"] == True]
                         players_df = players_df.sort_values(["Poste", "Nom"])
                         joueurs_tries = players_df["Nom"].tolist()
-                        #if "joueurs_disponibles" not in match:
-                        #    match["joueurs_disponibles"] = players_df.copy()
-                        with st.expander("👥 Sélection des joueurs disponibles pour ce match"):
-                            selected_dispo = st.multiselect(
-                                "Joueurs disponibles",
-                                joueurs_tries,
-                                default=match.get("joueurs_disponibles", []),
-                                key=f"joueurs_dispo_{mid}"
-                            )
+                        # Correction : ne garder que les joueurs existants dans la base
+                        default_dispo = [j for j in match.get("joueurs_disponibles", []) if j in joueurs_tries]
+                        selected_dispo = st.multiselect(
+                            "Joueurs disponibles",
+                            joueurs_tries,
+                            default=default_dispo,
+                            key=f"joueurs_dispo_{mid}"
+                        )
                             match["joueurs_disponibles"] = selected_dispo
                             st.session_state.matchs[mid] = match
                             st.markdown(f"Joueurs disponibles : {len(selected_dispo)}/{len(joueurs_tries)}")
