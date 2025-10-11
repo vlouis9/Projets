@@ -1584,6 +1584,12 @@
         "score_dom": 5,
         "exterieur": "AFC",
         "score_ext": 0
+      },
+      {
+        "domicile": "TOAC 2",
+        "exterieur": "LIEBHERR FOOT",
+        "score_dom": 5,
+        "score_ext": 3
       }
     ]
   },
