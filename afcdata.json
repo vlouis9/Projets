@@ -1869,7 +1869,14 @@
         "score_ext": 1
       }
     ],
-    "T03": []
+    "T03": [
+      {
+        "domicile": "AFC",
+        "exterieur": "FOOT APEM",
+        "score_dom": 3,
+        "score_ext": 3
+      }
+    ]
   },
   "coupe_adversaires": [
     "AS DRT",
