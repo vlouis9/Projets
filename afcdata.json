@@ -1872,8 +1872,8 @@
     "T03": [
       {
         "domicile": "AFC",
-        "exterieur": "FOOT APEM",
         "score_dom": 3,
+        "exterieur": "FOOT APEM",
         "score_ext": 3
       }
     ]
