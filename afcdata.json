@@ -1039,9 +1039,115 @@
       "journee": "Poules",
       "nom_match": "\ud83c\udfc6 2025-10-15 : Coupe - Poules - AFC vs FOOT APEM",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Nicolas Mitrano",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Constant Augustin",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": true
+          },
+          {
+            "Nom": "Amine El Bahraoui",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Jos\u00e9 Mar\u00eda",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Walid Chouchi",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Sofian Labrinssi",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Emmanuel Pannier",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
+            "Capitaine": false
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Adjmal Akhtari",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Credo Atake",
+          "Numero": "14"
+        }
+      ],
       "events": {
         "buteurs": {},
         "passeurs": {},
@@ -1087,7 +1193,8 @@
         "Credo Atake",
         "Jahid Labrinssi",
         "Nicolas Mitrano"
-      ]
+      ],
+      "capitaine": "Thibault Rigal"
     },
     "7a4ad109-3d90-4f38-b8ae-5fe83c4eea19": {
       "type": "Coupe",
