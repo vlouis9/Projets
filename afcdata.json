@@ -1149,21 +1149,39 @@
         }
       ],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
+        "buteurs": {
+          "Arthur Bouchet": 1,
+          "Jahid Labrinssi": 1,
+          "Walid Chouchi": 1
+        },
+        "passeurs": {
+          "Amine El Bahraoui": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
+        "buts_list": [
+          [
+            "Arthur Bouchet",
+            "Amine El Bahraoui"
+          ],
+          [
+            "Jahid Labrinssi",
+            ""
+          ],
+          [
+            "Walid Chouchi",
+            ""
+          ]
+        ],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "3-3",
+      "score_afc": 3,
+      "score_adv": 3,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Walid Chouchi",
       "joueurs_disponibles": [
         "Thibault Rigal",
         "Arthur Bouchet",
@@ -1194,7 +1212,9 @@
         "Jahid Labrinssi",
         "Nicolas Mitrano"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "7a4ad109-3d90-4f38-b8ae-5fe83c4eea19": {
       "type": "Coupe",
