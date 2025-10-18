@@ -536,16 +536,18 @@ def get_classement(championnat_scores, adversaires):
             if sd > se:
                 stats[dom]["V"] += 1
                 stats[ext]["D"] += 1
-                stats[dom]["Pts"] += 3
+                stats[dom]["Pts"] += 4
+                stats[ext]["Pts"] += 1
             elif se > sd:
                 stats[ext]["V"] += 1
                 stats[dom]["D"] += 1
-                stats[ext]["Pts"] += 3
+                stats[ext]["Pts"] += 4
+                stats[dom]["Pts"] += 1
             else:
                 stats[dom]["N"] += 1
                 stats[ext]["N"] += 1
-                stats[dom]["Pts"] += 1
-                stats[ext]["Pts"] += 1
+                stats[dom]["Pts"] += 2
+                stats[ext]["Pts"] += 2
     for v in stats.values():
         v["Diff"] = v["BP"] - v["BC"]
     classement = pd.DataFrame([
@@ -568,16 +570,18 @@ def get_classement_coupe(coupe_scores, coupe_adversaires):
             if sd > se:
                 stats[dom]["V"] += 1
                 stats[ext]["D"] += 1
-                stats[dom]["Pts"] += 3
+                stats[dom]["Pts"] += 4
+                stats[ext]["Pts"] += 1
             elif se > sd:
                 stats[ext]["V"] += 1
                 stats[dom]["D"] += 1
-                stats[ext]["Pts"] += 3
+                stats[ext]["Pts"] += 4
+                stats[dom]["Pts"] += 1
             else:
                 stats[dom]["N"] += 1
                 stats[ext]["N"] += 1
-                stats[dom]["Pts"] += 1
-                stats[ext]["Pts"] += 1
+                stats[dom]["Pts"] += 2
+                stats[ext]["Pts"] += 2
     for v in stats.values():
         v["Diff"] = v["BP"] - v["BC"]
     classement_coupe = pd.DataFrame([
@@ -818,7 +822,10 @@ with tab_acc:
 
 # --- 🧠 Onglet : Gestion Équipe ---
 with tab3:
-    subtab1, subtab2 = st.tabs(["Stats équipe", "Base joueurs"])
+    players_count = 0
+    if "players" in st.session_state and isinstance(st.session_state.players, pd.DataFrame):
+        players_count = len(st.session_state.players.dropna(subset=["Nom"]))
+    subtab1, subtab2 = st.tabs(["Stats équipe", f"Base joueurs ({players_count})"])
 
     # -- 🟡 Sous-onglet : Statistiques équipe --
     with subtab1:
@@ -1184,13 +1191,13 @@ with tab1:
                 # Style grisé si le match est terminé
                 nom_affiche = match.get("nom_match", "Match sans nom")
                 if match.get("termine", False):
-                    titre = f"✅ {nom_affiche}"
+                    score_display = match.get("score", "").strip()
+                    if score_display:
+                        titre = f"✅ {nom_affiche} — Résultat : {score_display}"
+                    else:
+                        titre = f"✅ {nom_affiche}"
                 else:
                     titre = f"🕒 {nom_affiche}"
-                with st.expander(
-                    titre,
-                    expanded=False
-                ):
                       
                     # --- ✅ Checkbox “Match terminé” ---
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
@@ -1829,7 +1836,7 @@ with tab2:
 
         journees = sorted(st.session_state.championnat_scores.keys())
         if "selected_journee" not in st.session_state:
-            st.session_state.selected_journee = journees[0]
+            st.session_state.selected_journee = journees[-1]
         selected = st.session_state.selected_journee
             
         idx = journees.index(st.session_state.selected_journee)
@@ -2010,7 +2017,7 @@ with tab_coupe:
 
         tours = sorted(st.session_state.coupe_scores.keys())
         if "selected_tour" not in st.session_state:
-            st.session_state.selected_tour = tours[0]
+            st.session_state.selected_tour = tours[-1]
         selected = st.session_state.selected_tour
 
         idx = tours.index(selected)
