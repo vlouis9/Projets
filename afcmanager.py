@@ -1198,6 +1198,10 @@ with tab1:
                         titre = f"✅ {nom_affiche}"
                 else:
                     titre = f"🕒 {nom_affiche}"
+                with st.expander(
+                    titre,
+                    expanded=False
+                ):
                       
                     # --- ✅ Checkbox “Match terminé” ---
                     match_ended = st.checkbox("Match terminé", value=match.get("termine", False), key=f"ended_{mid}")
