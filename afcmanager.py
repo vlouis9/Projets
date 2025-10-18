@@ -784,7 +784,7 @@ with tab_acc:
             if date_match < today and match.get("termine") and match.get("noted"):
                 score_afc = match.get("score_afc")
                 score_adv = match.get("score_adv")
-                symbol = "🟩" if score_afc > score_adv else "🟨" if score_afc == score_adv else "🟥"
+                symbol = "🟩" if score_afc > score_adv else "⬜" if score_afc == score_adv else "🟥"
                 derniers_resultats.append(symbol)
             if len(derniers_resultats) == 5:
                 break
@@ -1191,7 +1191,10 @@ with tab1:
                 # Style grisé si le match est terminé
                 nom_affiche = match.get("nom_match", "Match sans nom")
                 if match.get("termine", False):
-                    score_display = match.get("score", "").strip()
+                    if match.get("domicile")=="Domicile":
+                        score_display = f"{match.get("score_afc", "").strip()-match.get("score_adv", "").strip()}
+                    else:
+                        score_display = f"{match.get("score_adv", "").strip()-match.get("score_afc", "").strip()}
                     if score_display:
                         titre = f"✅ {nom_affiche} — {score_display}"
                     else:
@@ -1989,16 +1992,18 @@ with tab_coupe:
                     if sd > se:
                         stats[dom]["V"] += 1
                         stats[ext]["D"] += 1
-                        stats[dom]["Pts"] += 3
+                        stats[dom]["Pts"] += 4
+                        stats[ext]["Pts"] += 1
                     elif se > sd:
                         stats[ext]["V"] += 1
                         stats[dom]["D"] += 1
-                        stats[ext]["Pts"] += 3
+                        stats[ext]["Pts"] += 4
+                        stats[dom]["Pts"] += 1
                     else:
                         stats[dom]["N"] += 1
                         stats[ext]["N"] += 1
-                        stats[dom]["Pts"] += 1
-                        stats[ext]["Pts"] += 1
+                        stats[dom]["Pts"] += 2
+                        stats[ext]["Pts"] += 2
 
         for v in stats.values():
             v["Diff"] = v["BP"] - v["BC"]
