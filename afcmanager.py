@@ -1192,9 +1192,9 @@ with tab1:
                 nom_affiche = match.get("nom_match", "Match sans nom")
                 if match.get("termine", False):
                     if match.get("domicile")=="Domicile":
-                        score_display = f"{match.get("score_afc", "").strip()-match.get("score_adv", "").strip()}
+                        score_display = f"{match.get("score_afc", "").strip()}-{match.get("score_adv", "").strip()}"
                     else:
-                        score_display = f"{match.get("score_adv", "").strip()-match.get("score_afc", "").strip()}
+                        score_display = f"{match.get("score_adv", "").strip()}-{match.get("score_afc", "").strip()}"
                     if score_display:
                         titre = f"✅ {nom_affiche} — {score_display}"
                     else:
