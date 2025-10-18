@@ -1193,7 +1193,7 @@ with tab1:
                 if match.get("termine", False):
                     score_display = match.get("score", "").strip()
                     if score_display:
-                        titre = f"✅ {nom_affiche} — Résultat : {score_display}"
+                        titre = f"✅ {nom_affiche} — {score_display}"
                     else:
                         titre = f"✅ {nom_affiche}"
                 else:
