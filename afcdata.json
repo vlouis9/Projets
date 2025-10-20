@@ -1225,8 +1225,63 @@
       "journee": "Poules",
       "nom_match": "\ud83c\udfc6 2025-10-22 : Coupe - Poules -  FOOT POTO vs AFC",
       "lieu": "Stade de foot Lardennes",
-      "formation": "",
-      "details": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          null,
+          {
+            "Nom": "Maxime Pujol",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Constant Augustin",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          null
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": true
+          },
+          null,
+          null,
+          null,
+          null
+        ],
+        "A": [
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
       "remplacants": [],
       "events": {
         "buteurs": {},
@@ -1277,7 +1332,8 @@
         "Jahid Labrinssi",
         "Adjmal Akhtari",
         "Amine El Bahraoui"
-      ]
+      ],
+      "capitaine": "Thibault Rigal"
     },
     "5e01ed39-b8b0-421e-8c5b-68a36b057bd2": {
       "type": "Championnat",
