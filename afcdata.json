@@ -1229,8 +1229,8 @@
       "details": {
         "G": [
           {
-            "Nom": "Nicolas Gardan",
-            "Poste": "D",
+            "Nom": "Nicolas Mitrano",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "1",
@@ -1238,7 +1238,14 @@
           }
         ],
         "D": [
-          null,
+          {
+            "Nom": "Adrien Dugenet",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
           {
             "Nom": "Maxime Pujol",
             "Poste": "D",
@@ -1255,7 +1262,14 @@
             "Numero": "4",
             "Capitaine": false
           },
-          null
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "2",
+            "Capitaine": false
+          }
         ],
         "M": [
           {
@@ -1263,13 +1277,41 @@
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "",
+            "Numero": "8",
             "Capitaine": true
           },
-          null,
-          null,
-          null,
-          null
+          {
+            "Nom": "Arthur Couto",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
+            "Capitaine": false
+          }
         ],
         "A": [
           {
@@ -1282,7 +1324,24 @@
           }
         ]
       },
-      "remplacants": [],
+      "remplacants": [
+        {
+          "Nom": "Adjmal Akhtari",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Amine El Bahraoui",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Hicham Grerifa",
+          "Numero": "15"
+        },
+        {
+          "Nom": "Mehdi Zerrouki",
+          "Numero": "16"
+        }
+      ],
       "events": {
         "buteurs": {},
         "passeurs": {},
