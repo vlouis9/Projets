@@ -1229,8 +1229,8 @@
       "details": {
         "G": [
           {
-            "Nom": "Nicolas Mitrano",
-            "Poste": "M",
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "1",
@@ -1243,7 +1243,7 @@
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "3",
+            "Numero": "2",
             "Capitaine": false
           },
           {
@@ -1263,11 +1263,11 @@
             "Capitaine": false
           },
           {
-            "Nom": "Nicolas Gardan",
-            "Poste": "D",
+            "Nom": "Amine El Bahraoui",
+            "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "2",
+            "Numero": "14",
             "Capitaine": false
           }
         ],
@@ -1277,7 +1277,7 @@
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "8",
+            "Numero": "6",
             "Capitaine": true
           },
           {
@@ -1285,7 +1285,7 @@
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "6",
+            "Numero": "7",
             "Capitaine": false
           },
           {
@@ -1293,7 +1293,7 @@
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "7",
+            "Numero": "8",
             "Capitaine": false
           },
           {
@@ -1330,8 +1330,8 @@
           "Numero": "12"
         },
         {
-          "Nom": "Amine El Bahraoui",
-          "Numero": "14"
+          "Nom": "Nicolas Mitrano",
+          "Numero": "3"
         },
         {
           "Nom": "Hicham Grerifa",
