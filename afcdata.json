@@ -1343,19 +1343,27 @@
         }
       ],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
+        "buteurs": {
+          "Abdel Jalil": 1
+        },
+        "passeurs": {
+          "Gregory Perrot": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
+        "buts_list": [
+          [
+            "Abdel Jalil",
+            "Gregory Perrot"
+          ]
+        ],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "1-9",
+      "score_afc": 1,
+      "score_adv": 9,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
@@ -1392,7 +1400,9 @@
         "Adjmal Akhtari",
         "Amine El Bahraoui"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "5e01ed39-b8b0-421e-8c5b-68a36b057bd2": {
       "type": "Championnat",
