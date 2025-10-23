@@ -2009,6 +2009,12 @@
         "score_dom": 3,
         "exterieur": "FOOT APEM",
         "score_ext": 3
+      },
+      {
+        "domicile": "FC POTO",
+        "exterieur": "AFC",
+        "score_dom": 3,
+        "score_ext": 0
       }
     ],
     "T04": [
