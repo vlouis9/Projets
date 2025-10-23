@@ -2011,7 +2011,14 @@
         "score_ext": 3
       }
     ],
-    "T04": []
+    "T04": [
+      {
+        "domicile": "FC POTO",
+        "exterieur": "AFC",
+        "score_dom": 9,
+        "score_ext": 1
+      }
+    ]
   },
   "coupe_adversaires": [
     "AS DRT",
