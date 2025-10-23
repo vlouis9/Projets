@@ -570,12 +570,12 @@ def get_classement_coupe(coupe_scores, coupe_adversaires):
             if sd > se:
                 stats[dom]["V"] += 1
                 stats[ext]["D"] += 1
-                stats[dom]["Pts"] += 4
+                stats[dom]["Pts"] += 3
                 stats[ext]["Pts"] += 1
             elif se > sd:
                 stats[ext]["V"] += 1
                 stats[dom]["D"] += 1
-                stats[ext]["Pts"] += 4
+                stats[ext]["Pts"] += 3
                 stats[dom]["Pts"] += 1
             else:
                 stats[dom]["N"] += 1
@@ -1992,12 +1992,12 @@ with tab_coupe:
                     if sd > se:
                         stats[dom]["V"] += 1
                         stats[ext]["D"] += 1
-                        stats[dom]["Pts"] += 4
+                        stats[dom]["Pts"] += 3
                         stats[ext]["Pts"] += 1
                     elif se > sd:
                         stats[ext]["V"] += 1
                         stats[dom]["D"] += 1
-                        stats[ext]["Pts"] += 4
+                        stats[ext]["Pts"] += 3
                         stats[dom]["Pts"] += 1
                     else:
                         stats[dom]["N"] += 1
