@@ -1467,9 +1467,56 @@
       "journee": "Poules",
       "nom_match": "\ud83c\udfc6 2025-11-05 : Coupe - Poules - AFC vs ASFP LUSITANOS",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
+          null,
+          null,
+          null
+        ],
+        "M": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "A": [
+          null
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Adrien Dugenet",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Hicham Grerifa",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Giovanni Filippi",
+          "Numero": "15"
+        }
+      ],
       "events": {
         "buteurs": {},
         "passeurs": {},
@@ -1517,7 +1564,8 @@
         "Abdel Jalil",
         "Jahid Labrinssi",
         "Adjmal Akhtari"
-      ]
+      ],
+      "capitaine": ""
     },
     "447adea2-eb9a-4ab4-936d-bae8618faf1c": {
       "type": "Championnat",
