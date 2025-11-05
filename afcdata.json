@@ -2022,8 +2022,14 @@
     "J03": [
       {
         "domicile": "LIEBHERR FOOT",
-        "exterieur": "CHU TOULOUSE FC",
         "score_dom": 1,
+        "exterieur": "CHU TOULOUSE FC",
+        "score_ext": 4
+      },
+      {
+        "domicile": "ATHLETICO TOLOSA B",
+        "exterieur": "FORZA VIOLA FC",
+        "score_dom": 2,
         "score_ext": 4
       }
     ]
