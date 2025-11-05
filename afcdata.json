@@ -2195,7 +2195,14 @@
         "score_ext": 4
       }
     ],
-    "T05": []
+    "T05": [
+      {
+        "domicile": "AFC",
+        "exterieur": "ASFP LUSITANOS",
+        "score_dom": 5,
+        "score_ext": 4
+      }
+    ]
   },
   "coupe_adversaires": [
     "AS DRT",
