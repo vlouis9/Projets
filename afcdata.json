@@ -2201,6 +2201,12 @@
         "score_dom": 5,
         "exterieur": "ASFP LUSITANOS",
         "score_ext": 4
+      },
+      {
+        "domicile": "FOOT APEM",
+        "exterieur": "FC POTO",
+        "score_dom": 2,
+        "score_ext": 9
       }
     ]
   },
