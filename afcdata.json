@@ -1687,8 +1687,8 @@
       "details": {
         "G": [
           {
-            "Nom": "Pierre Tarasinski",
-            "Poste": "G",
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "1",
@@ -1697,11 +1697,11 @@
         ],
         "D": [
           {
-            "Nom": "Nicolas Gardan",
+            "Nom": "Arthur Bouchet",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "3",
+            "Numero": "2",
             "Capitaine": false
           },
           {
@@ -1790,10 +1790,6 @@
         {
           "Nom": "Mike Hatchi",
           "Numero": "13"
-        },
-        {
-          "Nom": "Mike Hatchi",
-          "Numero": "14"
         },
         {
           "Nom": "Abdel Jalil",
