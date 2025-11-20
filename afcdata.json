@@ -1801,21 +1801,36 @@
         }
       ],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
-        "cartons_jaunes": {},
+        "buteurs": {
+          "Thibault Rigal": 1,
+          "Gregory Perrot": 1
+        },
+        "passeurs": {
+          "Axel Soldadi\u00e9": 1
+        },
+        "cartons_jaunes": {
+          "Louis Vermeulen": 1
+        },
         "cartons_rouges": {},
+        "buts_list": [
+          [
+            "Thibault Rigal",
+            ""
+          ],
+          [
+            "Gregory Perrot",
+            "Axel Soldadi\u00e9"
+          ]
+        ],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "2-2",
+      "score_afc": 2,
+      "score_adv": 2,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Nicolas Gardan",
       "joueurs_disponibles": [
         "Abdel Jalil",
         "Axel Soldadi\u00e9",
@@ -1856,7 +1871,9 @@
         "Amine El Bahraoui",
         "Nicolas Mitrano"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "91916a6b-5bb7-43dc-a7f9-1d59a784a1a0": {
       "type": "Championnat",
