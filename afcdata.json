@@ -1705,7 +1705,7 @@
             "Capitaine": false
           },
           {
-            "Nom": "Pierre Pavia",
+            "Nom": "Constant Augustin",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -1713,7 +1713,7 @@
             "Capitaine": false
           },
           {
-            "Nom": "Constant Augustin",
+            "Nom": "Pierre Pavia",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -1725,7 +1725,7 @@
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "2",
+            "Numero": "3",
             "Capitaine": false
           }
         ],
@@ -1747,11 +1747,11 @@
             "Capitaine": false
           },
           {
-            "Nom": "Gregory Perrot",
-            "Poste": "A",
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "7",
+            "Numero": "16",
             "Capitaine": false
           },
           {
@@ -1763,11 +1763,11 @@
             "Capitaine": true
           },
           {
-            "Nom": "Abdel Jalil",
+            "Nom": "Gregory Perrot",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "11",
+            "Numero": "7",
             "Capitaine": false
           }
         ],
@@ -1784,11 +1784,11 @@
       },
       "remplacants": [
         {
-          "Nom": "Arthur Bouchet",
+          "Nom": "Louis Vermeulen",
           "Numero": "12"
         },
         {
-          "Nom": "Louis Vermeulen",
+          "Nom": "Mike Hatchi",
           "Numero": "13"
         },
         {
@@ -1796,7 +1796,7 @@
           "Numero": "14"
         },
         {
-          "Nom": "Hicham Grerifa",
+          "Nom": "Abdel Jalil",
           "Numero": "15"
         },
         {
