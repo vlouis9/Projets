@@ -2317,9 +2317,15 @@
     "J04": [
       {
         "domicile": "FORZA VIOLA FC",
-        "exterieur": "AFC",
         "score_dom": 2,
+        "exterieur": "AFC",
         "score_ext": 2
+      },
+      {
+        "domicile": "LIEBHERR FOOT",
+        "exterieur": "AS DRT",
+        "score_dom": 4,
+        "score_ext": 0
       }
     ]
   },
