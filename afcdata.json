@@ -2335,8 +2335,8 @@
       },
       {
         "domicile": "ALTRAN FOOT",
-        "exterieur": "INTERNAT FC",
         "score_dom": 1,
+        "exterieur": "INTERNAT FC",
         "score_ext": 3
       }
     ]
