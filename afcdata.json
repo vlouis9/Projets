@@ -2329,9 +2329,15 @@
       },
       {
         "domicile": "ASFP LUSITANOS",
-        "exterieur": "TOAC 2",
         "score_dom": 2,
+        "exterieur": "TOAC 2",
         "score_ext": 4
+      },
+      {
+        "domicile": "ALTRAN FOOT",
+        "exterieur": "INTERNAT FC",
+        "score_dom": 1,
+        "score_ext": 3
       }
     ]
   },
