@@ -2323,9 +2323,15 @@
       },
       {
         "domicile": "LIEBHERR FOOT",
-        "exterieur": "AS DRT",
         "score_dom": 4,
+        "exterieur": "AS DRT",
         "score_ext": 0
+      },
+      {
+        "domicile": "ASFP LUSITANOS",
+        "exterieur": "TOAC 2",
+        "score_dom": 2,
+        "score_ext": 4
       }
     ]
   },
