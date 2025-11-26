@@ -1897,7 +1897,14 @@
           }
         ],
         "D": [
-          null,
+          {
+            "Nom": "Arthur Couto",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
           {
             "Nom": "Constant Augustin",
             "Poste": "D",
@@ -1915,8 +1922,8 @@
             "Capitaine": false
           },
           {
-            "Nom": "Olivier Saint-Sa\u00ebns",
-            "Poste": "D",
+            "Nom": "Adjmal Akhtari",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "2",
