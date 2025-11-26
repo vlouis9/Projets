@@ -1985,21 +1985,40 @@
       },
       "remplacants": [],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
-        "cartons_jaunes": {},
+        "buteurs": {
+          "Jahid Labrinssi": 3
+        },
+        "passeurs": {
+          "Gregory Perrot": 2,
+          "Louis Vermeulen": 1
+        },
+        "cartons_jaunes": {
+          "Constant Augustin": 1
+        },
         "cartons_rouges": {},
+        "buts_list": [
+          [
+            "Jahid Labrinssi",
+            "Louis Vermeulen"
+          ],
+          [
+            "Jahid Labrinssi",
+            "Gregory Perrot"
+          ],
+          [
+            "Jahid Labrinssi",
+            "Gregory Perrot"
+          ]
+        ],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "3-2",
+      "score_afc": 3,
+      "score_adv": 2,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Jahid Labrinssi",
       "joueurs_disponibles": [
         "Abdel Jalil",
         "Gregory Perrot",
@@ -2034,7 +2053,9 @@
         "Adjmal Akhtari",
         "Mike Hatchi"
       ],
-      "capitaine": ""
+      "capitaine": "",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "9b2aa03e-aafd-4e95-854b-9fe105fd3ff2": {
       "type": "Championnat",
