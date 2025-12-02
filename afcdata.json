@@ -2557,6 +2557,37 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "95b21464-3357-462b-8e52-860710c2bb47": {
+      "type": "Championnat",
+      "adversaire": "ATHLETICO TOLOSA B",
+      "date": "2026-04-08",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "J15",
+      "nom_match": "\ud83d\udcc8 2026-04-08 : Championnat - J15 - AFC vs ATHLETICO TOLOSA B",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "joueurs_disponibles": [
+        "Thibault Rigal"
+      ],
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "buts_list": [],
+        "buteurs": {},
+        "csc_count": 0,
+        "notes": {}
+      },
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
