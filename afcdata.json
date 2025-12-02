@@ -2396,6 +2396,34 @@
         "Sofian Labrinssi",
         "Walid Chouchi"
       ]
+    },
+    "5702ee11-dc35-4ca5-902f-2e9757b01211": {
+      "type": "Championnat",
+      "adversaire": "LIEBHERR FOOT",
+      "date": "2026-01-21",
+      "heure": "21:00",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "J10",
+      "nom_match": "\ud83d\udcc8 2026-01-21 : Championnat - J10 -  LIEBHERR FOOT vs AFC",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "buts_list": [],
+        "buteurs": {},
+        "csc_count": 0,
+        "notes": {}
+      },
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
