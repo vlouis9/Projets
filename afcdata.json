@@ -2505,8 +2505,14 @@
       },
       {
         "domicile": "LIEBHERR FOOT",
-        "exterieur": "ASFP LUSITANOS",
         "score_dom": 3,
+        "exterieur": "ASFP LUSITANOS",
+        "score_ext": 3
+      },
+      {
+        "domicile": "CHU TOULOUSE FC",
+        "exterieur": "AFC",
+        "score_dom": 2,
         "score_ext": 3
       }
     ]
