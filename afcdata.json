@@ -2499,9 +2499,15 @@
     "J05": [
       {
         "domicile": "INTERNAT FC",
-        "exterieur": "TOAC 2",
         "score_dom": 1,
+        "exterieur": "TOAC 2",
         "score_ext": 7
+      },
+      {
+        "domicile": "LIEBHERR FOOT",
+        "exterieur": "ASFP LUSITANOS",
+        "score_dom": 3,
+        "score_ext": 3
       }
     ]
   },
