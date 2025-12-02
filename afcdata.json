@@ -2619,6 +2619,37 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "dabf732c-d188-4149-8e4b-57cafd7c651c": {
+      "type": "Championnat",
+      "adversaire": "AS DRT",
+      "date": "2026-05-20",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "J17",
+      "nom_match": "\ud83d\udcc8 2026-05-20 : Championnat - J17 - AFC vs AS DRT",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "joueurs_disponibles": [
+        "Thibault Rigal"
+      ],
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "buts_list": [],
+        "buteurs": {},
+        "csc_count": 0,
+        "notes": {}
+      },
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
