@@ -2588,6 +2588,37 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "9e3b0021-18e8-41c0-a08e-12388bd121ec": {
+      "type": "Championnat",
+      "adversaire": "FORZA VIOLA FC",
+      "date": "2026-04-15",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "J16",
+      "nom_match": "\ud83d\udcc8 2026-04-15 : Championnat - J16 - AFC vs FORZA VIOLA FC",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "joueurs_disponibles": [
+        "Thibault Rigal"
+      ],
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "buts_list": [],
+        "buteurs": {},
+        "csc_count": 0,
+        "notes": {}
+      },
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
