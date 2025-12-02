@@ -2650,6 +2650,37 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "20be751a-9c5d-44c3-aac7-8b8afbbbe446": {
+      "type": "Championnat",
+      "adversaire": "ASFP LUSITANOS",
+      "date": "2026-06-05",
+      "heure": "21:00",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "J18",
+      "nom_match": "\ud83d\udcc8 2026-06-05 : Championnat - J18 -  ASFP LUSITANOS vs AFC",
+      "lieu": "Stade Marius Coudon, Avenue de Fronton, 31140 Saint-Alban",
+      "joueurs_disponibles": [
+        "Thibault Rigal"
+      ],
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "buts_list": [],
+        "buteurs": {},
+        "csc_count": 0,
+        "notes": {}
+      },
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
