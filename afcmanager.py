@@ -1155,7 +1155,7 @@ with tab1:
                     "journee": journee,
                     "nom_match": nom_match,
                     "lieu": lieu,
-                    "joueurs_disponibles": [],
+                    "joueurs_disponibles": ["Thibault Rigal"],
                     "formation": "",
                     "details": [],
                     "remplacants": [],
