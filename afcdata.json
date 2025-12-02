@@ -2440,7 +2440,9 @@
       "journee": "J11",
       "nom_match": "\ud83d\udcc8 2026-02-11 : Championnat - J11 - AFC vs ALTRAN FOOT",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "joueurs_disponibles": [],
+      "joueurs_disponibles": [
+        "Abdel Jalil"
+      ],
       "formation": "",
       "details": [],
       "remplacants": [],
@@ -2458,7 +2460,10 @@
       "score_adv": 0,
       "noted": false,
       "termine": false,
-      "homme_du_match": ""
+      "homme_du_match": "",
+      "nibles": [
+        "Abdel Jalil"
+      ]
     }
   },
   "adversaires": [
