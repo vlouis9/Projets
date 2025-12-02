@@ -2423,7 +2423,13 @@
       "score_adv": 0,
       "noted": false,
       "termine": false,
-      "homme_du_match": ""
+      "homme_du_match": "",
+      "joueurs_disponibles": [
+        "Abdel Jalil"
+      ],
+      "nibles": [
+        "Abdel Jalil"
+      ]
     }
   },
   "adversaires": [
