@@ -2495,6 +2495,37 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "37d7843b-c664-4bf4-b2f7-a2d03b4adca3": {
+      "type": "Championnat",
+      "adversaire": "TOAC 2",
+      "date": "2026-03-18",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "J13",
+      "nom_match": "\ud83d\udcc8 2026-03-18 : Championnat - J13 - AFC vs TOAC 2",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "joueurs_disponibles": [
+        "Thibault Rigal"
+      ],
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "buts_list": [],
+        "buteurs": {},
+        "csc_count": 0,
+        "notes": {}
+      },
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
