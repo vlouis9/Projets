@@ -2526,6 +2526,37 @@
       "noted": false,
       "termine": false,
       "homme_du_match": ""
+    },
+    "a62e13ff-0d58-45fb-99d6-d1a1bf5d3a75": {
+      "type": "Championnat",
+      "adversaire": "CHU TOULOUSE FC",
+      "date": "2026-03-25",
+      "heure": "21:00",
+      "domicile": "Domicile",
+      "journee": "J14",
+      "nom_match": "\ud83d\udcc8 2026-03-25 : Championnat - J14 - AFC vs CHU TOULOUSE FC",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "joueurs_disponibles": [
+        "Thibault Rigal"
+      ],
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "buts_list": [],
+        "buteurs": {},
+        "csc_count": 0,
+        "notes": {}
+      },
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
