@@ -2511,9 +2511,15 @@
       },
       {
         "domicile": "CHU TOULOUSE FC",
-        "exterieur": "AFC",
         "score_dom": 2,
+        "exterieur": "AFC",
         "score_ext": 3
+      },
+      {
+        "domicile": "ALTRAN FOOT",
+        "exterieur": "FORZA VIOLA FC",
+        "score_dom": 0,
+        "score_ext": 1
       }
     ]
   },
