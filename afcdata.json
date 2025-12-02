@@ -2496,7 +2496,14 @@
         "score_ext": 3
       }
     ],
-    "J05": []
+    "J05": [
+      {
+        "domicile": "INTERNAT FC",
+        "exterieur": "TOAC 2",
+        "score_dom": 1,
+        "score_ext": 7
+      }
+    ]
   },
   "profondeur_effectif": {
     "4-2-3-1": {
