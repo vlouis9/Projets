@@ -2464,6 +2464,37 @@
       "nibles": [
         "Abdel Jalil"
       ]
+    },
+    "87675cd7-c449-4a31-9892-23257995c2c6": {
+      "type": "Championnat",
+      "adversaire": "INTERNAT FC",
+      "date": "2026-02-18",
+      "heure": "21:00",
+      "domicile": "Ext\u00e9rieur",
+      "journee": "J12",
+      "nom_match": "\ud83d\udcc8 2026-02-18 : Championnat - J12 -  INTERNAT FC vs AFC",
+      "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
+      "joueurs_disponibles": [
+        "Thibault Rigal"
+      ],
+      "formation": "",
+      "details": [],
+      "remplacants": [],
+      "events": {
+        "passeurs": {},
+        "cartons_jaunes": {},
+        "cartons_rouges": {},
+        "buts_list": [],
+        "buteurs": {},
+        "csc_count": 0,
+        "notes": {}
+      },
+      "score": "",
+      "score_afc": 0,
+      "score_adv": 0,
+      "noted": false,
+      "termine": false,
+      "homme_du_match": ""
     }
   },
   "adversaires": [
