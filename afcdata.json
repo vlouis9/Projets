@@ -2088,12 +2088,12 @@
             "Capitaine": false
           },
           {
-            "Nom": "Constant Augustin",
-            "Poste": "D",
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "5",
-            "Capitaine": false
+            "Capitaine": true
           },
           {
             "Nom": "Pierre Pavia",
@@ -2114,7 +2114,7 @@
         ],
         "M": [
           {
-            "Nom": "Thibault Rigal",
+            "Nom": "Walid Chouchi",
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -2165,7 +2165,24 @@
           }
         ]
       },
-      "remplacants": [],
+      "remplacants": [
+        {
+          "Nom": "Nicolas Mitrano",
+          "Numero": ""
+        },
+        {
+          "Nom": "Emmanuel Pannier",
+          "Numero": ""
+        },
+        {
+          "Nom": "Amine El Bahraoui",
+          "Numero": ""
+        },
+        {
+          "Nom": "Credo Atake",
+          "Numero": ""
+        }
+      ],
       "events": {
         "buteurs": {},
         "passeurs": {},
@@ -2218,7 +2235,7 @@
         "Emmanuel Pannier",
         "Walid Chouchi"
       ],
-      "capitaine": ""
+      "capitaine": "Thibault Rigal"
     },
     "12e40d0e-97c6-49d4-a021-b2ea4324e266": {
       "type": "Championnat",
