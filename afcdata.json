@@ -2517,9 +2517,15 @@
       },
       {
         "domicile": "ALTRAN FOOT",
-        "exterieur": "FORZA VIOLA FC",
         "score_dom": 0,
+        "exterieur": "FORZA VIOLA FC",
         "score_ext": 1
+      },
+      {
+        "domicile": "AS DRT",
+        "exterieur": "ATHLETICO TOLOSA B",
+        "score_dom": 2,
+        "score_ext": 5
       }
     ]
   },
