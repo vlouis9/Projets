@@ -2167,20 +2167,16 @@
       },
       "remplacants": [
         {
-          "Nom": "Nicolas Mitrano",
-          "Numero": ""
-        },
-        {
           "Nom": "Emmanuel Pannier",
-          "Numero": ""
-        },
-        {
-          "Nom": "Amine El Bahraoui",
-          "Numero": ""
+          "Numero": "12"
         },
         {
           "Nom": "Credo Atake",
-          "Numero": ""
+          "Numero": "13"
+        },
+        {
+          "Nom": "Amine El Bahraoui",
+          "Numero": "14"
         }
       ],
       "events": {
