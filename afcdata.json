@@ -2180,21 +2180,27 @@
         }
       ],
       "events": {
-        "buteurs": {},
+        "buteurs": {
+          "Thibault Rigal": 1
+        },
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
+        "buts_list": [
+          [
+            "Thibault Rigal",
+            ""
+          ]
+        ],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "1-1",
+      "score_afc": 1,
+      "score_adv": 1,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Nicolas Gardan",
       "joueurs_disponibles": [
         "Abdel Jalil",
         "Gregory Perrot",
@@ -2227,7 +2233,9 @@
         "Emmanuel Pannier",
         "Walid Chouchi"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "12e40d0e-97c6-49d4-a021-b2ea4324e266": {
       "type": "Championnat",
