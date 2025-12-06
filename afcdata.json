@@ -2810,11 +2810,12 @@
       },
       {
         "domicile": "AS DRT",
-        "exterieur": "ATHLETICO TOLOSA B",
         "score_dom": 2,
+        "exterieur": "ATHLETICO TOLOSA B",
         "score_ext": 5
       }
-    ]
+    ],
+    "J06": []
   },
   "profondeur_effectif": {
     "4-2-3-1": {
