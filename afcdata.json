@@ -2815,7 +2815,14 @@
         "score_ext": 5
       }
     ],
-    "J06": []
+    "J06": [
+      {
+        "domicile": "AFC",
+        "exterieur": "LIEBHERR FOOT",
+        "score_dom": 1,
+        "score_ext": 1
+      }
+    ]
   },
   "profondeur_effectif": {
     "4-2-3-1": {
