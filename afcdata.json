@@ -2821,6 +2821,12 @@
         "score_dom": 1,
         "exterieur": "LIEBHERR FOOT",
         "score_ext": 1
+      },
+      {
+        "domicile": "ASFP LUSITANOS",
+        "exterieur": "AS DRT",
+        "score_dom": 0,
+        "score_ext": 2
       }
     ]
   },
