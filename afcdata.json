@@ -2948,7 +2948,14 @@
         "score_ext": 3
       }
     ],
-    "J07": []
+    "J07": [
+      {
+        "domicile": "ATHLETICO TOLOSA B",
+        "exterieur": "AFC",
+        "score_dom": 1,
+        "score_ext": 4
+      }
+    ]
   },
   "profondeur_effectif": {
     "4-2-3-1": {
