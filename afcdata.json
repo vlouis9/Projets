@@ -2267,8 +2267,22 @@
         "D": [
           null,
           null,
-          null,
-          null
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          }
         ],
         "M": [
           null,
@@ -2279,7 +2293,7 @@
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "",
+            "Numero": "10",
             "Capitaine": false
           },
           {
@@ -2297,7 +2311,7 @@
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "",
+            "Numero": "9",
             "Capitaine": false
           }
         ]
