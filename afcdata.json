@@ -2266,7 +2266,14 @@
         ],
         "D": [
           null,
-          null,
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          },
           {
             "Nom": "Pierre Pavia",
             "Poste": "D",
@@ -2285,9 +2292,30 @@
           }
         ],
         "M": [
-          null,
-          null,
-          null,
+          {
+            "Nom": "Nicolas Mitrano",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Maxime Pujol",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Credo Atake",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          },
           {
             "Nom": "Jahid Labrinssi",
             "Poste": "A",
@@ -2319,10 +2347,6 @@
       "remplacants": [
         {
           "Nom": "Christophe Soubrier",
-          "Numero": ""
-        },
-        {
-          "Nom": "Credo Atake",
           "Numero": ""
         },
         {
