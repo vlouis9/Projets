@@ -2252,9 +2252,70 @@
       "journee": "J07",
       "nom_match": "\ud83d\udcc8 2025-12-10 : Championnat - J07 -  ATHLETICO TOLOSA B vs AFC",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "M": [
+          null,
+          null,
+          null,
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Christophe Soubrier",
+          "Numero": ""
+        },
+        {
+          "Nom": "Credo Atake",
+          "Numero": ""
+        },
+        {
+          "Nom": "Adrien Dugenet",
+          "Numero": ""
+        }
+      ],
       "events": {
         "buteurs": {},
         "passeurs": {},
@@ -2302,7 +2363,8 @@
         "Olivier Saint-Sa\u00ebns",
         "Christophe Soubrier",
         "Credo Atake"
-      ]
+      ],
+      "capitaine": ""
     },
     "68259116-1241-4021-8cb3-986911d38d48": {
       "type": "Championnat",
