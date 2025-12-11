@@ -2265,14 +2265,21 @@
           }
         ],
         "D": [
-          null,
+          {
+            "Nom": "Arthur Couto",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          },
           {
             "Nom": "Thibault Rigal",
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "",
-            "Capitaine": false
+            "Capitaine": true
           },
           {
             "Nom": "Pierre Pavia",
@@ -2283,8 +2290,8 @@
             "Capitaine": false
           },
           {
-            "Nom": "Olivier Saint-Sa\u00ebns",
-            "Poste": "D",
+            "Nom": "Adjmal Akhtari",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "",
@@ -2351,6 +2358,10 @@
         },
         {
           "Nom": "Adrien Dugenet",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Olivier Saint-Sa\u00ebns",
           "Numero": ""
         }
       ],
@@ -2402,7 +2413,7 @@
         "Credo Atake",
         "Adjmal Akhtari"
       ],
-      "capitaine": ""
+      "capitaine": "Thibault Rigal"
     },
     "68259116-1241-4021-8cb3-986911d38d48": {
       "type": "Championnat",
