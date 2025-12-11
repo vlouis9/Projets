@@ -2366,19 +2366,43 @@
         }
       ],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
+        "buteurs": {
+          "Credo Atake": 1,
+          "Christophe Soubrier": 1,
+          "Gregory Perrot": 1,
+          "Thibault Rigal": 1
+        },
+        "passeurs": {
+          "Maxime Pujol": 2,
+          "Thibault Rigal": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
+        "buts_list": [
+          [
+            "Credo Atake",
+            "Maxime Pujol"
+          ],
+          [
+            "Christophe Soubrier",
+            "Thibault Rigal"
+          ],
+          [
+            "Gregory Perrot",
+            "Maxime Pujol"
+          ],
+          [
+            "Thibault Rigal",
+            ""
+          ]
+        ],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "4-1",
+      "score_afc": 4,
+      "score_adv": 1,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
@@ -2413,7 +2437,9 @@
         "Credo Atake",
         "Adjmal Akhtari"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "68259116-1241-4021-8cb3-986911d38d48": {
       "type": "Championnat",
