@@ -2814,12 +2814,12 @@
             "Capitaine": false
           },
           {
-            "Nom": "Constant Augustin",
-            "Poste": "D",
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "5",
-            "Capitaine": false
+            "Capitaine": true
           },
           {
             "Nom": "Pierre Pavia",
@@ -2840,12 +2840,12 @@
         ],
         "M": [
           {
-            "Nom": "Thibault Rigal",
+            "Nom": "Louis Vermeulen",
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "8",
-            "Capitaine": true
+            "Capitaine": false
           },
           {
             "Nom": "Yoann Perzynski",
@@ -2856,8 +2856,8 @@
             "Capitaine": false
           },
           {
-            "Nom": "Louis Vermeulen",
-            "Poste": "M",
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "7",
@@ -2897,7 +2897,7 @@
           "Numero": "12"
         },
         {
-          "Nom": "Axel Soldadi\u00e9",
+          "Nom": "Hicham Grerifa",
           "Numero": "13"
         },
         {
