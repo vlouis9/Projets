@@ -394,11 +394,11 @@
             "Numero": "3"
           },
           {
-            "Nom": "Constant Augustin",
+            "Nom": "Selim",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "5"
+            "Numero": "16"
           },
           {
             "Nom": "Pierre Pavia",
@@ -421,7 +421,7 @@
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "8"
+            "Numero": "5"
           },
           {
             "Nom": "Yoann Perzynski",
@@ -462,28 +462,7 @@
           }
         ]
       },
-      "remplacants": [
-        {
-          "Nom": "Olivier Saint-Sa\u00ebns",
-          "Numero": "2"
-        },
-        {
-          "Nom": "Louis Vermeulen",
-          "Numero": "7"
-        },
-        {
-          "Nom": "Credo Atake",
-          "Numero": "14"
-        },
-        {
-          "Nom": "Christophe Soubrier",
-          "Numero": "15"
-        },
-        {
-          "Nom": "Selim",
-          "Numero": "16"
-        }
-      ]
+      "remplacants": []
     },
     "DRT 45'": {
       "formation": "4-2-3-1",
