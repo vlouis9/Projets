@@ -484,6 +484,118 @@
           "Numero": "16"
         }
       ]
+    },
+    "DRT 45'": {
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1"
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3"
+          },
+          {
+            "Nom": "Selim",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "16"
+          },
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4"
+          },
+          {
+            "Nom": "Adjmal Akhtari",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "12"
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Christophe Soubrier",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "15"
+          },
+          {
+            "Nom": "Yoann Perzynski",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6"
+          },
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "13"
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10"
+          },
+          {
+            "Nom": "Credo Atake",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "14"
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "9"
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Olivier Saint-Sa\u00ebns",
+          "Numero": "2"
+        },
+        {
+          "Nom": "Louis Vermeulen",
+          "Numero": "7"
+        },
+        {
+          "Nom": "Emmanuel Pannier",
+          "Numero": "11"
+        },
+        {
+          "Nom": "Thibault Rigal",
+          "Numero": "8"
+        },
+        {
+          "Nom": "Constant Augustin",
+          "Numero": "5"
+        }
+      ]
     }
   },
   "matchs": {
