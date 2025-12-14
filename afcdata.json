@@ -2450,9 +2450,127 @@
       "journee": "J08",
       "nom_match": "\ud83d\udcc8 2025-12-17 : Championnat - J08 -  AS DRT vs AFC",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Constant Augustin",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6",
+            "Capitaine": true
+          },
+          {
+            "Nom": "Yoann Perzynski",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Emmanuel Pannier",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
+            "Capitaine": false
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Adjmal Akhtari",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Sofian Labrinssi",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Mike Hatchi",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Christophe Soubrier",
+          "Numero": "15"
+        },
+        {
+          "Nom": "Credo Atake",
+          "Numero": "16"
+        }
+      ],
       "events": {
         "buteurs": {},
         "passeurs": {},
@@ -2506,7 +2624,8 @@
         "Adjmal Akhtari",
         "Arthur Bouchet",
         "Emmanuel Pannier"
-      ]
+      ],
+      "capitaine": "Thibault Rigal"
     },
     "827f2a57-2779-441f-b1eb-887521071b01": {
       "type": "Championnat",
