@@ -394,18 +394,18 @@
             "Numero": "3"
           },
           {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5"
+          },
+          {
             "Nom": "Selim",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "16"
-          },
-          {
-            "Nom": "Pierre Pavia",
-            "Poste": "D",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "5"
           },
           {
             "Nom": "Adjmal Akhtari",
@@ -417,14 +417,14 @@
         ],
         "M": [
           {
-            "Nom": "Thibault Rigal",
+            "Nom": "Louis Vermeulen",
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "5"
+            "Numero": "8"
           },
           {
-            "Nom": "Yoann Perzynski",
+            "Nom": "Walid Chouchi",
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -435,7 +435,7 @@
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "13"
+            "Numero": "7"
           },
           {
             "Nom": "Jahid Labrinssi",
@@ -462,7 +462,28 @@
           }
         ]
       },
-      "remplacants": []
+      "remplacants": [
+        {
+          "Nom": "Olivier Saint-Sa\u00ebns",
+          "Numero": "2"
+        },
+        {
+          "Nom": "Pierre Pavia",
+          "Numero": "4"
+        },
+        {
+          "Nom": "Hicham Grerifa",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Credo Atake",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Christophe Soubrier",
+          "Numero": "15"
+        }
+      ]
     },
     "DRT 45'": {
       "formation": "4-2-3-1",
