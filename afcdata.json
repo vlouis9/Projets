@@ -2806,7 +2806,7 @@
         ],
         "D": [
           {
-            "Nom": "Arthur Bouchet",
+            "Nom": "Olivier Saint-Sa\u00ebns",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -2830,8 +2830,8 @@
             "Capitaine": false
           },
           {
-            "Nom": "Olivier Saint-Sa\u00ebns",
-            "Poste": "D",
+            "Nom": "Adjmal Akhtari",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "2",
@@ -2872,7 +2872,7 @@
             "Capitaine": false
           },
           {
-            "Nom": "Emmanuel Pannier",
+            "Nom": "Credo Atake",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -2893,7 +2893,7 @@
       },
       "remplacants": [
         {
-          "Nom": "Adjmal Akhtari",
+          "Nom": "Arthur Bouchet",
           "Numero": "12"
         },
         {
@@ -2901,7 +2901,7 @@
           "Numero": "13"
         },
         {
-          "Nom": "Credo Atake",
+          "Nom": "Emmanuel Pannier",
           "Numero": "14"
         },
         {
