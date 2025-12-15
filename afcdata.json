@@ -3467,6 +3467,12 @@
         "score_dom": 1,
         "exterieur": "AFC",
         "score_ext": 4
+      },
+      {
+        "domicile": "TOAC 2",
+        "exterieur": "CHU TOULOUSE FC",
+        "score_dom": 0,
+        "score_ext": 2
       }
     ]
   },
