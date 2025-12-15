@@ -3459,6 +3459,12 @@
         "score_dom": 5,
         "exterieur": "FORZA VIOLA FC",
         "score_ext": 3
+      },
+      {
+        "domicile": "ATHLETICO TOLOSA B",
+        "exterieur": "ALTRAN FOOT",
+        "score_dom": 0,
+        "score_ext": 3
       }
     ],
     "J07": [
