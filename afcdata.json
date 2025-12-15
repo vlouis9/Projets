@@ -618,18 +618,18 @@
             "Numero": "2"
           },
           {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4"
+          },
+          {
             "Nom": "Selim",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "16"
-          },
-          {
-            "Nom": "Yoann Perzynski",
-            "Poste": "M",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "6"
           },
           {
             "Nom": "Adjmal Akhtari",
@@ -648,25 +648,25 @@
             "Numero": "15"
           },
           {
-            "Nom": "Thibault Rigal",
+            "Nom": "Walid Chouchi",
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "8"
+            "Numero": "6"
           },
           {
-            "Nom": "Emmanuel Pannier",
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "13"
+          },
+          {
+            "Nom": "Jahid Labrinssi",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "11"
-          },
-          {
-            "Nom": "Louis Vermeulen",
-            "Poste": "M",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "7"
+            "Numero": "10"
           },
           {
             "Nom": "Credo Atake",
@@ -678,11 +678,11 @@
         ],
         "A": [
           {
-            "Nom": "Axel Soldadi\u00e9",
+            "Nom": "Abdel Jalil",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "13"
+            "Numero": "9"
           }
         ]
       },
@@ -692,20 +692,20 @@
           "Numero": "3"
         },
         {
-          "Nom": "Abdel Jalil",
-          "Numero": "9"
-        },
-        {
-          "Nom": "Jahid Labrinssi",
-          "Numero": "10"
-        },
-        {
-          "Nom": "Pierre Pavia",
-          "Numero": "4"
-        },
-        {
-          "Nom": "Constant Augustin",
+          "Nom": "Thibault Rigal",
           "Numero": "5"
+        },
+        {
+          "Nom": "Axel Soldadi\u00e9",
+          "Numero": "7"
+        },
+        {
+          "Nom": "Louis Vermeulen",
+          "Numero": "8"
+        },
+        {
+          "Nom": "Emmanuel Pannier",
+          "Numero": "11"
         }
       ]
     }
