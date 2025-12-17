@@ -2914,21 +2914,29 @@
         }
       ],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
+        "buteurs": {
+          "Arthur Bouchet": 1
+        },
+        "passeurs": {
+          "Emmanuel Pannier": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
+        "buts_list": [
+          [
+            "Arthur Bouchet",
+            "Emmanuel Pannier"
+          ]
+        ],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
+      "score": "1-0",
+      "score_afc": 1,
       "score_adv": 0,
-      "noted": false,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Walid Chouchi",
       "joueurs_disponibles": [
         "Abdel Jalil",
         "Nicolas Gardan",
@@ -2969,7 +2977,9 @@
         "Axel Soldadi\u00e9",
         "Walid Chouchi"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "827f2a57-2779-441f-b1eb-887521071b01": {
       "type": "Championnat",
