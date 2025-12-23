@@ -3503,6 +3503,12 @@
         "score_dom": 0,
         "exterieur": "AFC",
         "score_ext": 1
+      },
+      {
+        "domicile": "FORZA VIOLA FC",
+        "exterieur": "CHU TOULOUSE FC",
+        "score_dom": 1,
+        "score_ext": 2
       }
     ]
   },
