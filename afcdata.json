@@ -3493,6 +3493,12 @@
     ],
     "J08": [
       {
+        "domicile": "ALTRAN FOOT",
+        "score_dom": 2,
+        "exterieur": "TOAC 2",
+        "score_ext": 1
+      },
+      {
         "domicile": "AS DRT",
         "exterieur": "AFC",
         "score_dom": 0,
