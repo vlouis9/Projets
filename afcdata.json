@@ -3500,8 +3500,8 @@
       },
       {
         "domicile": "AS DRT",
-        "exterieur": "AFC",
         "score_dom": 0,
+        "exterieur": "AFC",
         "score_ext": 1
       }
     ]
