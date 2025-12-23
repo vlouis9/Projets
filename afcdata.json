@@ -3489,6 +3489,12 @@
         "score_dom": 0,
         "exterieur": "CHU TOULOUSE FC",
         "score_ext": 2
+      },
+      {
+        "domicile": "FORZA VIOLA FC",
+        "exterieur": "AS DRT",
+        "score_dom": 0,
+        "score_ext": 0
       }
     ],
     "J08": [
