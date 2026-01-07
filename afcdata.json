@@ -3104,21 +3104,39 @@
         }
       ],
       "events": {
-        "buteurs": {},
-        "passeurs": {},
+        "buteurs": {
+          "Gregory Perrot": 1,
+          "Sofian Labrinssi": 1,
+          "Axel Soldadi\u00e9": 1
+        },
+        "passeurs": {
+          "Jahid Labrinssi": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
+        "buts_list": [
+          [
+            "Gregory Perrot",
+            ""
+          ],
+          [
+            "Sofian Labrinssi",
+            "Jahid Labrinssi"
+          ],
+          [
+            "Axel Soldadi\u00e9",
+            ""
+          ]
+        ],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "3-4",
+      "score_afc": 3,
+      "score_adv": 4,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Axel Soldadi\u00e9",
       "joueurs_disponibles": [
         "Abdel Jalil",
         "Axel Soldadi\u00e9",
@@ -3151,7 +3169,9 @@
         "Olivier Saint-Sa\u00ebns",
         "Adjmal Akhtari"
       ],
-      "capitaine": "Axel Soldadi\u00e9"
+      "capitaine": "Axel Soldadi\u00e9",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "5702ee11-dc35-4ca5-902f-2e9757b01211": {
       "type": "Championnat",
