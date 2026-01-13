@@ -3655,7 +3655,14 @@
         "score_ext": 2
       }
     ],
-    "J09": []
+    "J09": [
+      {
+        "domicile": "AFC",
+        "exterieur": "ASFP LUSITANOS",
+        "score_dom": 3,
+        "score_ext": 4
+      }
+    ]
   },
   "profondeur_effectif": {
     "4-2-3-1": {
