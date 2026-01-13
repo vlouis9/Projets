@@ -3658,9 +3658,15 @@
     "J09": [
       {
         "domicile": "AFC",
-        "exterieur": "ASFP LUSITANOS",
         "score_dom": 3,
+        "exterieur": "ASFP LUSITANOS",
         "score_ext": 4
+      },
+      {
+        "domicile": "FORZA VIOLA FC",
+        "exterieur": "INTERNAT FC",
+        "score_dom": 4,
+        "score_ext": 1
       }
     ]
   },
