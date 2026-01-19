@@ -3182,9 +3182,123 @@
       "journee": "J10",
       "nom_match": "\ud83d\udcc8 2026-01-21 : Championnat - J10 -  LIEBHERR FOOT vs AFC",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
-      "formation": "",
-      "details": [],
-      "remplacants": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "G",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          {
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": true
+          },
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          {
+            "Nom": "Arthur Couto",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Sofian Labrinssi",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
+            "Capitaine": false
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
+      "remplacants": [
+        {
+          "Nom": "Abdel Jalil",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Walid Chouchi",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Adrien Dugenet",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Mike Hatchi",
+          "Numero": "15"
+        }
+      ],
       "events": {
         "passeurs": {},
         "cartons_jaunes": {},
@@ -3233,7 +3347,8 @@
         "Walid Chouchi",
         "Hicham Grerifa",
         "Mike Hatchi"
-      ]
+      ],
+      "capitaine": "Thibault Rigal"
     },
     "521f7f29-c434-407a-a9a3-e086399696fc": {
       "type": "Championnat",
