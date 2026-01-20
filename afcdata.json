@@ -3186,7 +3186,7 @@
       "details": {
         "G": [
           {
-            "Nom": "Nicolas Gardan",
+            "Nom": "Pierre Tarasinski",
             "Poste": "G",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -3246,7 +3246,7 @@
             "Capitaine": false
           },
           {
-            "Nom": "Axel Soldadi\u00e9",
+            "Nom": "Mehdi Zerrouki",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -3262,8 +3262,8 @@
             "Capitaine": false
           },
           {
-            "Nom": "Mehdi Zerrouki",
-            "Poste": "A",
+            "Nom": "Nicolas Gardan",
+            "Poste": "G",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "11",
