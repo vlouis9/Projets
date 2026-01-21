@@ -3300,20 +3300,29 @@
         }
       ],
       "events": {
-        "passeurs": {},
+        "buteurs": {
+          "Mehdi Zerrouki": 1
+        },
+        "passeurs": {
+          "Louis Vermeulen": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "buts_list": [],
-        "buteurs": {},
-        "csc_count": 0,
-        "notes": {}
+        "buts_list": [
+          [
+            "Mehdi Zerrouki",
+            "Louis Vermeulen"
+          ]
+        ],
+        "notes": {},
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "1-2",
+      "score_afc": 1,
+      "score_adv": 2,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Mehdi Zerrouki",
       "joueurs_disponibles": [
         "Abdel Jalil",
         "Gregory Perrot",
@@ -3350,7 +3359,9 @@
         "Pierre Tarasinski",
         "Nicolas Mitrano"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "521f7f29-c434-407a-a9a3-e086399696fc": {
       "type": "Championnat",
