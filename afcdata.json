@@ -3476,8 +3476,35 @@
         "Mike Hatchi",
         "Thibault Rigal"
       ],
-      "formation": "",
-      "details": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "Pierre Tarasinski",
+            "Poste": "G",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "M": [
+          null,
+          null,
+          null,
+          null,
+          null
+        ],
+        "A": [
+          null
+        ]
+      },
       "remplacants": [],
       "events": {
         "passeurs": {},
@@ -3506,7 +3533,8 @@
         "Louis Vermeulen",
         "Mike Hatchi",
         "Thibault Rigal"
-      ]
+      ],
+      "capitaine": ""
     },
     "87675cd7-c449-4a31-9892-23257995c2c6": {
       "type": "Championnat",
