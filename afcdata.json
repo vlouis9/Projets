@@ -3490,23 +3490,98 @@
           }
         ],
         "D": [
-          null,
-          null,
-          null,
-          null
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": true
+          },
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "2",
+            "Capitaine": false
+          }
         ],
         "M": [
-          null,
-          null,
-          null,
-          null,
-          null
+          {
+            "Nom": "Mike Hatchi",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Sofian Labrinssi",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
+          }
         ],
         "A": [
-          null
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "9",
+            "Capitaine": false
+          }
         ]
       },
-      "remplacants": [],
+      "remplacants": [
+        {
+          "Nom": "Adrien Dugenet",
+          "Numero": "12"
+        }
+      ],
       "events": {
         "passeurs": {},
         "cartons_jaunes": {},
@@ -3536,7 +3611,7 @@
         "Thibault Rigal",
         "Sofian Labrinssi"
       ],
-      "capitaine": ""
+      "capitaine": "Thibault Rigal"
     },
     "87675cd7-c449-4a31-9892-23257995c2c6": {
       "type": "Championnat",
