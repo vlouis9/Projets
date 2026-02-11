@@ -3583,18 +3583,35 @@
         }
       ],
       "events": {
-        "passeurs": {},
-        "cartons_jaunes": {},
+        "buteurs": {
+          "Jahid Labrinssi": 1,
+          "Louis Vermeulen": 1
+        },
+        "passeurs": {
+          "Thibault Rigal": 1,
+          "Abdel Jalil": 1
+        },
+        "cartons_jaunes": {
+          "Hicham Grerifa": 1
+        },
         "cartons_rouges": {},
-        "buts_list": [],
-        "buteurs": {},
-        "csc_count": 0,
-        "notes": {}
+        "buts_list": [
+          [
+            "Jahid Labrinssi",
+            "Thibault Rigal"
+          ],
+          [
+            "Louis Vermeulen",
+            "Abdel Jalil"
+          ]
+        ],
+        "notes": {},
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "2-3",
+      "score_afc": 2,
+      "score_adv": 3,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "nibles": [
@@ -3611,7 +3628,9 @@
         "Sofian Labrinssi",
         "Credo Atake"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "87675cd7-c449-4a31-9892-23257995c2c6": {
       "type": "Championnat",
