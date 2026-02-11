@@ -3490,7 +3490,7 @@
         ],
         "D": [
           {
-            "Nom": "Arthur Bouchet",
+            "Nom": "Olivier Saint-Sa\u00ebns",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -3514,8 +3514,8 @@
             "Capitaine": false
           },
           {
-            "Nom": "Olivier Saint-Sa\u00ebns",
-            "Poste": "D",
+            "Nom": "Adrien Dugenet",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "2",
@@ -3524,8 +3524,8 @@
         ],
         "M": [
           {
-            "Nom": "Mike Hatchi",
-            "Poste": "M",
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "6",
@@ -3575,12 +3575,7 @@
           }
         ]
       },
-      "remplacants": [
-        {
-          "Nom": "Adrien Dugenet",
-          "Numero": "12"
-        }
-      ],
+      "remplacants": [],
       "events": {
         "passeurs": {},
         "cartons_jaunes": {},
