@@ -3576,7 +3576,12 @@
           }
         ]
       },
-      "remplacants": [],
+      "remplacants": [
+        {
+          "Nom": "Credo Atake",
+          "Numero": "12"
+        }
+      ],
       "events": {
         "passeurs": {},
         "cartons_jaunes": {},
