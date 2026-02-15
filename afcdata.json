@@ -3654,8 +3654,77 @@
         "William Toumelin",
         "Jahid Labrinssi"
       ],
-      "formation": "",
-      "details": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          {
+            "Nom": "William Toumelin",
+            "Poste": "G",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
+        ],
+        "D": [
+          null,
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": true
+          },
+          {
+            "Nom": "Pierre Pavia",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "G",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "2",
+            "Capitaine": false
+          }
+        ],
+        "M": [
+          null,
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
+            "Capitaine": false
+          },
+          null
+        ],
+        "A": [
+          null
+        ]
+      },
       "remplacants": [],
       "events": {
         "passeurs": {},
@@ -3684,7 +3753,8 @@
         "Hicham Grerifa",
         "William Toumelin",
         "Jahid Labrinssi"
-      ]
+      ],
+      "capitaine": "Thibault Rigal"
     },
     "37d7843b-c664-4bf4-b2f7-a2d03b4adca3": {
       "type": "Championnat",
