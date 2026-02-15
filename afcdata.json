@@ -3642,7 +3642,16 @@
       "nom_match": "\ud83d\udcc8 2026-02-18 : Championnat - J12 -  INTERNAT FC vs AFC",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
       "joueurs_disponibles": [
-        "Thibault Rigal"
+        "Thibault Rigal",
+        "Pierre Pavia",
+        "Louis Vermeulen",
+        "Nicolas Gardan",
+        "Arthur Couto",
+        "Constant Augustin",
+        "Walid Chouchi",
+        "Maxime Pujol",
+        "Hicham Grerifa",
+        "William Toumelin"
       ],
       "formation": "",
       "details": [],
@@ -3661,7 +3670,19 @@
       "score_adv": 0,
       "noted": false,
       "termine": false,
-      "homme_du_match": ""
+      "homme_du_match": "",
+      "nibles": [
+        "Thibault Rigal",
+        "Pierre Pavia",
+        "Louis Vermeulen",
+        "Nicolas Gardan",
+        "Arthur Couto",
+        "Constant Augustin",
+        "Walid Chouchi",
+        "Maxime Pujol",
+        "Hicham Grerifa",
+        "William Toumelin"
+      ]
     },
     "37d7843b-c664-4bf4-b2f7-a2d03b4adca3": {
       "type": "Championnat",
