@@ -3752,7 +3752,24 @@
           }
         ]
       },
-      "remplacants": [],
+      "remplacants": [
+        {
+          "Nom": "Constant Augustin",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Gregory Perrot",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Maxime Pujol",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Walid Chouchi",
+          "Numero": "15"
+        }
+      ],
       "events": {
         "passeurs": {},
         "cartons_jaunes": {},
