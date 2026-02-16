@@ -3700,7 +3700,14 @@
           }
         ],
         "M": [
-          null,
+          {
+            "Nom": "Arthur Couto",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6",
+            "Capitaine": false
+          },
           {
             "Nom": "Louis Vermeulen",
             "Poste": "M",
@@ -3725,10 +3732,24 @@
             "Numero": "10",
             "Capitaine": false
           },
-          null
+          {
+            "Nom": "Mehdi Zerrouki",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
+          }
         ],
         "A": [
-          null
+          {
+            "Nom": "Credo Atake",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "9",
+            "Capitaine": false
+          }
         ]
       },
       "remplacants": [],
