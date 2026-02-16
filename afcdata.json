@@ -3673,7 +3673,14 @@
           }
         ],
         "D": [
-          null,
+          {
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
           {
             "Nom": "Thibault Rigal",
             "Poste": "M",
@@ -3709,15 +3716,15 @@
             "Capitaine": false
           },
           {
-            "Nom": "Louis Vermeulen",
-            "Poste": "M",
+            "Nom": "Maxime Pujol",
+            "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "8",
+            "Numero": "6",
             "Capitaine": false
           },
           {
-            "Nom": "Hicham Grerifa",
+            "Nom": "Louis Vermeulen",
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -3762,12 +3769,16 @@
           "Numero": "13"
         },
         {
-          "Nom": "Maxime Pujol",
+          "Nom": "Axel Soldadi\u00e9",
           "Numero": "14"
         },
         {
           "Nom": "Walid Chouchi",
           "Numero": "15"
+        },
+        {
+          "Nom": "Adrien Dugenet",
+          "Numero": "16"
         }
       ],
       "events": {
