@@ -88,7 +88,7 @@
       "Nom": "Nicolas Mitrano",
       "Poste": "M",
       "Infos": "",
-      "S\u00e9lectionnable": true
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Abdel Jalil",
@@ -112,7 +112,7 @@
       "Nom": "Yoann Perzynski",
       "Poste": "M",
       "Infos": "",
-      "S\u00e9lectionnable": true
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Walid Chouchi",
@@ -124,7 +124,7 @@
       "Nom": "Abdel Ouachouo",
       "Poste": "M",
       "Infos": "",
-      "S\u00e9lectionnable": true
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Zakaria Benihoud",
@@ -160,13 +160,13 @@
       "Nom": "Giovanni Filippi",
       "Poste": "A",
       "Infos": "",
-      "S\u00e9lectionnable": true
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Jos\u00e9 Mar\u00eda",
       "Poste": "M",
       "Infos": "",
-      "S\u00e9lectionnable": true
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Olivier Saint-Sa\u00ebns",
@@ -178,7 +178,7 @@
       "Nom": "Amine El Bahraoui",
       "Poste": "A",
       "Infos": "",
-      "S\u00e9lectionnable": true
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Adjmal Akhtari",
@@ -208,13 +208,13 @@
       "Nom": "Christophe Soubrier",
       "Poste": "M",
       "Infos": "",
-      "S\u00e9lectionnable": true
+      "S\u00e9lectionnable": false
     },
     {
       "Nom": "Selim",
       "Poste": "D",
       "Infos": "",
-      "S\u00e9lectionnable": true
+      "S\u00e9lectionnable": false
     }
   ],
   "lineups": {
