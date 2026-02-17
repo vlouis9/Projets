@@ -4249,11 +4249,12 @@
       },
       {
         "domicile": "AFC",
-        "exterieur": "ALTRAN FOOT",
         "score_dom": 2,
+        "exterieur": "ALTRAN FOOT",
         "score_ext": 3
       }
-    ]
+    ],
+    "J12": []
   },
   "profondeur_effectif": {
     "4-2-3-1": {
