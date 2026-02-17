@@ -4215,8 +4215,8 @@
       },
       {
         "domicile": "TOAC 2",
-        "exterieur": "AS DRT",
         "score_dom": 7,
+        "exterieur": "AS DRT",
         "score_ext": 1
       }
     ]
