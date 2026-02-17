@@ -4246,6 +4246,12 @@
         "score_dom": 1,
         "exterieur": "TOAC 2",
         "score_ext": 1
+      },
+      {
+        "domicile": "AFC",
+        "exterieur": "ALTRAN FOOT",
+        "score_dom": 2,
+        "score_ext": 3
       }
     ]
   },
