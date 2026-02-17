@@ -4228,10 +4228,16 @@
         "score_ext": 1
       },
       {
-        "domicile": "LIEBHERR FOOT",
-        "exterieur": "AFC",
+        "domicile": "FORZA VIOLA FC",
         "score_dom": 2,
-        "score_ext": 1
+        "exterieur": "TOAC 2",
+        "score_ext": 0
+      },
+      {
+        "domicile": "ALTRAN FOOT",
+        "exterieur": "ATHLETICO TOLOSA B",
+        "score_dom": 3,
+        "score_ext": 3
       }
     ],
     "J11": []
