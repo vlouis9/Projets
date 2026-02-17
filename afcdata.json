@@ -4223,6 +4223,12 @@
     "J10": [
       {
         "domicile": "LIEBHERR FOOT",
+        "score_dom": 2,
+        "exterieur": "AFC",
+        "score_ext": 1
+      },
+      {
+        "domicile": "LIEBHERR FOOT",
         "exterieur": "AFC",
         "score_dom": 2,
         "score_ext": 1
