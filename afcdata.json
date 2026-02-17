@@ -4212,6 +4212,12 @@
         "score_dom": 6,
         "exterieur": "ALTRAN FOOT",
         "score_ext": 6
+      },
+      {
+        "domicile": "TOAC 2",
+        "exterieur": "AS DRT",
+        "score_dom": 7,
+        "score_ext": 1
       }
     ]
   },
