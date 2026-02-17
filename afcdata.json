@@ -4240,7 +4240,14 @@
         "score_ext": 3
       }
     ],
-    "J11": []
+    "J11": [
+      {
+        "domicile": "LIEBHERR FOOT",
+        "exterieur": "TOAC 2",
+        "score_dom": 1,
+        "score_ext": 1
+      }
+    ]
   },
   "profondeur_effectif": {
     "4-2-3-1": {
