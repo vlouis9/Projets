@@ -4243,8 +4243,8 @@
     "J11": [
       {
         "domicile": "LIEBHERR FOOT",
-        "exterieur": "TOAC 2",
         "score_dom": 1,
+        "exterieur": "TOAC 2",
         "score_ext": 1
       }
     ]
