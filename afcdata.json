@@ -4220,7 +4220,14 @@
         "score_ext": 1
       }
     ],
-    "J10": [],
+    "J10": [
+      {
+        "domicile": "LIEBHERR FOOT",
+        "exterieur": "AFC",
+        "score_dom": 2,
+        "score_ext": 1
+      }
+    ],
     "J11": []
   },
   "profondeur_effectif": {
