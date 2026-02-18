@@ -3772,18 +3772,33 @@
         }
       ],
       "events": {
-        "passeurs": {},
+        "buteurs": {
+          "Louis Vermeulen": 1,
+          "Gregory Perrot": 1
+        },
+        "passeurs": {
+          "Maxime Pujol": 1,
+          "Arthur Couto": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "buts_list": [],
-        "buteurs": {},
-        "csc_count": 0,
-        "notes": {}
+        "buts_list": [
+          [
+            "Louis Vermeulen",
+            "Maxime Pujol"
+          ],
+          [
+            "Gregory Perrot",
+            "Arthur Couto"
+          ]
+        ],
+        "notes": {},
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "2-1",
+      "score_afc": 2,
+      "score_adv": 1,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "nibles": [
@@ -3803,7 +3818,9 @@
         "Adrien Dugenet",
         "Adjmal Akhtari"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "37d7843b-c664-4bf4-b2f7-a2d03b4adca3": {
       "type": "Championnat",
