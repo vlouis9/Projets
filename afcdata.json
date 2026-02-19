@@ -3777,8 +3777,8 @@
           "Gregory Perrot": 1
         },
         "passeurs": {
-          "Maxime Pujol": 1,
-          "Arthur Couto": 1
+          "Arthur Couto": 1,
+          "Maxime Pujol": 1
         },
         "cartons_jaunes": {},
         "cartons_rouges": {},
@@ -3800,7 +3800,7 @@
       "score_adv": 1,
       "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Maxime Pujol",
       "nibles": [
         "Thibault Rigal",
         "Pierre Pavia",
