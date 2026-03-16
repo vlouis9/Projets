@@ -3847,8 +3847,56 @@
         "Gregory Perrot",
         "Mehdi Zerrouki"
       ],
-      "formation": "",
-      "details": [],
+      "formation": "4-2-3-1",
+      "details": {
+        "G": [
+          null
+        ],
+        "D": [
+          null,
+          null,
+          null,
+          null
+        ],
+        "M": [
+          null,
+          null,
+          {
+            "Nom": "Axel Soldadi\u00e9",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Mehdi Zerrouki",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
+          }
+        ],
+        "A": [
+          {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "9",
+            "Capitaine": false
+          }
+        ]
+      },
       "remplacants": [],
       "events": {
         "passeurs": {},
@@ -3880,7 +3928,8 @@
         "Emmanuel Pannier",
         "Gregory Perrot",
         "Mehdi Zerrouki"
-      ]
+      ],
+      "capitaine": ""
     },
     "a62e13ff-0d58-45fb-99d6-d1a1bf5d3a75": {
       "type": "Championnat",
