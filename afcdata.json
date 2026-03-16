@@ -3832,7 +3832,13 @@
       "nom_match": "\ud83d\udcc8 2026-03-18 : Championnat - J13 - AFC vs TOAC 2",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
       "joueurs_disponibles": [
-        "Thibault Rigal"
+        "Thibault Rigal",
+        "Olivier Saint-Sa\u00ebns",
+        "Arthur Couto",
+        "Nicolas Gardan",
+        "Jahid Labrinssi",
+        "Axel Soldadi\u00e9",
+        "Hicham Grerifa"
       ],
       "formation": "",
       "details": [],
@@ -3851,7 +3857,16 @@
       "score_adv": 0,
       "noted": false,
       "termine": false,
-      "homme_du_match": ""
+      "homme_du_match": "",
+      "nibles": [
+        "Thibault Rigal",
+        "Olivier Saint-Sa\u00ebns",
+        "Arthur Couto",
+        "Nicolas Gardan",
+        "Jahid Labrinssi",
+        "Axel Soldadi\u00e9",
+        "Hicham Grerifa"
+      ]
     },
     "a62e13ff-0d58-45fb-99d6-d1a1bf5d3a75": {
       "type": "Championnat",
