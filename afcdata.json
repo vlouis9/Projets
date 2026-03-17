@@ -3851,11 +3851,25 @@
       "formation": "4-2-3-1",
       "details": {
         "G": [
-          null
+          {
+            "Nom": "Nicolas Gardan",
+            "Poste": "G",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "1",
+            "Capitaine": false
+          }
         ],
         "D": [
           null,
-          null,
+          {
+            "Nom": "Thibault Rigal",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": true
+          },
           null,
           null
         ],
@@ -3931,7 +3945,7 @@
         "Mehdi Zerrouki",
         "Giovanni Filippi"
       ],
-      "capitaine": ""
+      "capitaine": "Thibault Rigal"
     },
     "a62e13ff-0d58-45fb-99d6-d1a1bf5d3a75": {
       "type": "Championnat",
