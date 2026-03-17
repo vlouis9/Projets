@@ -3861,7 +3861,14 @@
           }
         ],
         "D": [
-          null,
+          {
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
           {
             "Nom": "Thibault Rigal",
             "Poste": "M",
@@ -3870,12 +3877,40 @@
             "Numero": "5",
             "Capitaine": true
           },
-          null,
-          null
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "2",
+            "Capitaine": false
+          }
         ],
         "M": [
-          null,
-          null,
+          {
+            "Nom": "Nicolas Mitrano",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Arthur Couto",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6",
+            "Capitaine": false
+          },
           {
             "Nom": "Axel Soldadi\u00e9",
             "Poste": "A",
@@ -3912,7 +3947,24 @@
           }
         ]
       },
-      "remplacants": [],
+      "remplacants": [
+        {
+          "Nom": "Adrien Dugenet",
+          "Numero": "12"
+        },
+        {
+          "Nom": "Credo Atake",
+          "Numero": "13"
+        },
+        {
+          "Nom": "Emmanuel Pannier",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Giovanni Filippi",
+          "Numero": "15"
+        }
+      ],
       "events": {
         "passeurs": {},
         "cartons_jaunes": {},
