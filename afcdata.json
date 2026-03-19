@@ -3886,8 +3886,8 @@
             "Capitaine": false
           },
           {
-            "Nom": "Olivier Saint-Sa\u00ebns",
-            "Poste": "D",
+            "Nom": "Adrien Dugenet",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "2",
@@ -3896,8 +3896,8 @@
         ],
         "M": [
           {
-            "Nom": "Nicolas Mitrano",
-            "Poste": "M",
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "8",
@@ -3912,7 +3912,7 @@
             "Capitaine": false
           },
           {
-            "Nom": "Axel Soldadi\u00e9",
+            "Nom": "Emmanuel Pannier",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -3938,7 +3938,7 @@
         ],
         "A": [
           {
-            "Nom": "Gregory Perrot",
+            "Nom": "Axel Soldadi\u00e9",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -3949,7 +3949,7 @@
       },
       "remplacants": [
         {
-          "Nom": "Adrien Dugenet",
+          "Nom": "Nicolas Mitrano",
           "Numero": "12"
         },
         {
@@ -3957,12 +3957,8 @@
           "Numero": "13"
         },
         {
-          "Nom": "Emmanuel Pannier",
-          "Numero": "14"
-        },
-        {
           "Nom": "Giovanni Filippi",
-          "Numero": "15"
+          "Numero": "14"
         }
       ],
       "events": {
