@@ -3962,20 +3962,20 @@
         }
       ],
       "events": {
+        "buteurs": {},
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
         "buts_list": [],
-        "buteurs": {},
-        "csc_count": 0,
-        "notes": {}
+        "notes": {},
+        "csc_count": 0
       },
-      "score": "",
+      "score": "0-2",
       "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score_adv": 2,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Nicolas Gardan",
       "nibles": [
         "Thibault Rigal",
         "Olivier Saint-Sa\u00ebns",
@@ -3993,7 +3993,9 @@
         "Mehdi Zerrouki",
         "Giovanni Filippi"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "a62e13ff-0d58-45fb-99d6-d1a1bf5d3a75": {
       "type": "Championnat",
