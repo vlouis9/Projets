@@ -4007,7 +4007,19 @@
       "nom_match": "\ud83d\udcc8 2026-03-25 : Championnat - J14 - AFC vs CHU TOULOUSE FC",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
       "joueurs_disponibles": [
-        "Thibault Rigal"
+        "Thibault Rigal",
+        "Arthur Couto",
+        "Olivier Saint-Sa\u00ebns",
+        "Nicolas Gardan",
+        "Abdel Jalil",
+        "Adjmal Akhtari",
+        "Hicham Grerifa",
+        "Jahid Labrinssi",
+        "Maxime Pujol",
+        "Emmanuel Pannier",
+        "Sofian Labrinssi",
+        "Louis Vermeulen",
+        "Gregory Perrot"
       ],
       "formation": "",
       "details": [],
@@ -4026,7 +4038,22 @@
       "score_adv": 0,
       "noted": false,
       "termine": false,
-      "homme_du_match": ""
+      "homme_du_match": "",
+      "nibles": [
+        "Thibault Rigal",
+        "Arthur Couto",
+        "Olivier Saint-Sa\u00ebns",
+        "Nicolas Gardan",
+        "Abdel Jalil",
+        "Adjmal Akhtari",
+        "Hicham Grerifa",
+        "Jahid Labrinssi",
+        "Maxime Pujol",
+        "Emmanuel Pannier",
+        "Sofian Labrinssi",
+        "Louis Vermeulen",
+        "Gregory Perrot"
+      ]
     },
     "95b21464-3357-462b-8e52-860710c2bb47": {
       "type": "Championnat",
