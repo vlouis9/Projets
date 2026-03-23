@@ -4008,7 +4008,6 @@
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
       "joueurs_disponibles": [
         "Thibault Rigal",
-        "Arthur Couto",
         "Olivier Saint-Sa\u00ebns",
         "Nicolas Gardan",
         "Abdel Jalil",
@@ -4019,7 +4018,8 @@
         "Emmanuel Pannier",
         "Sofian Labrinssi",
         "Louis Vermeulen",
-        "Gregory Perrot"
+        "Gregory Perrot",
+        "Arthur Bouchet"
       ],
       "formation": "4-2-3-1",
       "details": {
@@ -4147,7 +4147,6 @@
       "homme_du_match": "",
       "nibles": [
         "Thibault Rigal",
-        "Arthur Couto",
         "Olivier Saint-Sa\u00ebns",
         "Nicolas Gardan",
         "Abdel Jalil",
@@ -4158,7 +4157,8 @@
         "Emmanuel Pannier",
         "Sofian Labrinssi",
         "Louis Vermeulen",
-        "Gregory Perrot"
+        "Gregory Perrot",
+        "Arthur Bouchet"
       ],
       "capitaine": "Thibault Rigal"
     },
