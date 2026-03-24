@@ -4028,7 +4028,7 @@
       "details": {
         "G": [
           {
-            "Nom": "Nicolas Gardan",
+            "Nom": "Pierre Tarasinski",
             "Poste": "G",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -4038,7 +4038,7 @@
         ],
         "D": [
           {
-            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Nom": "Arthur Bouchet",
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -4062,8 +4062,8 @@
             "Capitaine": false
           },
           {
-            "Nom": "Adjmal Akhtari",
-            "Poste": "M",
+            "Nom": "Olivier Saint-Sa\u00ebns",
+            "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "2",
@@ -4072,19 +4072,19 @@
         ],
         "M": [
           {
-            "Nom": "Arthur Couto",
-            "Poste": "D",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "6",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Sofian Labrinssi",
+            "Nom": "Louis Vermeulen",
             "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "8",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Nicolas Mitrano",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "6",
             "Capitaine": false
           },
           {
@@ -4125,12 +4125,24 @@
       },
       "remplacants": [
         {
-          "Nom": "Louis Vermeulen",
+          "Nom": "Nicolas Gardan",
           "Numero": "12"
         },
         {
           "Nom": "Hicham Grerifa",
           "Numero": "13"
+        },
+        {
+          "Nom": "Adjmal Akhtari",
+          "Numero": "14"
+        },
+        {
+          "Nom": "Adrien Dugenet",
+          "Numero": "15"
+        },
+        {
+          "Nom": "Giovanni Filippi",
+          "Numero": "16"
         }
       ],
       "events": {
