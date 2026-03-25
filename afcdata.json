@@ -4143,20 +4143,20 @@
         }
       ],
       "events": {
+        "buteurs": {},
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
         "buts_list": [],
-        "buteurs": {},
-        "csc_count": 0,
-        "notes": {}
+        "notes": {},
+        "csc_count": 0
       },
-      "score": "",
+      "score": "0-3",
       "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score_adv": 3,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Pierre Tarasinski",
       "nibles": [
         "Thibault Rigal",
         "Olivier Saint-Sa\u00ebns",
@@ -4176,7 +4176,9 @@
         "Pierre Tarasinski",
         "Mehdi Zerrouki"
       ],
-      "capitaine": "Thibault Rigal"
+      "capitaine": "Thibault Rigal",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "95b21464-3357-462b-8e52-860710c2bb47": {
       "type": "Championnat",
