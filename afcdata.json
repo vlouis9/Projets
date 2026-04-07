@@ -1770,83 +1770,20 @@
       "formation": "4-2-3-1",
       "details": {
         "G": [
-          {
-            "Nom": "William Toumelin",
-            "Poste": "G",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "1",
-            "Capitaine": false
-          }
+          null
         ],
         "D": [
-          {
-            "Nom": "Arthur Bouchet",
-            "Poste": "D",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "3",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Maxime Pujol",
-            "Poste": "D",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "4",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Pierre Pavia",
-            "Poste": "D",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "5",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Olivier Saint-Sa\u00ebns",
-            "Poste": "D",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "2",
-            "Capitaine": false
-          }
+          null,
+          null,
+          null,
+          null
         ],
         "M": [
           null,
-          {
-            "Nom": "Sofian Labrinssi",
-            "Poste": "M",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "8",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Axel Soldadi\u00e9",
-            "Poste": "A",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "7",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Jahid Labrinssi",
-            "Poste": "A",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "10",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Abdel Jalil",
-            "Poste": "A",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "11",
-            "Capitaine": false
-          }
+          null,
+          null,
+          null,
+          null
         ],
         "A": [
           null
