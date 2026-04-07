@@ -1795,15 +1795,14 @@
         "passeurs": {},
         "cartons_jaunes": {},
         "cartons_rouges": {},
+        "buts_list": [],
         "notes": {},
-        "csc": [],
-        "csc_count": 0,
-        "buts_list": []
+        "csc_count": 0
       },
-      "score": "",
+      "score": "0-3",
       "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score_adv": 3,
+      "noted": true,
       "termine": true,
       "homme_du_match": "",
       "joueurs_disponibles": [
@@ -1838,7 +1837,9 @@
         "Emmanuel Pannier",
         "Gregory Perrot"
       ],
-      "capitaine": ""
+      "capitaine": "",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "24b8ea29-bd98-4114-8e4c-662b611e923e": {
       "type": "Coupe",
