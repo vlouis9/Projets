@@ -4190,7 +4190,19 @@
       "nom_match": "\ud83d\udcc8 2026-04-08 : Championnat - J15 - AFC vs ATHLETICO TOLOSA B",
       "lieu": "Club de Football Barradels, 2 Rue des Cyclamens, 31700 Blagnac",
       "joueurs_disponibles": [
-        "Thibault Rigal"
+        "Gregory Perrot",
+        "Mehdi Zerrouki",
+        "Arthur Bouchet",
+        "Arthur Couto",
+        "Pierre Pavia",
+        "Nicolas Gardan",
+        "Pierre Tarasinski",
+        "Adjmal Akhtari",
+        "Hicham Grerifa",
+        "Nicolas Mitrano",
+        "Abdel Jalil",
+        "Olivier Saint-Sa\u00ebns",
+        "Emmanuel Pannier"
       ],
       "formation": "",
       "details": [],
@@ -4209,7 +4221,22 @@
       "score_adv": 0,
       "noted": false,
       "termine": false,
-      "homme_du_match": ""
+      "homme_du_match": "",
+      "nibles": [
+        "Gregory Perrot",
+        "Mehdi Zerrouki",
+        "Arthur Bouchet",
+        "Arthur Couto",
+        "Pierre Pavia",
+        "Nicolas Gardan",
+        "Pierre Tarasinski",
+        "Adjmal Akhtari",
+        "Hicham Grerifa",
+        "Nicolas Mitrano",
+        "Abdel Jalil",
+        "Olivier Saint-Sa\u00ebns",
+        "Emmanuel Pannier"
+      ]
     },
     "9e3b0021-18e8-41c0-a08e-12388bd121ec": {
       "type": "Championnat",
