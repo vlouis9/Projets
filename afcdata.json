@@ -4257,20 +4257,29 @@
         }
       ],
       "events": {
-        "passeurs": {},
+        "buteurs": {
+          "Gregory Perrot": 1
+        },
+        "passeurs": {
+          "Nicolas Mitrano": 1
+        },
         "cartons_jaunes": {},
         "cartons_rouges": {},
-        "buts_list": [],
-        "buteurs": {},
-        "csc_count": 0,
-        "notes": {}
+        "buts_list": [
+          [
+            "Gregory Perrot",
+            "Nicolas Mitrano"
+          ]
+        ],
+        "notes": {},
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "1-3",
+      "score_afc": 1,
+      "score_adv": 3,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Gregory Perrot",
       "nibles": [
         "Gregory Perrot",
         "Mehdi Zerrouki",
@@ -4287,7 +4296,9 @@
         "Emmanuel Pannier",
         "Jahid Labrinssi"
       ],
-      "capitaine": ""
+      "capitaine": "",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "9e3b0021-18e8-41c0-a08e-12388bd121ec": {
       "type": "Championnat",
