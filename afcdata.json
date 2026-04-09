@@ -4157,19 +4157,11 @@
         ],
         "D": [
           {
-            "Nom": "Arthur Bouchet",
-            "Poste": "D",
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "3",
-            "Capitaine": false
-          },
-          {
-            "Nom": "Olivier Saint-Sa\u00ebns",
-            "Poste": "D",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "4",
             "Capitaine": false
           },
           {
@@ -4177,12 +4169,20 @@
             "Poste": "D",
             "Infos": "",
             "S\u00e9lectionnable": true,
+            "Numero": "4",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Arthur Bouchet",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
             "Numero": "5",
             "Capitaine": false
           },
           {
-            "Nom": "Arthur Couto",
-            "Poste": "D",
+            "Nom": "Adjmal Akhtari",
+            "Poste": "M",
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "2",
@@ -4199,24 +4199,31 @@
             "Capitaine": false
           },
           {
+            "Nom": "Gregory Perrot",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "",
+            "Capitaine": false
+          },
+          {
             "Nom": "Emmanuel Pannier",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
-            "Numero": "8",
+            "Numero": "",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Jahid Labrinssi",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "10",
             "Capitaine": false
           },
           {
             "Nom": "Mehdi Zerrouki",
-            "Poste": "A",
-            "Infos": "",
-            "S\u00e9lectionnable": true,
-            "Numero": "7",
-            "Capitaine": false
-          },
-          null,
-          {
-            "Nom": "Abdel Jalil",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -4226,7 +4233,7 @@
         ],
         "A": [
           {
-            "Nom": "Gregory Perrot",
+            "Nom": "Abdel Jalil",
             "Poste": "A",
             "Infos": "",
             "S\u00e9lectionnable": true,
@@ -4235,7 +4242,20 @@
           }
         ]
       },
-      "remplacants": [],
+      "remplacants": [
+        {
+          "Nom": "Nicolas Gardan",
+          "Numero": ""
+        },
+        {
+          "Nom": "Arthur Couto",
+          "Numero": ""
+        },
+        {
+          "Nom": "Olivier Saint-Sa\u00ebns",
+          "Numero": ""
+        }
+      ],
       "events": {
         "passeurs": {},
         "cartons_jaunes": {},
