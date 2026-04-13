@@ -4326,8 +4326,22 @@
           null
         ],
         "D": [
-          null,
-          null,
+          {
+            "Nom": "Hicham Grerifa",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "3",
+            "Capitaine": false
+          },
+          {
+            "Nom": "Constant Augustin",
+            "Poste": "D",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "5",
+            "Capitaine": false
+          },
           {
             "Nom": "Pierre Pavia",
             "Poste": "D",
@@ -4352,7 +4366,7 @@
             "Infos": "",
             "S\u00e9lectionnable": true,
             "Numero": "6",
-            "Capitaine": false
+            "Capitaine": true
           },
           {
             "Nom": "Nicolas Mitrano",
@@ -4362,7 +4376,14 @@
             "Numero": "8",
             "Capitaine": false
           },
-          null,
+          {
+            "Nom": "Louis Vermeulen",
+            "Poste": "M",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "7",
+            "Capitaine": false
+          },
           {
             "Nom": "Jahid Labrinssi",
             "Poste": "A",
@@ -4371,7 +4392,14 @@
             "Numero": "10",
             "Capitaine": false
           },
-          null
+          {
+            "Nom": "Abdel Jalil",
+            "Poste": "A",
+            "Infos": "",
+            "S\u00e9lectionnable": true,
+            "Numero": "11",
+            "Capitaine": false
+          }
         ],
         "A": [
           null
@@ -4404,7 +4432,7 @@
         "Nicolas Mitrano",
         "Adjmal Akhtari"
       ],
-      "capitaine": ""
+      "capitaine": "Maxime Pujol"
     },
     "dabf732c-d188-4149-8e4b-57cafd7c651c": {
       "type": "Championnat",
