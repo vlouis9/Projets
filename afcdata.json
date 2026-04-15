@@ -4439,20 +4439,42 @@
         }
       ],
       "events": {
-        "passeurs": {},
-        "cartons_jaunes": {},
+        "buteurs": {
+          "Maxime Pujol": 1,
+          "Gregory Perrot": 1,
+          "Louis Vermeulen": 1
+        },
+        "passeurs": {
+          "Nicolas Mitrano": 1,
+          "Gregory Perrot": 1
+        },
+        "cartons_jaunes": {
+          "Nicolas Mitrano": 1
+        },
         "cartons_rouges": {},
-        "buts_list": [],
-        "buteurs": {},
-        "csc_count": 0,
-        "notes": {}
+        "buts_list": [
+          [
+            "Maxime Pujol",
+            ""
+          ],
+          [
+            "Gregory Perrot",
+            "Nicolas Mitrano"
+          ],
+          [
+            "Louis Vermeulen",
+            "Gregory Perrot"
+          ]
+        ],
+        "notes": {},
+        "csc_count": 0
       },
-      "score": "",
-      "score_afc": 0,
-      "score_adv": 0,
-      "noted": false,
+      "score": "3-4",
+      "score_afc": 3,
+      "score_adv": 4,
+      "noted": true,
       "termine": true,
-      "homme_du_match": "",
+      "homme_du_match": "Maxime Pujol",
       "nibles": [
         "Abdel Jalil",
         "Jahid Labrinssi",
@@ -4469,7 +4491,9 @@
         "Arthur Bouchet",
         "Arthur Couto"
       ],
-      "capitaine": "Pierre Pavia"
+      "capitaine": "Pierre Pavia",
+      "noter_joueurs": false,
+      "revue_presse": ""
     },
     "dabf732c-d188-4149-8e4b-57cafd7c651c": {
       "type": "Championnat",
